@@ -6,6 +6,7 @@ import LocalServer
 import ServerData as D
 
 import DOMRenderer
+import View
 
 main =
   Debug.log(D.packetToString LocalServer.p)
@@ -39,4 +40,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ DOMRenderer.field LocalServer.p ]
+    [ 
+      View.code
+      DOMRenderer.field LocalServer.p 
+      View.info
+    ]

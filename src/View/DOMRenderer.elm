@@ -15,6 +15,6 @@ renderEntity entity =
   div [ classList [(D.teamToString entity.team, True),
                    (D.actionToString entity.action, True),
                    (D.entityTypeToString entity.entityType, True)],
-        style "top" ((String.fromInt (15*entity.position.y))++"px"),
-        style "left" ((String.fromInt (15*entity.position.x))++"px")]
+        style "top" ((String.fromInt (25*entity.position.y))++"px"),
+        style "left" ((String.fromInt (25*entity.position.x))++"px")]
       [] 

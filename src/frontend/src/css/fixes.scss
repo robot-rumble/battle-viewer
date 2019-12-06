@@ -1,0 +1,36 @@
+button,
+input,
+select {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: black;
+}
+
+*:focus {
+  outline: 0 !important;
+}
+
+*::-moz-focus-inner {
+  outline: 0 !important;
+  border: 0 !important;
+}
+
+button,
+img {
+  display: block;
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: bold !important;
+  text-align: center;
+}
+
+body {
+  background: white;
+}

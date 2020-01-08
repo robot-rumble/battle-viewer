@@ -1,7 +1,9 @@
 const path = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const dist = path.join(__dirname, '../../public/dist')
+const dist = process.env.NODE_ENV === 'production'
+  ? path.join(__dirname, './dist')
+  : path.join(__dirname, '../../public/dist')
 
 const browserConfig = {
   mode: process.env.NODE_ENV || 'development',
@@ -23,7 +25,7 @@ const browserConfig = {
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
-          process.env.NODE_ENV === 'development' ? 'style-loader' : MiniCssExtractPlugin.loader,
+          process.env.NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
           'css-loader',
           'sass-loader',
         ],
@@ -75,6 +77,8 @@ const workerConfig = {
       logic:
         process.env.NODE_ENV === 'production'
           ? './frontend.js'
+          : process.env.DOCKER
+          ? '/logic/_build'
           : path.join(__dirname, '../logic/_build/default/frontend.js'),
     },
   },

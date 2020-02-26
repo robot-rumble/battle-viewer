@@ -1,5 +1,5 @@
 import stdlib from './stdlib.raw.py'
-import {main as runLogic} from 'logic'
+import { main as runLogic } from 'logic'
 import _ from 'lodash'
 
 const rpPromise = import('rustpython_wasm')

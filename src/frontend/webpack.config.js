@@ -77,8 +77,6 @@ const workerConfig = {
       logic:
         process.env.NODE_ENV === 'production'
           ? './frontend.js'
-          : process.env.DOCKER
-          ? '/logic/_build'
           : path.join(__dirname, '../logic/_build/default/frontend.js'),
     },
   },

@@ -9,14 +9,22 @@ window.runCount = 0
 
 customElements.define('robot-arena', class extends HTMLElement {
   connectedCallback () {
+    // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
+    if (!window.jsRoutes) {
+      throw new Error('No Play JS router found.')
+    }
+
+    const robot = new URL(window.location.href).pathname.slice(1)
+
     const app = Elm.Main.init({
       node: this,
       flags: {
         totalTurns: window.turnNum,
+        updatePath: robot ? window.jsRoutes.controllers.RobotController.postCreate(robot).url : null,
       },
     })
 
-    const matchWorker = new window.Worker('/assets/dist/worker.js')
+    const matchWorker = new Worker('/assets/dist/worker.js')
 
     app.ports.startEval.subscribe((code1) => {
       window.runCount++
@@ -27,9 +35,10 @@ customElements.define('robot-arena', class extends HTMLElement {
       if (data.type === 'error') {
         console.log('Worker Error!')
         console.error(data.data)
-        app.ports.getError.send(null)
+        app.ports.getInternalError.send(null)
       } else {
-        if (data.type === 'getOutput') console.log(data.data)
+        // we pass all other data, including other errors, to the elm app
+        console.log(data)
         app.ports[data.type].send(data.data)
       }
     }

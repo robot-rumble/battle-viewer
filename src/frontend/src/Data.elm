@@ -58,17 +58,19 @@ type alias Team =
     String
 
 
-decodeOutput : Value -> Result Json.Decode.Error Output
-decodeOutput =
-    decodeValue outputDecoder
-
-
-type alias Output = Result Error Outcome
 
 type alias Outcome =
     { winner : String
-    , turns : Array State
     }
+
+decodeOutcome : Value -> Result Json.Decode.Error Outcome
+decodeOutcome = decodeValue outcomeDecoder
+
+outcomeDecoder : Decoder Outcome
+outcomeDecoder =
+    succeed Outcome
+    |> required "winner" string
+
 
 type alias Error =
     { message : String
@@ -82,18 +84,15 @@ type alias ErrorLoc =
     , endch : Int
     }
 
-outputDecoder : Decoder Output
-outputDecoder =
-    oneOf
-        [ succeed Outcome
-            |> required "winner" string
-            |> required "turns" (array stateDecoder)
-            |> map Ok
-        , succeed Error
-            |> required "message" string
-            |> custom (field "errorLoc" (nullable errorLocDecoder))
-            |> map Err
-        ]
+decodeError : Value -> Result Json.Decode.Error Error
+decodeError = decodeValue errorDecoder
+
+errorDecoder : Decoder Error
+errorDecoder =
+        succeed Error
+        |> required "message" string
+        |> custom (field "errorLoc" (nullable errorLocDecoder))
+
 
 errorLocDecoder : Decoder ErrorLoc
 errorLocDecoder =
@@ -102,6 +101,10 @@ errorLocDecoder =
     |> required "ch" int
     |> required "endline" int
     |> required "endch" int
+
+
+decodeProgress : Value -> Result Json.Decode.Error State
+decodeProgress = decodeValue stateDecoder
 
 
 nullableIntEncoder : Maybe Int -> Encode.Value
@@ -129,25 +132,14 @@ type alias State =
 stateDecoder : Decoder State
 stateDecoder =
     succeed State
-        |> required "turn" int
-        |> required "objs" (dict objDecoder)
+    |> required "turn" int
+    |> required "objs" (dict objDecoder)
 
 type alias Obj = ( BasicObj, ObjDetails )
 
 objDecoder : Decoder Obj
 objDecoder =
-    field "type_" string
-    |> andThen (\type_ ->
-        case type_ of
-            "Soldier" -> unitDecoder
-            "Wall" -> terrainDecoder
-            _ -> fail ("Invalid type: " ++ type_)
-        )
-    |> andThen (\details ->
-        basicObjDecoder |> andThen (\basic ->
-            succeed (basic, details)
-        )
-    )
+    arrayAsTuple2 basicObjDecoder objDetailsDecoder
 
 type alias BasicObj =
     { coords : Coords
@@ -163,6 +155,15 @@ basicObjDecoder =
 
 type ObjDetails = UnitDetails Unit | TerrainDetails Terrain
 
+objDetailsDecoder : Decoder ObjDetails
+objDetailsDecoder =
+    field "type_" string
+    |> andThen (\type_ ->
+        case type_ of
+            "Soldier" -> unitDecoder |> map UnitDetails
+            "Wall" -> terrainDecoder |> map TerrainDetails
+            _ -> fail ("Invalid type: " ++ type_)
+        )
 
 type alias Unit =
     { type_ : UnitType
@@ -173,13 +174,12 @@ type alias Unit =
 type UnitType
     = Soldier
 
-unitDecoder : Decoder ObjDetails
+unitDecoder : Decoder Unit
 unitDecoder =
     succeed Unit
         |> required "type_" (string |> stringAsUnion [ ( "Soldier", Soldier ) ])
         |> required "health" int
         |> required "team" string
-        |> map UnitDetails
 
 
 type alias Terrain =
@@ -189,9 +189,8 @@ type alias Terrain =
 type TerrainType
     = Wall
 
-terrainDecoder : Decoder ObjDetails
+terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
         |> required "type_" (string |> stringAsUnion [ ( "Wall", Wall ) ])
-        |> map TerrainDetails
 

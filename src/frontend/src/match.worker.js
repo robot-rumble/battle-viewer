@@ -1,13 +1,10 @@
 import stdlib from './stdlib.raw.py'
-import { main as runLogic } from 'logic'
-import _ from 'lodash'
+import zip from 'lodash/zip'
 
 const rpPromise = import('rustpython_wasm')
+const logicPromise = import('logic')
 
-// to fix some weird bug
-self.Window = self.constructor
-
-const errorToObj = (e, num) => {
+const errorToObj = (e, errorType) => {
   // elm expects a null value for missing field
   let errorLoc = null
   if (e.row && e.col && e.endrow && e.endcol) {
@@ -20,14 +17,15 @@ const errorToObj = (e, num) => {
   }
   return {
     message: e.message,
-    num,
     errorLoc,
+    // errorType is purely for debugging
+    errorType,
   }
 }
 
-self.addEventListener('message', ({data: {code1, code2, turnNum}}) => {
-  rpPromise
-    .then((rp) => {
+self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
+  Promise.all([rpPromise, logicPromise])
+    .then(([rp, logic]) => {
       const startTime = Date.now()
 
       const vms = ['robot1', 'robot2'].map((name) => {
@@ -42,13 +40,13 @@ self.addEventListener('message', ({data: {code1, code2, turnNum}}) => {
       const codes = [code1, code2]
 
       try {
-        _.zip(codes, vms).forEach(([code, vm]) => {
+        zip(codes, vms).forEach(([code, vm]) => {
           vm.exec(code)
         })
       } catch (e) {
         self.postMessage({
-          type: 'getOutput',
-          data: errorToObj(e, 0),
+          type: 'getError',
+          data: errorToObj(e, 'Python syntax error'),
         })
         return
       }
@@ -59,42 +57,42 @@ self.addEventListener('message', ({data: {code1, code2, turnNum}}) => {
         })
       } catch (e) {
         self.postMessage({
-          type: 'getOutput',
-          data: errorToObj(e, 1),
+          type: 'getError',
+          data: errorToObj(e, 'Python execution error'),
         })
         return
       }
 
-      const [run1, run2] = vms.map((vm) => {
-        const main = (args) => vm.eval('main')([args, Math.random])
-        return (args) => {
-          args = JSON.parse(args)
-          try {
-            return JSON.stringify(main(args, {}))
-          } catch (e) {
-            self.postMessage({
-              type: 'getOutput',
-              data: errorToObj(e, 2),
-            })
-          }
-        }
-      })
-      const turnCallback = (turn) => self.postMessage({type: 'getProgress', data: turn})
+      const codeRunners = zip(
+        ['Red', 'Blue'],
+        vms.map((vm) => (args) => vm.eval('main')([args, Math.random])),
+      )
 
-      runLogic({run1, run2, turnNum: turnNum, turnCallback}, (output) => {
-        console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
-        self.postMessage({type: 'getOutput', data: JSON.parse(output)})
-      })
-    })
-    .catch((e) => {
-      let data
-      if (e.message) {
-        // JS error
-        data = errorToObj(e, 3)
-      } else {
-        // OCAML error
-        data = e
+      const runTeam = (team, robotInput) => {
+        try {
+          if (team in codeRunners) {
+            return codeRunners[team](robotInput, {})
+          } else {
+            throw new Error('Team not found')
+          }
+        } catch (e) {
+          self.postMessage({
+            type: 'getError',
+            data: errorToObj(e, 'Logic execution error'),
+          })
+        }
       }
-      self.postMessage({type: 'error', data})
+
+      const turnCallback = (turnState) => {
+        self.postMessage({ type: 'getProgress', data: turnState })
+      }
+
+      const finalCallback = (finalState) => {
+        console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
+        self.postMessage({ type: 'getOutput', data: finalState })
+      }
+
+      logic.main(runTeam, turnCallback, finalCallback, turnNum)
     })
+    .catch((e) => self.postMessage({ type: 'error', data: errorToObj(e, 'Worker execution error') }))
 })

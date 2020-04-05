@@ -1,5 +1,6 @@
 const path = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin')
 
 const dist = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, './dist')
@@ -53,14 +54,16 @@ const browserConfig = {
       },
     ],
   },
-  plugins: [new MiniCssExtractPlugin()],
+  plugins: [
+    new MiniCssExtractPlugin(),
+  ],
   devServer: {
     contentBase: dist,
     historyApiFallback: true,
     stats: 'minimal',
     host: '0.0.0.0',
   },
-  devtool: 'source-map'
+  devtool: 'source-map',
 }
 
 const workerConfig = {
@@ -77,7 +80,7 @@ const workerConfig = {
       logic:
         process.env.NODE_ENV === 'production'
           ? './frontend.js'
-          : path.join(__dirname, '../logic/_build/default/frontend.js'),
+          : path.join(__dirname, '../logic/frontend/pkg'),
     },
   },
   node: {
@@ -96,7 +99,16 @@ const workerConfig = {
       },
     ],
   },
-  devtool: 'source-map'
+  devtool: 'source-map',
+  plugins: [
+    new WasmPackPlugin({
+      crateDirectory: path.join(__dirname, '../logic/frontend'),
+      watchDirectories: [
+        path.join(__dirname, '../logic/frontend/src'),
+        path.join(__dirname, '../logic/logic/src'),
+      ],
+    }),
+  ],
 }
 
 module.exports = [browserConfig, workerConfig]

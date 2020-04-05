@@ -4,12 +4,14 @@ import Browser
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
-import Array
+import Array exposing (Array)
 
 import Dict
 
 import Data
+import Http
 import Json.Decode as Decode
+import Json.Encode as Encode
 
 
 -- MAIN
@@ -33,24 +35,26 @@ type alias Model =
     { code : String
     , renderState : RenderState
     , totalTurns : Int
+    , updatePath: Maybe String
     }
 
 type RenderState = Loading Int | Render RenderStateVal | Error Data.Error | NoRender | InternalError
 
 type alias RenderStateVal =
-   { data : Data.Outcome
-   , turn : Int
+   { turns : Array Data.State
+   , current_turn_num : Int
    }
 
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    (Model "" NoRender flags.totalTurns, Cmd.none )
+    (Model "" NoRender flags.totalTurns flags.updatePath, Cmd.none )
 
 
 type alias Flags =
     { totalTurns: Int
+    , updatePath: Maybe String
     }
 
 
@@ -62,37 +66,63 @@ port reportDecodeError : String -> Cmd msg
 
 type Msg
     = GotOutput Decode.Value
-    | GotProgress Int
+    | GotProgress Decode.Value
+    | GotError Decode.Value
     | Run
     | GotRenderMsg RenderMsg
     | CodeChanged String
-    | GotError
+    | GotInternalError
+    | Saved (Result Http.Error ())
 
 type RenderMsg = ChangeTurn Direction
 type Direction = Next | Previous
+
+handleDecodeError : Model -> Decode.Error -> (Model, Cmd.Cmd msg)
+handleDecodeError model error =
+  ( { model | renderState = InternalError }, reportDecodeError <| Decode.errorToString error )
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotOutput output ->
-          case Data.decodeOutput output of
-            Ok data ->
-              ( { model | renderState =
-              case data of
-                Ok outcome ->
-                  Render { data = outcome, turn = 0 }
-                Err error ->
-                  Error error
+          case Data.decodeOutcome output of
+            Ok _ ->
+              (model, Cmd.none)
+
+            Err error ->
+                handleDecodeError model error
+
+        GotProgress progress ->
+          case Data.decodeProgress progress of
+            Ok turnState ->
+              ( { model | renderState = case model.renderState of
+                  Render renderState -> Render { renderState | turns = Array.push turnState renderState.turns }
+                  _ -> Render { turns = Array.fromList [turnState], current_turn_num = 0 }
               }, Cmd.none )
 
             Err error ->
-              ( { model | renderState = InternalError }, reportDecodeError <| Decode.errorToString error )
+                handleDecodeError model error
 
-        GotProgress turn ->
-            ( { model | renderState = Loading turn }, Cmd.none)
+        GotError rawError ->
+          case Data.decodeError rawError of
+            Ok error ->
+              ( { model | renderState = Error error }, Cmd.none )
+
+            Err decodeError ->
+                handleDecodeError model decodeError
 
         Run ->
-            ( { model | renderState = Loading 0 }, startEval model.code )
+            let codeUpdateCmd = case model.updatePath of
+                    Just (path) ->
+                        Http.post({
+                            url = path,
+                            body = Http.jsonBody(Encode.object [ ("code", Encode.string model.code) ] ),
+                            expect = Http.expectWhatever Saved
+                        })
+                    Nothing -> Cmd.none
+            in
+            ({ model | renderState = Loading 0 }, Cmd.batch [codeUpdateCmd, startEval model.code])
+
 
         GotRenderMsg renderMsg ->
             case model.renderState of
@@ -102,13 +132,15 @@ update msg model =
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )
 
-        GotError ->
+        GotInternalError ->
             ( { model | renderState = InternalError }, Cmd.none )
+
+        Saved _ -> ( model, Cmd.none )
 
 updateRender : RenderMsg -> RenderStateVal -> RenderStateVal
 updateRender msg model =
     case msg of
-        ChangeTurn dir -> ( { model | turn = model.turn +
+        ChangeTurn dir -> ( { model | current_turn_num = model.current_turn_num +
             case dir of
                 Next -> 1
                 Previous -> -1
@@ -117,16 +149,18 @@ updateRender msg model =
 
 -- SUBSCRIPTIONS
 
-port getProgress : (Int -> msg) -> Sub msg
 port getOutput : (Decode.Value -> msg) -> Sub msg
-port getError : (() -> msg) -> Sub msg
+port getProgress : (Decode.Value -> msg) -> Sub msg
+port getError : (Decode.Value -> msg) -> Sub msg
+port getInternalError : (() -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch [
         getOutput GotOutput,
         getProgress GotProgress,
-        getError (always GotError)
+        getError GotError,
+        getInternalError (always GotInternalError)
     ]
 
 -- VIEW
@@ -216,7 +250,7 @@ viewGameViewer model =
     case model.renderState of
         Render state ->
             let game =
-                    case Array.get state.turn state.data.turns of
+                    case Array.get state.current_turn_num state.turns of
                        Just turn -> gameRenderer (gameObjs turn)
                        Nothing -> div [] [text "Invalid turn."]
             in
@@ -225,13 +259,13 @@ viewGameViewer model =
                 , div [class "d-flex", class "justify-content-center", class "mt-3"]
                   [ button
                         [onClick <| GotRenderMsg (ChangeTurn Previous)
-                        , disabled (state.turn == 0)
+                        , disabled (state.current_turn_num == 0)
                         , class "arrow-button"
                         ] [text "\u{2190}"]
-                  , div [style "width" "6rem", class "text-center"] [text <| "turn " ++ String.fromInt (state.turn + 1)]
+                  , div [style "width" "6rem", class "text-center"] [text <| "turn " ++ String.fromInt (state.current_turn_num + 1)]
                   , button
                         [onClick <| GotRenderMsg (ChangeTurn Next)
-                        , disabled (state.turn == Array.length state.data.turns - 1)
+                        , disabled (state.current_turn_num == Array.length state.turns - 1)
                         , class "arrow-button"
                         ] [text "\u{2192}"]
                   ]

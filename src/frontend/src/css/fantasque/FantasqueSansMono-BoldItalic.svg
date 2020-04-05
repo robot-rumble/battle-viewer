@@ -3,34 +3,34 @@
 <!--
 2013-9-13: Created.
 -->
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">
-<metadata>
-Created by FontForge 20150824 at Sun Apr  3 21:32:40 2016
- By Jany Belluz
-Created by Jany Belluz with FontForge 2.0 (http://fontforge.sf.net)
-</metadata>
-<defs>
-<font id="FantasqueSansMono-BoldItalic" horiz-adv-x="1060" >
-  <font-face 
-    font-family="Fantasque Sans Mono"
-    font-weight="700"
-    font-style="italic"
-    font-stretch="normal"
-    units-per-em="2048"
-    panose-1="2 11 8 9 2 2 4 3 2 4"
-    ascent="1650"
-    descent="-398"
-    x-height="1013"
-    cap-height="1319"
-    bbox="-138 -581 1686.86 2148"
-    underline-thickness="96"
-    underline-position="-192"
-    slope="-11"
-    unicode-range="U+0020-E0B3"
-  />
-    <missing-glyph />
-    <glyph glyph-name="a" unicode="a" 
-d="M343 513c-18 -90 -25 -155 -25 -202c0 -121 49 -122 95 -122c110 0 228 186 257 242c19 99 39 199 58 298c-28 42 -87 90 -151 90c-66 0 -181 -40 -234 -306zM891 316c-3 -17 -5 -33 -5 -49c0 -71 31 -129 70 -166c-53 -44 -105 -88 -158 -132c-41 37 -98 103 -98 196
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <metadata>
+        Created by FontForge 20150824 at Sun Apr 3 21:32:40 2016
+        By Jany Belluz
+        Created by Jany Belluz with FontForge 2.0 (http://fontforge.sf.net)
+    </metadata>
+    <defs>
+        <font Id="FantasqueSansMono-BoldItalic" horiz-adv-x="1060">
+            <font-face
+                    font-family="Fantasque Sans Mono"
+                    font-weight="700"
+                    font-style="italic"
+                    font-stretch="normal"
+                    units-per-em="2048"
+                    panose-1="2 11 8 9 2 2 4 3 2 4"
+                    ascent="1650"
+                    descent="-398"
+                    x-height="1013"
+                    cap-height="1319"
+                    bbox="-138 -581 1686.86 2148"
+                    underline-thickness="96"
+                    underline-position="-192"
+                    slope="-11"
+                    unicode-range="U+0020-E0B3"
+            />
+            <missing-glyph/>
+            <glyph glyph-name="a" unicode="a"
+                   d="M343 513c-18 -90 -25 -155 -25 -202c0 -121 49 -122 95 -122c110 0 228 186 257 242c19 99 39 199 58 298c-28 42 -87 90 -151 90c-66 0 -181 -40 -234 -306zM891 316c-3 -17 -5 -33 -5 -49c0 -71 31 -129 70 -166c-53 -44 -105 -88 -158 -132c-41 37 -98 103 -98 196
 c0 7 0 13 1 20c-81 -136 -196 -196 -378 -196c-135 0 -254 62 -254 313c0 66 9 146 27 241c76 394 334 485 480 485c81 0 164 -31 202 -87c7 28 13 56 20 84l230 -12c-46 -232 -91 -465 -137 -697z" />
     <glyph glyph-name="b" unicode="b" 
 d="M706 478c17 85 24 151 24 200c0 102 -31 135 -67 135c-138 0 -219 -123 -270 -243c-14 -74 -29 -147 -43 -221c31 -102 88 -176 149 -176c108 0 170 115 207 305zM957 459c-60 -307 -208 -466 -459 -466c-124 0 -194 47 -222 100c-8 -42 -65 -106 -65 -106

@@ -1,6 +1,5 @@
 const path = require('path')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
-const WasmPackPlugin = require('@wasm-tool/wasm-pack-plugin')
 
 const dist = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, './dist')
@@ -100,15 +99,6 @@ const workerConfig = {
     ],
   },
   devtool: 'source-map',
-  plugins: [
-    new WasmPackPlugin({
-      crateDirectory: path.join(__dirname, '../logic/frontend'),
-      watchDirectories: [
-        path.join(__dirname, '../logic/frontend/src'),
-        path.join(__dirname, '../logic/logic/src'),
-      ],
-    }),
-  ],
 }
 
 module.exports = [browserConfig, workerConfig]

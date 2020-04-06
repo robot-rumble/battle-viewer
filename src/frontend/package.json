@@ -19,7 +19,6 @@
     "@babel/plugin-proposal-pipeline-operator": "^7.3.0",
     "@babel/plugin-syntax-dynamic-import": "^7.2.0",
     "@babel/preset-env": "^7.7.5",
-    "@wasm-tool/wasm-pack-plugin": "^1.2.0",
     "babel-loader": "^8.0.5",
     "css-loader": "^3.2.1",
     "elm": "^0.19.1-3",

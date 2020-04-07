@@ -35,7 +35,8 @@ type alias Model =
     { code : String
     , renderState : RenderState
     , totalTurns : Int
-    , updatePath: Maybe String
+    , updatePath : Maybe String
+    , logOutput : String
     }
 
 type RenderState = Loading Int | Render RenderStateVal | Error Data.Error | NoRender | InternalError
@@ -49,7 +50,7 @@ type alias RenderStateVal =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    (Model "" NoRender flags.totalTurns flags.updatePath, Cmd.none )
+    (Model "" NoRender flags.totalTurns flags.updatePath "", Cmd.none )
 
 
 type alias Flags =
@@ -73,6 +74,7 @@ type Msg
     | CodeChanged String
     | GotInternalError
     | Saved (Result Http.Error ())
+    | GotLog String
 
 type RenderMsg = ChangeTurn Direction
 type Direction = Next | Previous
@@ -137,6 +139,9 @@ update msg model =
 
         Saved _ -> ( model, Cmd.none )
 
+        GotLog value ->
+            ( { model | logOutput = model.logOutput ++ value }, Cmd.none )
+
 updateRender : RenderMsg -> RenderStateVal -> RenderStateVal
 updateRender msg model =
     case msg of
@@ -153,6 +158,7 @@ port getOutput : (Decode.Value -> msg) -> Sub msg
 port getProgress : (Decode.Value -> msg) -> Sub msg
 port getError : (Decode.Value -> msg) -> Sub msg
 port getInternalError : (() -> msg) -> Sub msg
+port getLog : (String -> msg) -> Sub msg
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -160,7 +166,8 @@ subscriptions _ =
         getOutput GotOutput,
         getProgress GotProgress,
         getError GotError,
-        getInternalError (always GotInternalError)
+        getInternalError (always GotInternalError),
+        getLog GotLog
     ]
 
 -- VIEW
@@ -196,6 +203,13 @@ viewRobot model =
           ] [ viewEditor model
             , viewGame model
             ]
+        , div [ class "mt-2", class "mx-7" ]
+          [ textarea
+            [ readonly True 
+            , class "w-100"
+            , class "border-0"
+            ] [ text model.logOutput ]
+          ]
          ]
 
 viewEditor : Model -> Html Msg

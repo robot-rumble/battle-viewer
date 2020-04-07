@@ -36,10 +36,12 @@ customElements.define('robot-arena', class extends HTMLElement {
         console.log('Worker Error!')
         console.error(data.data)
         app.ports.getInternalError.send(null)
-      } else {
+      } else if (data.type in app.ports) {
         // we pass all other data, including other errors, to the elm app
         console.log(data)
         app.ports[data.type].send(data.data)
+      } else {
+        throw new Error(`Unknown message type ${data.type}`)
       }
     }
 

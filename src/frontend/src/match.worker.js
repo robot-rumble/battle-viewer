@@ -37,12 +37,10 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
         self.postMessage({ type: 'getProgress', data: turnState })
       }
 
-      const finalCallback = (finalState) => {
-        console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
-        self.postMessage({ type: 'getOutput', data: finalState })
-      }
+      const finalState = logic.run_rustpython(code1, code2, turnCallback, turnNum)
 
-      logic.run_rustpython(code1, code2, turnCallback, finalCallback, turnNum)
+      console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
+      self.postMessage({ type: 'getOutput', data: finalState })
     })
     .catch((e) => self.postMessage({ type: 'error', data: errorToObj(e, 'Worker execution error') }))
 })

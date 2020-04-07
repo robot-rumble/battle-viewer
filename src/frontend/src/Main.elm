@@ -49,12 +49,13 @@ type alias RenderStateVal =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    (Model "" NoRender flags.totalTurns flags.updatePath, Cmd.none )
+    (Model flags.code NoRender flags.totalTurns flags.updatePath, Cmd.none )
 
 
 type alias Flags =
     { totalTurns: Int
     , updatePath: Maybe String
+    , code: String
     }
 
 
@@ -183,20 +184,14 @@ viewUI model =
 
 viewRobot : Model -> Html Msg
 viewRobot model =
-   div []
-        [ p [ class "mt-5"
-            , class "w-75"
-            , class "mx-auto"
-            ] [text "Welcome to Robot Rumble! This demo allows you to code a robot and run it against itself. The robot's code is a function that returns the type and direction of an action. The arena on the right is a way to battle the robot against itself. The code is open source at https://github.com/chicode/robot-rumble."]
-        , div
-          [ class "d-flex"
-          , class "justify-content-around"
-          , class "mt-6"
-          , class "mx-6"
-          ] [ viewEditor model
-            , viewGame model
-            ]
-         ]
+    div
+      [ class "d-flex"
+      , class "justify-content-around"
+      , class "mt-6"
+      , class "mx-6"
+      ] [ viewEditor model
+        , viewGame model
+        ]
 
 viewEditor : Model -> Html Msg
 viewEditor model =
@@ -205,6 +200,7 @@ viewEditor model =
             Decode.map CodeChanged <|
                 Decode.at [ "target", "value" ] <|
                     Decode.string
+        , Html.Attributes.attribute "code" model.code
         , style "width" "60%"
         , class "pr-6"
         ] ++ case model.renderState of

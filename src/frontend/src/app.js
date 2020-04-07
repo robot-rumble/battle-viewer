@@ -1,6 +1,7 @@
 import { Elm } from './Main.elm'
 import './css/app.scss'
 
+import sampleRobot from './robots/sample.raw.py'
 import './codemirror'
 
 window.turnNum = 10
@@ -14,13 +15,20 @@ customElements.define('robot-arena', class extends HTMLElement {
       throw new Error('No Play JS router found.')
     }
 
-    const robot = new URL(window.location.href).pathname.slice(1)
+    const user = this.getAttribute('user')
+    const robot = this.getAttribute('robot')
+    const updatePath = user && robot && window.jsRoutes.controllers.RobotController.update(user, robot).url
+
+    window.a = this.getAttribute('code')
+    // to fix the serialization that happens when we pass a string as an attribute
+    const code = this.getAttribute('code') ? JSON.parse(this.getAttribute('code')) : sampleRobot
 
     const app = Elm.Main.init({
       node: this,
       flags: {
         totalTurns: window.turnNum,
-        updatePath: robot ? window.jsRoutes.controllers.RobotController.postCreate(robot).url : null,
+        updatePath,
+        code,
       },
     })
 

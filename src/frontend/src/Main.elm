@@ -296,7 +296,7 @@ gameObjs state =
     |> List.map (\(basic, details) ->
         let (x, y) = basic.coords in
         div ([ class "obj"
-             , class basic.id
+             , class <| String.fromInt basic.id
              , style "grid-column" <| String.fromInt (x + 1)
              , style "grid-row" <| String.fromInt (y + 1)
             ] ++ (

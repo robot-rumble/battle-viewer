@@ -47,7 +47,7 @@ unionDecoder plainMappings valueMappings =
 
 
 type alias Id =
-    String
+    Int
 
 
 type alias Coords =
@@ -150,14 +150,14 @@ basicObjDecoder : Decoder BasicObj
 basicObjDecoder =
     succeed BasicObj
         |> required "coords" (arrayAsTuple2 int int)
-        |> required "id" string
+        |> required "id" int
 
 
 type ObjDetails = UnitDetails Unit | TerrainDetails Terrain
 
 objDetailsDecoder : Decoder ObjDetails
 objDetailsDecoder =
-    field "type_" string
+    field "type" string
     |> andThen (\type_ ->
         case type_ of
             "Soldier" -> unitDecoder |> map UnitDetails
@@ -177,7 +177,7 @@ type UnitType
 unitDecoder : Decoder Unit
 unitDecoder =
     succeed Unit
-        |> required "type_" (string |> stringAsUnion [ ( "Soldier", Soldier ) ])
+        |> required "type" (string |> stringAsUnion [ ( "Soldier", Soldier ) ])
         |> required "health" int
         |> required "team" string
 
@@ -192,5 +192,5 @@ type TerrainType
 terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
-        |> required "type_" (string |> stringAsUnion [ ( "Wall", Wall ) ])
+        |> required "type" (string |> stringAsUnion [ ( "Wall", Wall ) ])
 

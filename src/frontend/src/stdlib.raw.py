@@ -15,8 +15,8 @@ def _direction_action(name):
     return action
 
 
-move = _direction_action("move")
-attack = _direction_action("attack")
+move = _direction_action("Move")
+attack = _direction_action("Attack")
 
 
 # noinspection PyUnresolvedReferences,PyGlobalUndefined
@@ -44,10 +44,10 @@ def main(main_input, math_random):
         xs = state["map"][x]
         return xs and xs[y]
 
-    if team == "red":
-        _other_team = "blue"
-    elif team == "blue":
-        _other_team = "red"
+    if team == "Red":
+        _other_team = "Blue"
+    elif team == "Blue":
+        _other_team = "Red"
     else:
         raise Exception("team is neither red nor blue")
 

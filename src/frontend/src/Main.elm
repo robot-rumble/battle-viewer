@@ -266,6 +266,7 @@ viewGameBar model =
             [ div [ class "d-flex" ]
                 [ button
                     [onClick Run, class "button mr-4"
+                    -- hide button through CSS to preserve bar height
                     , style "visibility" <| case loadingBarPerc of
                           Just (_) -> "hidden"
                           Nothing -> "visible"
@@ -273,14 +274,11 @@ viewGameBar model =
                 , viewArrows model
                 ]
             , case model.renderState of
-                Render render ->
-                    p [ class <| if (case loadingBarPerc of
-                                Just(perc) -> perc == 0
-                                Nothing -> False
-                            ) then "" else "disappearing"
-                        ]
-                      [ text "Saved." ]
-                _ -> div [] []
+                -- don't show at very beginning
+                NoRender -> div [] []
+                -- one frame of not showing to restart animation
+                Initializing -> div [] []
+                _ -> p [ class "disappearing" ] [ text "Saved." ]
             ]
     ]
 

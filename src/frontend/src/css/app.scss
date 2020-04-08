@@ -81,6 +81,20 @@ button {
   color: map_get($colors, "orange");
 }
 
+.disappearing {
+  animation-name: disappearingAnimation;
+  animation-duration: 1000ms;
+  animation-fill-mode: forwards;
+}
+
+@keyframes disappearingAnimation {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 
 //// main.html
 

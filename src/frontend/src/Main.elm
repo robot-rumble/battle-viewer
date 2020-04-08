@@ -261,14 +261,25 @@ viewGameBar model =
             Just(perc) ->
                 div [class "progress", style "width" <| to_perc perc] []
             Nothing -> div [] []
-        , div [ class "d-flex justify-content-start" ]
-            [ button
-                [onClick Run, class "button mr-4"
-                , style "visibility" <| case loadingBarPerc of
-                      Just (_) -> "hidden"
-                      Nothing -> "visible"
-                ] [text "run"]
-            , viewArrows model
+        , div [ class "d-flex justify-content-between" ]
+            [ div [ class "d-flex" ]
+                [ button
+                    [onClick Run, class "button mr-4"
+                    , style "visibility" <| case loadingBarPerc of
+                          Just (_) -> "hidden"
+                          Nothing -> "visible"
+                    ] [text "run"]
+                , viewArrows model
+                ]
+            , case model.renderState of
+                Render render ->
+                    p [ class <| if (case loadingBarPerc of
+                                Just(perc) -> perc == 0
+                                Nothing -> False
+                            ) then "" else "disappearing"
+                        ]
+                      [ text "Saved." ]
+                _ -> div [] []
             ]
     ]
 

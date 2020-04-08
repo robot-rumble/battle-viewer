@@ -147,8 +147,12 @@ updateRender msg model =
     case msg of
         ChangeTurn dir -> ( { model | current_turn_num = model.current_turn_num +
             case dir of
-                Next -> 1
-                Previous -> -1
+                Next ->
+                    if model.current_turn_num == Array.length model.turns - 1
+                    then 0 else 1
+                Previous ->
+                    if model.current_turn_num == 0
+                    then 0 else -1
             } )
 
 

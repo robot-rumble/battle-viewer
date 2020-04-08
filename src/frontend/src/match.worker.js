@@ -54,8 +54,11 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
       const turnCallback = (turnState) => {
         self.postMessage({ type: 'getProgress', data: turnState })
       }
+      const log = (s) => {
+        self.postMessage({ type: 'getLog', data: s })
+      }
 
-      const finalState = logic.run_rustpython(code1, code2, turnCallback, turnNum)
+      const finalState = logic.run_rustpython(code1, code2, turnCallback, log, turnNum)
 
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
       self.postMessage({ type: 'getOutput', data: finalState })

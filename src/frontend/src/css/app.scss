@@ -220,16 +220,16 @@ body {
     }
   }
 
-  .progress-holder {
+  .game-bar {
     position: relative;
 
     .progress {
-      background: map_get($colors, "blue");
+      background: map_get($colors, "light-blue");
       position: absolute;
       height: 100%;
+      z-index: -1;
     }
   }
-
 
   code-editor {
     .CodeMirror {

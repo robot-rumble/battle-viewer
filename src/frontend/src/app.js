@@ -3,7 +3,7 @@ import './css/app.scss'
 
 import './codemirror'
 
-window.turnNum = 10
+window.turnNum = 20
 window.language = 'python'
 window.runCount = 0
 

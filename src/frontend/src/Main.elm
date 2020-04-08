@@ -39,7 +39,7 @@ type alias Model =
     , logOutput : String
     }
 
-type RenderState = Loading Int | Render RenderStateVal | Error Data.Error | NoRender | InternalError
+type RenderState = Initializing | Render RenderStateVal | Error Data.Error | NoRender | InternalError
 
 type alias RenderStateVal =
    { turns : Array Data.State
@@ -126,7 +126,7 @@ update msg model =
                         })
                     Nothing -> Cmd.none
             in
-            ({ model | renderState = Loading 0 }, Cmd.batch [codeUpdateCmd, startEval model.code])
+            ( { model | renderState = Initializing }, Cmd.batch [codeUpdateCmd, startEval model.code] )
 
 
         GotRenderMsg renderMsg ->
@@ -244,46 +244,56 @@ viewGame model =
 
 viewGameBar : Model -> Html Msg
 viewGameBar model =
-    div [ class "progress-holder" ]
-        [ case model.renderState of
-            Loading turn ->
-                let progress_perc = (toFloat turn) / (toFloat model.totalTurns) * 100 in
-                div [class "progress", class "mb-3", style "width" <| to_perc progress_perc] []
-            _ -> div [] []
-           ,  button [onClick Run, class "button", class "mb-3"
-                 , style "visibility" <|
-                     case model.renderState of
-                        Loading turn -> "hidden"
-                        _ -> "visible"
-                 ] [text "run"]
+    let loadingBarPerc = case model.renderState of
+            Render render ->
+                let totalTurns = Array.length render.turns in
+                if totalTurns /= model.totalTurns then
+                    Just((toFloat totalTurns) / (toFloat model.totalTurns) * 100)
+                else Nothing
+            _ -> Nothing
+    in
+    div [ class "game-bar", class "mb-3" ] [
+        case loadingBarPerc of
+            Just(perc) ->
+                div [class "progress", style "width" <| to_perc perc] []
+            Nothing -> div [] []
+        , div [ class "d-flex justify-content-start" ]
+            [ button
+                [onClick Run, class "button mr-4"
+                , style "visibility" <| case loadingBarPerc of
+                      Just (_) -> "hidden"
+                      Nothing -> "visible"
+                ] [text "run"]
+            , viewArrows model
+            ]
+    ]
 
-        ]
+viewArrows : Model -> Html Msg
+viewArrows model =
+    case model.renderState of
+        Render state ->
+            div [class "d-flex justify-content-center align-items-center"]
+              [ button
+                    [onClick <| GotRenderMsg (ChangeTurn Previous)
+                    , disabled (state.current_turn_num == 0)
+                    , class "arrow-button"
+                    ] [text "\u{2190}"]
+              , div [style "width" "5rem", class "text-center"] [text <| "turn " ++ String.fromInt (state.current_turn_num + 1)]
+              , button
+                    [onClick <| GotRenderMsg (ChangeTurn Next)
+                    , disabled (state.current_turn_num == Array.length state.turns - 1)
+                    , class "arrow-button"
+                    ] [text "\u{2192}"]
+              ]
+        _ -> div [] []
 
 viewGameViewer : Model -> Html Msg
 viewGameViewer model =
     case model.renderState of
         Render state ->
-            let game =
-                    case Array.get state.current_turn_num state.turns of
-                       Just turn -> gameRenderer (gameObjs turn)
-                       Nothing -> div [] [text "Invalid turn."]
-            in
-            div []
-                [ game
-                , div [class "d-flex", class "justify-content-center", class "mt-3"]
-                  [ button
-                        [onClick <| GotRenderMsg (ChangeTurn Previous)
-                        , disabled (state.current_turn_num == 0)
-                        , class "arrow-button"
-                        ] [text "\u{2190}"]
-                  , div [style "width" "6rem", class "text-center"] [text <| "turn " ++ String.fromInt (state.current_turn_num + 1)]
-                  , button
-                        [onClick <| GotRenderMsg (ChangeTurn Next)
-                        , disabled (state.current_turn_num == Array.length state.turns - 1)
-                        , class "arrow-button"
-                        ] [text "\u{2192}"]
-                  ]
-            ]
+            case Array.get state.current_turn_num state.turns of
+               Just turn -> gameRenderer (gameObjs turn)
+               Nothing -> div [] [text "Invalid turn."]
 
         InternalError ->
             div []

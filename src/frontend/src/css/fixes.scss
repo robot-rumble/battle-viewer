@@ -1,6 +1,7 @@
 button,
 input,
-select {
+select,
+textarea {
   border: 0;
   background: none;
   padding: 0;
@@ -33,4 +34,8 @@ h1, h2, h3, h4, h5, h6 {
 
 body {
   background: white;
+}
+
+p {
+  margin-bottom: 0;
 }

@@ -181,36 +181,22 @@ to_perc float =
 
 view : Model -> Html Msg
 view model =
-    viewUI model
-
-viewUI : Model -> Html Msg
-viewUI model =
-    div []
-        [viewRobot model]
+    div [ class "elm-renderer" ]
+        [ viewRobot model ]
 
 viewRobot : Model -> Html Msg
 viewRobot model =
    div []
-        [ p [ class "mt-5"
-            , class "w-75"
-            , class "mx-auto"
-            ] [text "Welcome to Robot Rumble! This demo allows you to code a robot and run it against itself. The robot's code is a function that returns the type and direction of an action. The arena on the right is a way to battle the robot against itself. The code is open source at https://github.com/chicode/robot-rumble."]
-        , div
-          [ class "d-flex"
-          , class "justify-content-around"
-          , class "mt-6"
-          , class "mx-6"
-          ] [ viewEditor model
+        [ div [ class "d-flex", class "justify-content-around" ]
+            [ viewEditor model
             , viewGame model
             ]
-        , div [ class "mt-2", class "mx-7" ]
-          [ textarea
-            [ readonly True 
-            , class "w-100"
-            , class "border-0"
+        , textarea
+            [ readonly True
+            , class "log"
+            , class "mt-5"
             ] [ text model.logOutput ]
-          ]
-         ]
+        ]
 
 viewEditor : Model -> Html Msg
 viewEditor model =

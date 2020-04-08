@@ -3,13 +3,6 @@ import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/mode/python/python.js'
 import 'codemirror/lib/codemirror.css'
 
-// inline loader syntax used because otherwise this loader doesn't work
-// eslint-disable-next-line import/no-webpack-loader-syntax
-// import robotLib from '!raw-loader!./robotLib.raw'
-// import sampleRobot from '!raw-loader!./sampleRobot.raw'
-
-import sampleRobot from './robots/sample.raw.py'
-
 function getModeFromLanguage (language) {
   switch (language) {
     case 'javascript':
@@ -64,16 +57,17 @@ customElements.define(
     }
 
     connectedCallback () {
-      const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
-      const localCode = localSave ? localSave.code : ''
-      const localLastEdit = localSave ? localSave.lastEdit : 0
-
-      let initialValue
-      if (this.code && localCode) {
-        initialValue = this.lastEdit > localLastEdit ? this.code : localCode
-      } else {
-        initialValue = this.code || localCode || sampleRobot
-      }
+      // const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
+      // const localCode = localSave ? localSave.code : ''
+      // const localLastEdit = localSave ? localSave.lastEdit : 0
+      //
+      // let initialValue
+      // if (this.code && localCode) {
+      //   initialValue = this.lastEdit > localLastEdit ? this.code : localCode
+      // } else {
+      //   initialValue = this.code || localCode || sampleRobot
+      // }
+      window.b = this.getAttribute('code')
 
       this._editor = CodeMirror(this, {
         tabSize: 2,
@@ -81,7 +75,8 @@ customElements.define(
         lineNumbers: true,
         matchBrackets: true,
         autoRefresh: true,
-        value: initialValue,
+        // value: initialValue,
+        value: this.getAttribute('code'),
         extraKeys: {
           Tab: (cm) => cm.execCommand('indentMore'),
           'Shift-Tab': (cm) => cm.execCommand('indentLess'),

@@ -50,12 +50,13 @@ type alias RenderStateVal =
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    (Model "" NoRender flags.totalTurns flags.updatePath "", Cmd.none )
+    (Model flags.code NoRender flags.totalTurns flags.updatePath "", Cmd.none )
 
 
 type alias Flags =
     { totalTurns: Int
     , updatePath: Maybe String
+    , code: String
     }
 
 
@@ -215,7 +216,6 @@ viewLog model =
             Nothing -> model.logOutput
         ]
 
-
 viewEditor : Model -> Html Msg
 viewEditor model =
     Html.node "code-editor"
@@ -223,6 +223,7 @@ viewEditor model =
             Decode.map CodeChanged <|
                 Decode.at [ "target", "value" ] <|
                     Decode.string
+        , Html.Attributes.attribute "code" model.code
         , style "width" "60%"
         , class "pr-6"
         ] ++ case model.renderState of

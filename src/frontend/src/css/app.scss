@@ -15,9 +15,10 @@ $colors: (
         "dark-blue": #39ACFF,
         "light-red": #FCDEE7,
         "light-blue": #CAE9FF,
-        "grey-1": hsl(0, 0, 39),
-        "grey-2": rgb(200, 200, 200),
-        "grey-3": rgb(240, 240, 240)
+        "grey-1": hsl(0, 0, 39%),
+        "grey-2": hsl(0, 0, 78%),
+        "grey-3": hsl(0, 0, 94%),
+        "grey-4": hsl(0, 0, 97%)
 );
 
 $border-1: 2px solid map_get($colors, "grey-2");
@@ -137,10 +138,16 @@ body {
 //// robot renderer
 
 .elm-renderer {
+  .main {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: map_get($spacers, 5);
+  }
 
   .log {
     width: 100%;
-    background: map_get($colors, "grey-3");
+    background: map_get($colors, "grey-4");
+    height: 7rem;
   }
 
   .arrow-button {

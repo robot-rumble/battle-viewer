@@ -113,6 +113,9 @@ update msg model =
             Err decodeError ->
                 handleDecodeError model decodeError
 
+        GotLog value ->
+            ( { model | logOutput = model.logOutput ++ value }, Cmd.none )
+
         Run ->
             let codeUpdateCmd = case model.updatePath of
                     Just (path) ->
@@ -138,9 +141,6 @@ update msg model =
             ( { model | renderState = InternalError }, Cmd.none )
 
         Saved _ -> ( model, Cmd.none )
-
-        GotLog value ->
-            ( { model | logOutput = model.logOutput ++ value }, Cmd.none )
 
 updateRender : RenderMsg -> RenderStateVal -> RenderStateVal
 updateRender msg model =
@@ -181,22 +181,36 @@ to_perc float =
 
 view : Model -> Html Msg
 view model =
-    div [ class "elm-renderer" ]
-        [ viewRobot model ]
+    viewRobot model
 
 viewRobot : Model -> Html Msg
 viewRobot model =
-   div []
-        [ div [ class "d-flex", class "justify-content-around" ]
+   div [ class "elm-renderer" ]
+        [ div [ class "main" ]
             [ viewEditor model
             , viewGame model
             ]
-        , textarea
-            [ readonly True
-            , class "log"
-            , class "mt-5"
-            ] [ text model.logOutput ]
+        , viewLog model
         ]
+
+viewLog : Model -> Html Msg
+viewLog model =
+    let errorMessage = case model.renderState of
+            Error error -> Just(error.message)
+            _ -> Nothing
+    in
+    textarea
+        [ readonly True
+        , class "log"
+        , class <| case errorMessage of
+            Just(_) -> "error"
+            Nothing -> ""
+        ]
+        [ text <| case errorMessage of
+            Just(error) -> error
+            Nothing -> model.logOutput
+        ]
+
 
 viewEditor : Model -> Html Msg
 viewEditor model =
@@ -270,12 +284,6 @@ viewGameViewer model =
                         ] [text "\u{2192}"]
                   ]
             ]
-
-        Error error ->
-            div []
-                [ gameRenderer []
-                , p [class "error", class "mt-3", class "ws-pre"] [text error.message]
-                ]
 
         InternalError ->
             div []

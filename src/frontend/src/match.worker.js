@@ -11,16 +11,34 @@ self.Window = self.constructor
 const errorToObj = (e, errorType) => {
   // elm expects a null value for missing field
   let errorLoc = null
-  if (e.row && e.col && e.endrow && e.endcol) {
+  let message = e.message
+  let traceback = null
+  console.log(e)
+  if (e.row != null && e.col != null) {
     errorLoc = {
       line: e.row,
       ch: e.col,
-      endline: e.endrow,
-      endch: e.endcol,
+      endline: e.endrow == null ? -1 : e.endrow,
+      endch: e.endcol == null ? -1 : e.endcol,
+    }
+  }
+  if (e.constructor.name == "PyError") {
+    // TODO: extract more info from this, display it nicely maybe
+    message = e.toString()
+    for (const tb of e.traceback) {
+      if (tb.filename == "<robot>") {
+        errorLoc = {
+          line: tb.lineno,
+          ch: 0,
+          endline: -1,
+          endch: -1,
+        }
+        break
+      }
     }
   }
   return {
-    message: e.message,
+    message,
     errorLoc,
     // errorType is purely for debugging
     errorType,
@@ -42,5 +60,5 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
       self.postMessage({ type: 'getOutput', data: finalState })
     })
-    .catch((e) => self.postMessage({ type: 'error', data: errorToObj(e, 'Worker execution error') }))
+    .catch((e) => self.postMessage({ type: 'getError', data: errorToObj(e, 'logic/python') }))
 })

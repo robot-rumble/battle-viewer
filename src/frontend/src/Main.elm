@@ -288,7 +288,7 @@ viewGameViewer model =
         Error error ->
             div []
                 [ gameRenderer []
-                , p [class "error", class "mt-3"] [text error.message]
+                , p [class "error", class "mt-3", class "ws-pre"] [text error.message]
                 ]
 
         InternalError ->

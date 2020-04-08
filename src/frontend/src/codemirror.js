@@ -38,7 +38,10 @@ customElements.define(
         this.lastRunCount = window.runCount
 
         const from = { line: errorLoc.line - 1, ch: errorLoc.ch - 1 }
-        const to = { line: errorLoc.endline - 1, ch: errorLoc.endch - 1 }
+        const to = {
+          line: errorLoc.endline == -1 ? from.line : errorLoc.endline - 1,
+          ch: errorLoc.endch == -1 ? this._editor.getLine(from.line).length : errorLoc.endch - 1,
+        }
 
         let mark = this._editor.markText(from, to, {
           className: 'inline-error',

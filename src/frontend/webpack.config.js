@@ -78,7 +78,7 @@ const workerConfig = {
     alias: {
       logic:
         process.env.NODE_ENV === 'production'
-          ? './frontend.js'
+          ? path.join(__dirname, './logic')
           : path.join(__dirname, '../logic/frontend/pkg'),
     },
   },

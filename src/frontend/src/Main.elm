@@ -247,15 +247,22 @@ viewGame model =
         ]
 
 
+isLoading : Model -> Bool
+isLoading model =
+    case model.renderState of
+        Render render -> Array.length render.turns /= model.totalTurns
+        Initializing -> True
+        _ -> False
+
 viewGameBar : Model -> Html Msg
 viewGameBar model =
-    let loadingBarPerc = case model.renderState of
-            Render render ->
-                let totalTurns = Array.length render.turns in
-                if totalTurns /= model.totalTurns then
+    let loading = isLoading model
+        loadingBarPerc = if isLoading model then case model.renderState of
+                Render render ->
+                    let totalTurns = Array.length render.turns in
                     Just((toFloat totalTurns) / (toFloat model.totalTurns) * 100)
-                else Nothing
-            _ -> Nothing
+                _ -> Just(0)
+            else Nothing
     in
     div [ class "game-bar", class "mb-3" ] [
         case loadingBarPerc of
@@ -267,9 +274,7 @@ viewGameBar model =
                 [ button
                     [onClick Run, class "button mr-4"
                     -- hide button through CSS to preserve bar height
-                    , style "visibility" <| case loadingBarPerc of
-                          Just (_) -> "hidden"
-                          Nothing -> "visible"
+                    , style "visibility" <| if loading then "hidden" else "visible"
                     ] [text "run"]
                 , viewArrows model
                 ]
@@ -277,7 +282,7 @@ viewGameBar model =
                 -- don't show at very beginning
                 NoRender -> div [] []
                 -- one frame of not showing to restart animation
-                Initializing -> div [] []
+                Initializing -> p [] [ text "Initializing..." ]
                 _ -> p [ class "disappearing" ] [ text "Saved." ]
             ]
     ]

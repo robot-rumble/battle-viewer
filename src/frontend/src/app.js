@@ -33,9 +33,13 @@ customElements.define('robot-arena', class extends HTMLElement {
 
     const matchWorker = new Worker('/assets/dist/worker.js')
 
+    let workerRunning = false
     app.ports.startEval.subscribe((code1) => {
       window.runCount++
-      matchWorker.postMessage({ code1, code2: code1, turnNum: 20 })
+      if (!workerRunning) {
+        workerRunning = true
+        matchWorker.postMessage({ code1, code2: code1, turnNum: 20 })
+      }
     })
 
     matchWorker.onmessage = ({ data }) => {
@@ -44,6 +48,8 @@ customElements.define('robot-arena', class extends HTMLElement {
         console.error(data.data)
         app.ports.getInternalError.send(null)
       } else if (data.type in app.ports) {
+        if (data.type === 'getOutput') workerRunning = false
+
         // we pass all other data, including other errors, to the elm app
         console.log(data)
         app.ports[data.type].send(data.data)

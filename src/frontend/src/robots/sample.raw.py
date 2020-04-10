@@ -1,5 +1,5 @@
-def robot(turn, robot):
-  if turn % 2 == 0:
-    return move("right")
+def robot(state, unit):
+  if state.turn % 2 == 0:
+    return move(Direction.East)
   else:
-    return attack("down")
+    return attack(Direction.South)

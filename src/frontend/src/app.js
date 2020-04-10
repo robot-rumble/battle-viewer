@@ -19,8 +19,7 @@ customElements.define('robot-arena', class extends HTMLElement {
     const robot = this.getAttribute('robot')
     const updatePath = user && robot && window.jsRoutes.controllers.RobotController.update(user, robot).url
 
-    // to fix the serialization that happens when we pass a string as an attribute
-    const code = this.getAttribute('code') ? JSON.parse(this.getAttribute('code')) : sampleRobot
+    const code = this.getAttribute('code') || sampleRobot
 
     const app = Elm.Main.init({
       node: this,

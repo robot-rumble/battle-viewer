@@ -96,6 +96,31 @@ button {
   }
 }
 
+//// tags
+
+.panel {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  border: $border-1;
+  border-radius: 5px;
+  padding: map-get($spacers, 1);
+
+  li {
+    margin: 0 map-get($spacers, 2);
+  }
+
+  .separator::after {
+    position: absolute;
+    height: 50%;
+    border-right: $border-1;
+    content: "";
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+}
+
 //// main.html
 
 // https://css-tricks.com/couple-takes-sticky-footer/#article-header-id-3

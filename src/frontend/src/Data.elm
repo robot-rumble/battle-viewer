@@ -60,7 +60,7 @@ type alias Team =
 
 
 type alias Outcome =
-    { winner : String
+    { winner : Maybe String
     }
 
 decodeOutcome : Value -> Result Json.Decode.Error Outcome
@@ -69,7 +69,7 @@ decodeOutcome = decodeValue outcomeDecoder
 outcomeDecoder : Decoder Outcome
 outcomeDecoder =
     succeed Outcome
-    |> required "winner" string
+    |> required "winner" (nullable string)
 
 
 type alias Error =

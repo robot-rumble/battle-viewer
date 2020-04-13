@@ -3,7 +3,7 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const dist = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, './dist')
-  : path.join(__dirname, '../../public/dist')
+  : path.join(__dirname, '../public/dist')
 
 const browserConfig = {
   mode: process.env.NODE_ENV || 'development',
@@ -78,8 +78,9 @@ const workerConfig = {
     alias: {
       logic:
         process.env.NODE_ENV === 'production'
-          ? path.join(__dirname, './logic')
-          : path.join(__dirname, '../logic/frontend/pkg'),
+          // TODO determine S3 path
+          ? path.join(__dirname, '')
+          : path.join(__dirname, '../../logic/logic/entrypoints/webapp/pkg'),
     },
   },
   node: {

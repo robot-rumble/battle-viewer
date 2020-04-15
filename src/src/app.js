@@ -30,7 +30,7 @@ customElements.define('robot-arena', class extends HTMLElement {
       },
     })
 
-    const matchWorker = new Worker('/assets/dist/worker.js')
+    const matchWorker = new Worker(window.jsRoutes.controllers.Assets.at('dist/worker.js').url)
 
     let workerRunning = false
     app.ports.startEval.subscribe((code1) => {

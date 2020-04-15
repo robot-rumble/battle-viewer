@@ -18,21 +18,6 @@ const errorToObj = (e, errorType) => {
       endch: e.endcol == null ? -1 : e.endcol,
     }
   }
-  if (e.constructor.name === 'PyError') {
-    // TODO: extract more info from this, display it nicely maybe
-    message = e.toString()
-    for (const tb of e.traceback) {
-      if (tb.filename === '<robot>') {
-        errorLoc = {
-          line: tb.lineno,
-          ch: 0,
-          endline: -1,
-          endch: -1,
-        }
-        break
-      }
-    }
-  }
   return {
     message,
     errorLoc,
@@ -50,14 +35,11 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
       const turnCallback = (turnState) => {
         self.postMessage({ type: 'getProgress', data: turnState })
       }
-      const log = (s) => {
-        self.postMessage({ type: 'getLog', data: s })
-      }
 
-      const finalState = logic.run_rustpython(code1, code2, turnCallback, log, turnNum)
+      const finalState = logic.run(code1, code2, turnCallback, turnNum)
 
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
       self.postMessage({ type: 'getOutput', data: finalState })
     })
-    .catch((e) => self.postMessage({ type: 'getError', data: errorToObj(e, 'logic/python') }))
+    .catch((e) => self.postMessage({ type: 'error', data: e.message }))
 })

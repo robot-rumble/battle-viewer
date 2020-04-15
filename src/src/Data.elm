@@ -47,7 +47,7 @@ unionDecoder plainMappings valueMappings =
 
 
 type alias Id =
-    Int
+    String
 
 
 type alias Coords =
@@ -103,8 +103,8 @@ errorLocDecoder =
     |> required "endch" int
 
 
-decodeProgress : Value -> Result Json.Decode.Error State
-decodeProgress = decodeValue stateDecoder
+decodeProgress : Value -> Result Json.Decode.Error Input
+decodeProgress = decodeValue inputDecoder
 
 
 nullableIntEncoder : Maybe Int -> Encode.Value
@@ -123,6 +123,17 @@ errorLocEncoder errorLoc =
         ]
 
 
+type alias Input =
+    { state: State
+    }
+
+
+inputDecoder : Decoder Input
+inputDecoder =
+    succeed Input
+    |> required "state" stateDecoder
+
+
 type alias State =
     { turn : Int
     , objs : Dict String Obj
@@ -139,7 +150,11 @@ type alias Obj = ( BasicObj, ObjDetails )
 
 objDecoder : Decoder Obj
 objDecoder =
-    arrayAsTuple2 basicObjDecoder objDetailsDecoder
+    basicObjDecoder |> andThen (\basic_obj ->
+        objDetailsDecoder |> andThen (\obj_details ->
+            Json.Decode.succeed (basic_obj, obj_details)
+        )
+    )
 
 type alias BasicObj =
     { coords : Coords
@@ -150,7 +165,7 @@ basicObjDecoder : Decoder BasicObj
 basicObjDecoder =
     succeed BasicObj
         |> required "coords" (arrayAsTuple2 int int)
-        |> required "id" int
+        |> required "id" string
 
 
 type ObjDetails = UnitDetails Unit | TerrainDetails Terrain

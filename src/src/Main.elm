@@ -99,8 +99,8 @@ update msg model =
           case Data.decodeProgress progress of
             Ok turnState ->
               ( { model | renderState = case model.renderState of
-                  Render renderState -> Render { renderState | turns = Array.push turnState renderState.turns }
-                  _ -> Render { turns = Array.fromList [turnState], current_turn_num = 0 }
+                  Render renderState -> Render { renderState | turns = Array.push turnState.state renderState.turns }
+                  _ -> Render { turns = Array.fromList [turnState.state], current_turn_num = 0 }
               }, Cmd.none )
 
             Err error ->
@@ -333,7 +333,7 @@ gameObjs state =
     |> List.map (\(basic, details) ->
         let (x, y) = basic.coords in
         div ([ class "obj"
-             , class <| String.fromInt basic.id
+             , class basic.id
              , style "grid-column" <| String.fromInt (x + 1)
              , style "grid-row" <| String.fromInt (y + 1)
             ] ++ (

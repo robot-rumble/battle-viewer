@@ -80,7 +80,7 @@ const workerConfig = {
         process.env.NODE_ENV === 'production'
           // TODO determine S3 path
           ? path.join(__dirname, '')
-          : path.join(__dirname, '../../logic/logic/entrypoints/webapp/pkg'),
+          : path.join(__dirname, '../../logic/runners/webapp/pkg'),
     },
   },
   node: {

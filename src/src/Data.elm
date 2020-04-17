@@ -1,11 +1,13 @@
 module Data exposing (..)
 
-import Array exposing (Array)
-import Basics
 import Dict exposing (Dict)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (custom, required)
 import Json.Encode as Encode
+
+
+
+-- UTILS
 
 
 arrayAsTuple2 : Decoder a -> Decoder b -> Decoder ( a, b )
@@ -35,16 +37,8 @@ stringAsUnion mapping =
         )
 
 
-unionDecoder : List ( String, a ) -> List ( String, String -> a ) -> Decoder a
-unionDecoder plainMappings valueMappings =
-    let
-        decodePlain =
-            string |> stringAsUnion plainMappings
 
-        decodeWithValue =
-            index 0 string |> stringAsUnion valueMappings |> andThen (\unionType -> map unionType <| index 1 string)
-    in
-    oneOf [ decodePlain, decodeWithValue ]
+-- OUTCOME/PROGRESS DATA
 
 
 type alias Id =
@@ -59,33 +53,25 @@ type alias Team =
     String
 
 
-type alias Outcome =
+type alias OutcomeData =
     { winner : Maybe String
     }
 
 
-decodeOutcome : Value -> Result Json.Decode.Error Outcome
-decodeOutcome =
-    decodeValue outcomeDecoder
+decodeOutcomeData : Value -> Result Json.Decode.Error OutcomeData
+decodeOutcomeData =
+    decodeValue outcomeDataDecoder
 
 
-outcomeDecoder : Decoder Outcome
-outcomeDecoder =
-    succeed Outcome
+outcomeDataDecoder : Decoder OutcomeData
+outcomeDataDecoder =
+    succeed OutcomeData
         |> required "winner" (nullable string)
 
 
 type alias Error =
     { message : String
     , errorLoc : Maybe ErrorLoc
-    }
-
-
-type alias ErrorLoc =
-    { line : Int
-    , ch : Int
-    , endline : Int
-    , endch : Int
     }
 
 
@@ -101,6 +87,14 @@ errorDecoder =
         |> custom (field "errorLoc" (nullable errorLocDecoder))
 
 
+type alias ErrorLoc =
+    { line : Int
+    , ch : Int
+    , endline : Int
+    , endch : Int
+    }
+
+
 errorLocDecoder : Decoder ErrorLoc
 errorLocDecoder =
     succeed ErrorLoc
@@ -108,21 +102,6 @@ errorLocDecoder =
         |> required "ch" int
         |> required "endline" int
         |> required "endch" int
-
-
-decodeProgress : Value -> Result Json.Decode.Error Input
-decodeProgress =
-    decodeValue inputDecoder
-
-
-nullableIntEncoder : Maybe Int -> Encode.Value
-nullableIntEncoder val =
-    case val of
-        Just int ->
-            Encode.int int
-
-        Nothing ->
-            Encode.null
 
 
 errorLocEncoder : ErrorLoc -> Encode.Value
@@ -135,28 +114,37 @@ errorLocEncoder errorLoc =
         ]
 
 
-type alias Input =
-    { state : State
+type alias ProgressData =
+    { state : TurnState
     }
 
 
-inputDecoder : Decoder Input
-inputDecoder =
-    succeed Input
+decodeProgressData : Value -> Result Json.Decode.Error ProgressData
+decodeProgressData =
+    decodeValue progressDataDecoder
+
+
+progressDataDecoder : Decoder ProgressData
+progressDataDecoder =
+    succeed ProgressData
         |> required "state" stateDecoder
 
 
-type alias State =
+type alias TurnState =
     { turn : Int
     , objs : Dict String Obj
     }
 
 
-stateDecoder : Decoder State
+stateDecoder : Decoder TurnState
 stateDecoder =
-    succeed State
+    succeed TurnState
         |> required "turn" int
         |> required "objs" (dict objDecoder)
+
+
+
+-- OBJ
 
 
 type alias Obj =

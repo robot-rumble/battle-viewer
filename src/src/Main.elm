@@ -48,7 +48,7 @@ type RenderState
 
 
 type alias RenderStateVal =
-    { turns : Array Data.State
+    { turns : Array Data.TurnState
     , current_turn_num : Int
     }
 
@@ -105,7 +105,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotOutput output ->
-            case Data.decodeOutcome output of
+            case Data.decodeOutcomeData output of
                 Ok _ ->
                     ( model, Cmd.none )
 
@@ -113,7 +113,7 @@ update msg model =
                     handleDecodeError model error
 
         GotProgress progress ->
-            case Data.decodeProgress progress of
+            case Data.decodeProgressData progress of
                 Ok turnState ->
                     ( { model
                         | renderState =
@@ -454,7 +454,7 @@ max_health =
     5
 
 
-gameObjs : Data.State -> List (Html Msg)
+gameObjs : Data.TurnState -> List (Html Msg)
 gameObjs state =
     Dict.values state.objs
         |> List.map

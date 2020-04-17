@@ -1,0 +1,103 @@
+//noinspection SassScssResolvedByNameOnly
+
+.app-root {
+  display: flex;
+  flex-direction: column;
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+  }
+
+  .log {
+    background: map_get($colors, "grey-4");
+    height: 7rem;
+  }
+
+  .arrow-button {
+    padding: 0 0.5rem;
+
+    &:disabled {
+      color: map_get($colors, "grey-2");
+    }
+  }
+
+  .game-bar {
+    width: 100%;
+    text-align: center;
+    position: relative;
+
+    & > * {
+      margin: auto;
+    }
+
+    .progress {
+      background: map_get($colors, "light-blue");
+      position: absolute;
+      height: 100%;
+      z-index: -1;
+    }
+  }
+
+  $grid: rgba(135, 135, 135, .1);
+
+  .renderer-wrapper {
+    /* https://stackoverflow.com/questions/5445491/height-equal-to-dynamic-width-css-fluid-layout */
+    width: 100%;
+    height: 0;
+    padding-top: 100%;
+    position: relative;
+
+    .renderer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+
+      display: grid;
+
+      .grid-row, .grid-col {
+        border: 1px solid $grid;
+      }
+
+      .obj {
+        position: relative;
+
+        &.unit {
+          &.team-Red {
+            background: map_get($colors, "light-red");
+
+            .health-bar {
+              background: map_get($colors, "red");
+            }
+          }
+
+          &.team-Blue {
+            background: map_get($colors, "light-blue");
+
+            .health-bar {
+              background: map_get($colors, "blue");
+            }
+          }
+        }
+
+        &.terrain {
+          background: map_get($colors, "grey-3");
+          z-index: -1;
+        }
+
+        .health-bar {
+          position: absolute;
+          margin: auto;
+          left: 0;
+          right: 0;
+          top: 0;
+          bottom: 0;
+        }
+      }
+    }
+  }
+
+}

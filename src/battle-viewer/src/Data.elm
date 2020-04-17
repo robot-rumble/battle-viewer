@@ -61,9 +61,12 @@ type alias Coords =
 type alias Team =
     String
 
+type alias E = String
+
 
 type alias OutcomeData =
-    { winner : Maybe String
+    { winner : Maybe Team
+    , errors : Dict Team E
     }
 
 
@@ -76,6 +79,7 @@ outcomeDataDecoder : Decoder OutcomeData
 outcomeDataDecoder =
     succeed OutcomeData
         |> required "winner" (nullable string)
+        |> required "errors" (dict string)
 
 
 type alias Error =
@@ -139,8 +143,8 @@ progressDataDecoder =
 
 
 type alias RobotOutput =
-    { action: Result String Action
-    , debug_table: Dict String String
+    { action: Result E Action
+    , debug_table: Dict Team String
     }
 
 robotOutputDecoder : Decoder RobotOutput

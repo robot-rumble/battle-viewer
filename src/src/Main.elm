@@ -78,13 +78,11 @@ port reportDecodeError : String -> Cmd msg
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
-    | GotError Decode.Value
     | Run
     | GotRenderMsg RenderMsg
     | CodeChanged String
     | GotInternalError
     | Saved (Result Http.Error ())
-    | GotLog String
 
 
 type RenderMsg
@@ -129,17 +127,6 @@ update msg model =
 
                 Err error ->
                     handleDecodeError model error
-
-        GotError rawError ->
-            case Data.decodeError rawError of
-                Ok error ->
-                    ( { model | renderState = Error error }, Cmd.none )
-
-                Err decodeError ->
-                    handleDecodeError model decodeError
-
-        GotLog value ->
-            ( { model | logOutput = model.logOutput ++ value }, Cmd.none )
 
         Run ->
             let
@@ -210,13 +197,7 @@ port getOutput : (Decode.Value -> msg) -> Sub msg
 port getProgress : (Decode.Value -> msg) -> Sub msg
 
 
-port getError : (Decode.Value -> msg) -> Sub msg
-
-
 port getInternalError : (() -> msg) -> Sub msg
-
-
-port getLog : (String -> msg) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
@@ -224,9 +205,7 @@ subscriptions _ =
     Sub.batch
         [ getOutput GotOutput
         , getProgress GotProgress
-        , getError GotError
         , getInternalError (always GotInternalError)
-        , getLog GotLog
         ]
 
 

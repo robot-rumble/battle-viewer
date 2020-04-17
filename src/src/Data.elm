@@ -37,6 +37,15 @@ stringAsUnion mapping =
         )
 
 
+result : Decoder b -> Decoder a -> Decoder (Result b a)
+result err ok =
+    oneOf [
+        field "Ok" ok
+            |> andThen (\okData -> succeed (Ok okData)),
+        field "Err" err
+            |> andThen (\errData -> succeed (Err errData))
+    ]
+
 
 -- OUTCOME/PROGRESS DATA
 
@@ -75,11 +84,6 @@ type alias Error =
     }
 
 
-decodeError : Value -> Result Json.Decode.Error Error
-decodeError =
-    decodeValue errorDecoder
-
-
 errorDecoder : Decoder Error
 errorDecoder =
     succeed Error
@@ -116,6 +120,8 @@ errorLocEncoder errorLoc =
 
 type alias ProgressData =
     { state : TurnState
+    , logs : Dict Team (List String)
+    , robotOutputs: Dict Id RobotOutput
     }
 
 
@@ -128,11 +134,43 @@ progressDataDecoder : Decoder ProgressData
 progressDataDecoder =
     succeed ProgressData
         |> required "state" stateDecoder
+        |> required "logs" (dict (list string))
+        |> required "robot_outputs" (dict robotOutputDecoder)
+
+
+type alias RobotOutput =
+    { action: Result String Action
+    , debug_table: Dict String String
+    }
+
+robotOutputDecoder : Decoder RobotOutput
+robotOutputDecoder =
+    succeed RobotOutput
+        |> required "action" (result string actionDecoder)
+        |> required "debug_table" (dict string)
+
+
+type ActionType
+    = Move | Attack
+
+type Direction
+    = North | South | East | West
+
+type alias Action =
+    { type_: ActionType
+    , direction: Direction
+    }
+
+actionDecoder : Decoder Action
+actionDecoder =
+    succeed Action
+        |> required "type" (string |> stringAsUnion [ ("Move", Move), ("Attack", Attack) ] )
+        |> required "direction" (string |> stringAsUnion [ ("North", North), ("South", South), ("East", East), ("West", West) ] )
 
 
 type alias TurnState =
     { turn : Int
-    , objs : Dict String Obj
+    , objs : Dict Id Obj
     }
 
 

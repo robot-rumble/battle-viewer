@@ -1,5 +1,4 @@
 import { Elm } from './Main.elm'
-import './css/app.scss'
 
 import sampleRobot from './robots/sample.raw.py'
 import './codemirror'

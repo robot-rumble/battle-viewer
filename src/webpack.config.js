@@ -10,10 +10,10 @@ const browserConfig = {
   stats: 'minimal',
   entry: {
     app: ['@babel/polyfill', './src/app.js'],
+    main: './src/css/app.scss',
   },
   output: {
     path: dist,
-    filename: 'bundle.js',
   },
   module: {
     rules: [
@@ -25,7 +25,7 @@ const browserConfig = {
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
-          process.env.NODE_ENV === 'production' ? MiniCssExtractPlugin.loader : 'style-loader',
+          MiniCssExtractPlugin.loader,
           'css-loader',
           'sass-loader',
         ],

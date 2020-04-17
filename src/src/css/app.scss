@@ -1,3 +1,5 @@
+@import "../../node_modules/codemirror/lib/codemirror.css";
+
 $spacers: (
         6: 5rem,
         7: 10rem,
@@ -39,7 +41,6 @@ $border-2: 2px solid map_get($colors, "grey-3");
     color: map_get($colors, $color) !important;
   }
 }
-
 
 //// global
 

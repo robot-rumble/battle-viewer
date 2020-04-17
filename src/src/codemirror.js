@@ -1,7 +1,6 @@
 import CodeMirror from 'codemirror'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/mode/python/python.js'
-import 'codemirror/lib/codemirror.css'
 
 function getModeFromLanguage (language) {
   switch (language) {

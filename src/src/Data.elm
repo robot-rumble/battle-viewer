@@ -1,11 +1,12 @@
 module Data exposing (..)
 
+import Array exposing (Array)
 import Basics
 import Dict exposing (Dict)
-import Array exposing (Array)
 import Json.Decode exposing (..)
-import Json.Decode.Pipeline exposing (required, custom)
+import Json.Decode.Pipeline exposing (custom, required)
 import Json.Encode as Encode
+
 
 arrayAsTuple2 : Decoder a -> Decoder b -> Decoder ( a, b )
 arrayAsTuple2 a b =
@@ -58,24 +59,27 @@ type alias Team =
     String
 
 
-
 type alias Outcome =
     { winner : Maybe String
     }
 
+
 decodeOutcome : Value -> Result Json.Decode.Error Outcome
-decodeOutcome = decodeValue outcomeDecoder
+decodeOutcome =
+    decodeValue outcomeDecoder
+
 
 outcomeDecoder : Decoder Outcome
 outcomeDecoder =
     succeed Outcome
-    |> required "winner" (nullable string)
+        |> required "winner" (nullable string)
 
 
 type alias Error =
     { message : String
     , errorLoc : Maybe ErrorLoc
     }
+
 
 type alias ErrorLoc =
     { line : Int
@@ -84,12 +88,15 @@ type alias ErrorLoc =
     , endch : Int
     }
 
+
 decodeError : Value -> Result Json.Decode.Error Error
-decodeError = decodeValue errorDecoder
+decodeError =
+    decodeValue errorDecoder
+
 
 errorDecoder : Decoder Error
 errorDecoder =
-        succeed Error
+    succeed Error
         |> required "message" string
         |> custom (field "errorLoc" (nullable errorLocDecoder))
 
@@ -97,21 +104,26 @@ errorDecoder =
 errorLocDecoder : Decoder ErrorLoc
 errorLocDecoder =
     succeed ErrorLoc
-    |> required "line" int
-    |> required "ch" int
-    |> required "endline" int
-    |> required "endch" int
+        |> required "line" int
+        |> required "ch" int
+        |> required "endline" int
+        |> required "endch" int
 
 
 decodeProgress : Value -> Result Json.Decode.Error Input
-decodeProgress = decodeValue inputDecoder
+decodeProgress =
+    decodeValue inputDecoder
 
 
 nullableIntEncoder : Maybe Int -> Encode.Value
 nullableIntEncoder val =
     case val of
-        Just int -> Encode.int int
-        Nothing -> Encode.null
+        Just int ->
+            Encode.int int
+
+        Nothing ->
+            Encode.null
+
 
 errorLocEncoder : ErrorLoc -> Encode.Value
 errorLocEncoder errorLoc =
@@ -124,14 +136,14 @@ errorLocEncoder errorLoc =
 
 
 type alias Input =
-    { state: State
+    { state : State
     }
 
 
 inputDecoder : Decoder Input
 inputDecoder =
     succeed Input
-    |> required "state" stateDecoder
+        |> required "state" stateDecoder
 
 
 type alias State =
@@ -143,23 +155,32 @@ type alias State =
 stateDecoder : Decoder State
 stateDecoder =
     succeed State
-    |> required "turn" int
-    |> required "objs" (dict objDecoder)
+        |> required "turn" int
+        |> required "objs" (dict objDecoder)
 
-type alias Obj = ( BasicObj, ObjDetails )
+
+type alias Obj =
+    ( BasicObj, ObjDetails )
+
 
 objDecoder : Decoder Obj
 objDecoder =
-    basicObjDecoder |> andThen (\basic_obj ->
-        objDetailsDecoder |> andThen (\obj_details ->
-            Json.Decode.succeed (basic_obj, obj_details)
-        )
-    )
+    basicObjDecoder
+        |> andThen
+            (\basic_obj ->
+                objDetailsDecoder
+                    |> andThen
+                        (\obj_details ->
+                            Json.Decode.succeed ( basic_obj, obj_details )
+                        )
+            )
+
 
 type alias BasicObj =
     { coords : Coords
     , id : Id
     }
+
 
 basicObjDecoder : Decoder BasicObj
 basicObjDecoder =
@@ -168,17 +189,27 @@ basicObjDecoder =
         |> required "id" string
 
 
-type ObjDetails = UnitDetails Unit | TerrainDetails Terrain
+type ObjDetails
+    = UnitDetails Unit
+    | TerrainDetails Terrain
+
 
 objDetailsDecoder : Decoder ObjDetails
 objDetailsDecoder =
     field "type" string
-    |> andThen (\type_ ->
-        case type_ of
-            "Soldier" -> unitDecoder |> map UnitDetails
-            "Wall" -> terrainDecoder |> map TerrainDetails
-            _ -> fail ("Invalid type: " ++ type_)
-        )
+        |> andThen
+            (\type_ ->
+                case type_ of
+                    "Soldier" ->
+                        unitDecoder |> map UnitDetails
+
+                    "Wall" ->
+                        terrainDecoder |> map TerrainDetails
+
+                    _ ->
+                        fail ("Invalid type: " ++ type_)
+            )
+
 
 type alias Unit =
     { type_ : UnitType
@@ -186,8 +217,10 @@ type alias Unit =
     , team : Team
     }
 
+
 type UnitType
     = Soldier
+
 
 unitDecoder : Decoder Unit
 unitDecoder =
@@ -201,11 +234,12 @@ type alias Terrain =
     { type_ : TerrainType
     }
 
+
 type TerrainType
     = Wall
+
 
 terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
         |> required "type" (string |> stringAsUnion [ ( "Wall", Wall ) ])
-

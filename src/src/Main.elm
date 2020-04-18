@@ -191,9 +191,10 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "_app-root d-flex" ]
-        [ div [ style "width" "70%" ]
+        -- fix codemirror vertical overflow
+        [ div [ style "width" "70%", class "d-flex flex-column" ]
             [ viewBar model
-            , div [ class "_editor p-5" ] [ viewEditor model ]
+            , viewEditor model
             ]
         , div [ class "_viewer", style "width" "30%" ]
             [ Html.map GotRenderMsg <| BattleViewer.view model.renderState
@@ -242,6 +243,7 @@ viewEditor model =
                 Decode.at [ "target", "value" ] <|
                     Decode.string
          , Html.Attributes.attribute "code" model.code
+         , class "_editor"
          ]
          --++ (case model.renderState.renderState of
          --        BattleViewerMain.Error error ->

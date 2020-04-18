@@ -252,7 +252,12 @@ body {
       height: 100%;
     }
 
-    code-editor {
+    ._editor {
+      // to prevent vertical overflow
+      height: 100%;
+      overflow: auto;
+      margin-left: map_get($spacers, 4);
+
       .CodeMirror {
         height: 100%;
         border: 0;
@@ -261,6 +266,11 @@ body {
           font-family: $code-font;
           line-height: 1.1;
         }
+      }
+
+      .CodeMirror-scroll {
+        // add space on top of code that can scroll
+        padding-top: map_get($spacers, 4)
       }
 
       .CodeMirror-gutters {

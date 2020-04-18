@@ -1,6 +1,6 @@
 port module Main exposing (..)
 
-import BattleViewerMain
+import BattleViewer
 import Browser
 import Data
 import Html exposing (..)
@@ -35,7 +35,7 @@ type alias Model =
     , updatePath : String
     , robotPath : String
     , publishPath : String
-    , renderState : BattleViewerMain.Model
+    , renderState : BattleViewer.Model
     }
 
 
@@ -46,7 +46,7 @@ init flags =
         flags.updatePath
         flags.robotPath
         flags.publishPath
-        (BattleViewerMain.init flags.totalTurns)
+        (BattleViewer.init flags.totalTurns)
     , Cmd.none
     )
 
@@ -74,7 +74,7 @@ port reportDecodeError : String -> Cmd msg
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
-    | GotRenderMsg BattleViewerMain.Msg
+    | GotRenderMsg BattleViewer.Msg
     | CodeChanged String
     | Save
     | Saved (Result Http.Error ())
@@ -84,7 +84,7 @@ handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
 handleDecodeError model error =
     let
         ( newModel, _ ) =
-            update (GotRenderMsg BattleViewerMain.GotInternalError) model
+            update (GotRenderMsg BattleViewer.GotInternalError) model
     in
     ( newModel, reportDecodeError <| Decode.errorToString error )
 
@@ -95,7 +95,7 @@ update msg model =
         GotOutput output ->
             case Data.decodeOutcomeData output of
                 Ok data ->
-                    update (GotRenderMsg (BattleViewerMain.GotOutput data)) model
+                    update (GotRenderMsg (BattleViewer.GotOutput data)) model
 
                 Err error ->
                     handleDecodeError model error
@@ -103,7 +103,7 @@ update msg model =
         GotProgress progress ->
             case Data.decodeProgressData progress of
                 Ok data ->
-                    update (GotRenderMsg (BattleViewerMain.GotProgress data)) model
+                    update (GotRenderMsg (BattleViewer.GotProgress data)) model
 
                 Err error ->
                     handleDecodeError model error
@@ -123,13 +123,13 @@ update msg model =
             let
                 cmd =
                     case renderMsg of
-                        BattleViewerMain.Run ->
+                        BattleViewer.Run ->
                             startEval model.code
 
                         _ ->
                             Cmd.none
             in
-            ( { model | renderState = BattleViewerMain.update renderMsg model.renderState }, cmd )
+            ( { model | renderState = BattleViewer.update renderMsg model.renderState }, cmd )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )
@@ -156,7 +156,7 @@ subscriptions _ =
     Sub.batch
         [ getOutput GotOutput
         , getProgress GotProgress
-        , getInternalError (always <| GotRenderMsg BattleViewerMain.GotInternalError)
+        , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
         ]
 
 
@@ -172,7 +172,7 @@ view model =
             , div [ class "_editor p-5" ] [ viewEditor model ]
             ]
         , div [ class "_viewer", style "width" "30%" ]
-            [ Html.map GotRenderMsg <| BattleViewerMain.view model.renderState
+            [ Html.map GotRenderMsg <| BattleViewer.view model.renderState
             ]
         ]
 

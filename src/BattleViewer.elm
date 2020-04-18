@@ -74,31 +74,43 @@ update msg model =
             { model
                 | renderState =
                     let
-                        logs =
-                            Maybe.withDefault [] (Dict.get "Red" progress.logs)
+                        turnLogs =
+                            Dict.get "Red" progress.logs
+                                |> Maybe.andThen
+                                    (\logs ->
+                                        if List.isEmpty logs then
+                                            Nothing
 
-                        logsWithMarker =
-                            let
-                                turnStringStart =
-                                    if progress.state.turn == 1 then
-                                        "Turn "
+                                        else
+                                            Just logs
+                                    )
 
-                                    else
-                                        "\nTurn "
-                            in
-                            (turnStringStart ++ String.fromInt progress.state.turn) :: logs
+                        addTurnHeading =
+                            \logs ->
+                                let
+                                    headingStart =
+                                        if progress.state.turn == 1 then
+                                            "Turn "
+
+                                        else
+                                            "\nTurn "
+                                in
+                                (headingStart ++ String.fromInt progress.state.turn) :: logs
+
+                        finalLogs =
+                            Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
                     in
                     case model.renderState of
                         Render renderState ->
                             Render
-                                { logs = List.append renderState.logs logsWithMarker
+                                { logs = List.append renderState.logs finalLogs
                                 , viewerState =
                                     GridViewer.update (GridViewer.GotTurn progress.state) renderState.viewerState
                                 }
 
                         _ ->
                             Render
-                                { logs = logsWithMarker
+                                { logs = finalLogs
                                 , viewerState = GridViewer.init progress.state model.totalTurns
                                 }
             }
@@ -142,28 +154,27 @@ view model =
 viewLog : Model -> Html Msg
 viewLog model =
     div [ class "box _logs" ]
-        [ p [] [ text "Logs" ]
-        , textarea
-            [ readonly True
-            , class <|
-                case model.renderState of
-                    Error _ ->
-                        "error"
+        [ p [ class "font-bold" ] [ text "Logs" ]
+        , case model.renderState of
+            Error error ->
+                textarea
+                    [ readonly True
+                    , class "error"
+                    ]
+                    [ text error ]
 
-                    _ ->
-                        ""
-            ]
-            [ text <|
-                case model.renderState of
-                    Error error ->
-                        error
+            Render state ->
+                if List.isEmpty state.logs then
+                    p [ class "font-italic" ] [ text "nothing here" ]
 
-                    Render state ->
-                        String.concat state.logs
+                else
+                    textarea
+                        [ readonly True
+                        ]
+                        [ text <| String.concat state.logs ]
 
-                    _ ->
-                        ""
-            ]
+            _ ->
+                p [ class "font-italic" ] [ text "nothing here" ]
         ]
 
 

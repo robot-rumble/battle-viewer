@@ -12,7 +12,7 @@ textarea {
   outline: 0 !important;
 }
 
-*::-moz-focus-inner {
+*::-moz-focus-inner, *::-moz-focus-outer {
   outline: 0 !important;
   border: 0 !important;
 }

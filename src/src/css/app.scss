@@ -42,6 +42,14 @@ $border-3: 1px solid map_get($colors, "grey-3");
   max-width: map_get($grid-breakpoints, lg);
 }
 
+.font-italic {
+  font-style: italic;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
 @import "./fantasque/stylesheet.css";
 @import "./fixes";
 

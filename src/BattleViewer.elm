@@ -1,11 +1,17 @@
-module BattleViewer exposing (Model, Msg(..), init, update, view)
+module BattleViewer exposing (Model, Msg(..), RenderState(..), init, update, view)
 
 import Array exposing (Array)
 import Data
+import Dict
 import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+
+
+to_perc : Float -> String
+to_perc float =
+    String.fromFloat float ++ "%"
 
 
 
@@ -13,15 +19,28 @@ import Html.Events exposing (..)
 
 
 type alias Model =
-    { turns : Array Data.TurnState
-    , total_turns : Int
-    , current_turn : Int
+    { totalTurns : Int
+    , renderState : RenderState
     }
 
 
-init : Data.TurnState -> Int -> Model
-init firstTurn totalTurns =
-    Model (Array.fromList [ firstTurn ]) totalTurns 0
+type RenderState
+    = Initializing
+    | Render RenderStateVal
+    | Error Data.E
+    | NoRender
+    | InternalError
+
+
+type alias RenderStateVal =
+    { logs : List String
+    , viewerState : GridViewer.Model
+    }
+
+
+init : Int -> Model
+init totalTurns =
+    Model totalTurns NoRender
 
 
 
@@ -29,84 +48,185 @@ init firstTurn totalTurns =
 
 
 type Msg
-    = ChangeTurn Direction
-    | GotTurn Data.TurnState
-
-
-type Direction
-    = Next
-    | Previous
+    = GotOutput Data.OutcomeData
+    | GotProgress Data.ProgressData
+    | GotInternalError
+    | Run
+    | GotRenderMsg GridViewer.Msg
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
-        GotTurn turn ->
-            { model | turns = Array.push turn model.turns }
+        GotOutput output ->
+            let
+                maybeError =
+                    Dict.get "Red" output.errors
+            in
+            case maybeError of
+                Just error ->
+                    { model | renderState = Error error }
 
-        ChangeTurn dir ->
+                _ ->
+                    model
+
+        GotProgress progress ->
             { model
-                | current_turn =
-                    model.current_turn
-                        + (case dir of
-                            Next ->
-                                if model.current_turn == Array.length model.turns - 1 then
-                                    0
+                | renderState =
+                    let
+                        logs =
+                            Maybe.withDefault [] (Dict.get "Red" progress.logs)
 
-                                else
-                                    1
+                        logsWithMarker =
+                            let
+                                turnStringStart =
+                                    if progress.state.turn == 1 then
+                                        "Turn "
 
-                            Previous ->
-                                if model.current_turn == 0 then
-                                    0
+                                    else
+                                        "\nTurn "
+                            in
+                            (turnStringStart ++ String.fromInt progress.state.turn) :: logs
+                    in
+                    case model.renderState of
+                        Render renderState ->
+                            Render
+                                { logs = List.append renderState.logs logsWithMarker
+                                , viewerState =
+                                    GridViewer.update (GridViewer.GotTurn progress.state) renderState.viewerState
+                                }
 
-                                else
-                                    -1
-                          )
+                        _ ->
+                            Render
+                                { logs = logsWithMarker
+                                , viewerState = GridViewer.init progress.state model.totalTurns
+                                }
             }
+
+        Run ->
+            { model | renderState = Initializing }
+
+        GotRenderMsg renderMsg ->
+            case model.renderState of
+                Render state ->
+                    { model | renderState = Render { state | viewerState = GridViewer.update renderMsg state.viewerState } }
+
+                _ ->
+                    model
+
+        GotInternalError ->
+            { model | renderState = InternalError }
 
 
 
 -- VIEW
 
 
-view : Maybe Model -> Html Msg
-view maybeModel =
-    div
-        [ style "width" "80%" ]
-        [ viewGameBar maybeModel
-        , GridViewer.view <|
-            Maybe.andThen
-                (\model -> Array.get model.current_turn model.turns)
-                maybeModel
+view : Model -> Html Msg
+view model =
+    div [ class "_app-root" ]
+        [ div [ class "_battle-viewer-root d-flex flex-column align-items-center justify-content-center" ]
+            [ viewButton model
+            , Html.map GotRenderMsg <|
+                case model.renderState of
+                    Render state ->
+                        GridViewer.view (Just state.viewerState)
+
+                    _ ->
+                        GridViewer.view Nothing
+            ]
+        , div [ class "_logs" ] [ viewLog model ]
         ]
 
 
-viewGameBar : Maybe Model -> Html Msg
-viewGameBar maybeModel =
-    div [ class "game-bar" ] <|
-        case maybeModel of
-            Just model ->
-                [ viewArrows model ]
+viewLog : Model -> Html Msg
+viewLog model =
+    div [ class "box" ]
+        [ p [] [ text "Logs" ]
+        , textarea
+            [ readonly True
+            , class <|
+                case model.renderState of
+                    Error _ ->
+                        "error"
+
+                    _ ->
+                        ""
+            ]
+            [ text <|
+                case model.renderState of
+                    Error error ->
+                        error
+
+                    Render state ->
+                        String.concat state.logs
+
+                    _ ->
+                        ""
+            ]
+        ]
+
+
+isLoading : Model -> Bool
+isLoading model =
+    case model.renderState of
+        Render render ->
+            Array.length render.viewerState.turns /= model.totalTurns
+
+        Initializing ->
+            True
+
+        _ ->
+            False
+
+
+viewButton : Model -> Html Msg
+viewButton model =
+    let
+        loading =
+            isLoading model
+
+        loadingBarPerc =
+            if isLoading model then
+                case model.renderState of
+                    Render render ->
+                        let
+                            totalTurns =
+                                Array.length render.viewerState.turns
+                        in
+                        Just (toFloat totalTurns / toFloat model.totalTurns * 100)
+
+                    _ ->
+                        Just 0
+
+            else
+                Nothing
+    in
+    div [ class "_run-bar mb-5" ]
+        [ div [ class "_progress-outline" ] []
+        , case loadingBarPerc of
+            Just perc ->
+                div [ class "_progress", style "width" <| to_perc perc ] []
 
             Nothing ->
-                []
-
-
-viewArrows : Model -> Html Msg
-viewArrows model =
-    div [ class "d-flex justify-content-center align-items-center" ]
-        [ button
-            [ onClick (ChangeTurn Previous)
-            , disabled (model.current_turn == 0)
-            , class "arrow-button"
-            ]
-            [ text "←" ]
-        , div [ style "width" "5rem", class "text-center" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
+                div [] []
         , button
-            [ onClick (ChangeTurn Next)
-            , disabled (model.current_turn == Array.length model.turns - 1)
-            , class "arrow-button"
+            [ onClick Run
+            , class "button"
+
+            -- hide button through CSS to preserve bar height
+            , style "visibility" <|
+                if loading then
+                    "hidden"
+
+                else
+                    "visible"
             ]
-            [ text "→" ]
+            [ text "battle!" ]
+        , case model.renderState of
+            Initializing ->
+                p [ class "_text" ] [ text "Initializing..." ]
+
+            _ ->
+                div [] []
         ]

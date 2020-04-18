@@ -1,114 +1,112 @@
-module GridViewer exposing (view)
+module GridViewer exposing (Model, Msg(..), init, update, view)
 
+import Array exposing (Array)
 import Data
-import Dict
+import Grid
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 
-to_perc : Float -> String
-to_perc float =
-    String.fromFloat float ++ "%"
+
+-- MODEL
 
 
-map_size =
-    19
+type alias Model =
+    { turns : Array Data.TurnState
+    , total_turns : Int
+    , current_turn : Int
+    }
 
 
-max_health =
-    5
+init : Data.TurnState -> Int -> Model
+init firstTurn totalTurns =
+    Model (Array.fromList [ firstTurn ]) totalTurns 0
 
 
-view : Maybe Data.TurnState -> Html msg
-view maybeState =
-    let
-        gridTemplateRows =
-            "repeat(" ++ String.fromInt map_size ++ ", 1fr)"
 
-        gridTemplateColumns =
-            "repeat(" ++ String.fromInt map_size ++ ", 1fr)"
-    in
-    div [ class "_renderer-wrapper" ]
-        [ div
-            [ class "_renderer"
-            , style "grid-template-rows" gridTemplateRows
-            , style "grid-template-columns" gridTemplateColumns
-            ]
-          <|
-            List.append gameGrid
-                (case maybeState of
-                    Just state ->
-                        gameObjs state
+-- UPDATE
 
-                    Nothing ->
-                        []
-                )
+
+type Msg
+    = ChangeTurn Direction
+    | GotTurn Data.TurnState
+
+
+type Direction
+    = Next
+    | Previous
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        GotTurn turn ->
+            { model | turns = Array.push turn model.turns }
+
+        ChangeTurn dir ->
+            { model
+                | current_turn =
+                    model.current_turn
+                        + (case dir of
+                            Next ->
+                                if model.current_turn == Array.length model.turns - 1 then
+                                    0
+
+                                else
+                                    1
+
+                            Previous ->
+                                if model.current_turn == 0 then
+                                    0
+
+                                else
+                                    -1
+                          )
+            }
+
+
+
+-- VIEW
+
+
+view : Maybe Model -> Html Msg
+view maybeModel =
+    div
+        [ style "width" "80%" ]
+        [ viewGameBar maybeModel
+        , Grid.view <|
+            Maybe.andThen
+                (\model -> Array.get model.current_turn model.turns)
+                maybeModel
         ]
 
 
-gameGrid : List (Html msg)
-gameGrid =
-    List.append
-        (List.range 1 map_size
-            |> List.map
-                (\y ->
-                    div [ class "grid-row", style "grid-area" <| "1 / " ++ String.fromInt y ++ "/ end / auto" ] []
-                )
-        )
-        (List.range 1 map_size
-            |> List.map
-                (\x ->
-                    div [ class "grid-col", style "grid-area" <| String.fromInt x ++ "/ 1 / auto / end" ] []
-                )
-        )
+viewGameBar : Maybe Model -> Html Msg
+viewGameBar maybeModel =
+    div [ class "game-bar" ] <|
+        case maybeModel of
+            Just model ->
+                [ viewArrows model ]
+
+            Nothing ->
+                []
 
 
-gameObjs : Data.TurnState -> List (Html msg)
-gameObjs state =
-    Dict.values state.objs
-        |> List.map
-            (\( basic, details ) ->
-                let
-                    ( x, y ) =
-                        basic.coords
-                in
-                div
-                    ([ class "obj"
-                     , class basic.id
-                     , style "grid-column" <| String.fromInt (x + 1)
-                     , style "grid-row" <| String.fromInt (y + 1)
-                     ]
-                        ++ (case details of
-                                Data.UnitDetails unit ->
-                                    [ class "unit"
-                                    , class <| "team-" ++ unit.team
-                                    ]
-
-                                Data.TerrainDetails terrain ->
-                                    [ class "terrain"
-                                    , class <|
-                                        "type-"
-                                            ++ (case terrain.type_ of
-                                                    Data.Wall ->
-                                                        "wall"
-                                               )
-                                    ]
-                           )
-                    )
-                    [ case details of
-                        Data.UnitDetails unit ->
-                            let
-                                health_perc =
-                                    toFloat unit.health / toFloat max_health * 100
-                            in
-                            div
-                                [ class "health-bar"
-                                , style "width" <| to_perc health_perc
-                                , style "height" <| to_perc health_perc
-                                ]
-                                []
-
-                        _ ->
-                            div [] []
-                    ]
-            )
+viewArrows : Model -> Html Msg
+viewArrows model =
+    div [ class "d-flex justify-content-center align-items-center" ]
+        [ button
+            [ onClick (ChangeTurn Previous)
+            , disabled (model.current_turn == 0)
+            , class "arrow-button"
+            ]
+            [ text "←" ]
+        , div [ style "width" "5rem", class "text-center" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
+        , button
+            [ onClick (ChangeTurn Next)
+            , disabled (model.current_turn == Array.length model.turns - 1)
+            , class "arrow-button"
+            ]
+            [ text "→" ]
+        ]

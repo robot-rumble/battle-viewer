@@ -25,6 +25,7 @@ $colors: (
 
 $border-1: 2px solid map_get($colors, "grey-2");
 $border-2: 2px solid map_get($colors, "grey-3");
+$border-3: 1px solid map_get($colors, "grey-3");
 
 
 @import "node_modules/bootstrap/scss/bootstrap-reboot";

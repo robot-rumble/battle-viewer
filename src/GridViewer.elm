@@ -28,9 +28,9 @@ view maybeState =
         gridTemplateColumns =
             "repeat(" ++ String.fromInt map_size ++ ", 1fr)"
     in
-    div [ class "renderer-wrapper" ]
+    div [ class "_renderer-wrapper" ]
         [ div
-            [ class "renderer"
+            [ class "_renderer"
             , style "grid-template-rows" gridTemplateRows
             , style "grid-template-columns" gridTemplateColumns
             ]

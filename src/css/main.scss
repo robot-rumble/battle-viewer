@@ -49,17 +49,19 @@
     
     ._text {
       position: absolute;
-      top: 0;
+      // fix text not being vertically centered
+      top: 2px;
       bottom: 0;
       left: 0;
       right: 0;
     }
 
+    //noinspection CssReplaceWithShorthandSafely
     ._progress-outline {
       position: absolute;
       height: 100%;
       width: 100%;
-      border: 2px solid map_get($colors, "light-blue");
+      border: $border-2;
       border-left: 0;
       border-right: 0;
       z-index: -2;

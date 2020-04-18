@@ -26,13 +26,21 @@ $colors: (
 $border-1: 2px solid map_get($colors, "grey-2");
 $border-2: 2px solid map_get($colors, "grey-3");
 
-@import "node_modules/bootstrap/scss/bootstrap-grid";
+
 @import "node_modules/bootstrap/scss/bootstrap-reboot";
-@import "node_modules/bootstrap/scss/type";
-@import "node_modules/bootstrap/scss/utilities";
-@import "node_modules/bootstrap/scss/_variables";
-@import "node_modules/bootstrap/scss/_functions";
-@import "node_modules/bootstrap/scss/mixins/_breakpoints";
+@import "node_modules/bootstrap/scss/utilities/flex";
+@import "node_modules/bootstrap/scss/utilities/spacing";
+
+.d-flex {
+  display: flex;
+}
+
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: map_get($grid-breakpoints, lg);
+}
+
 @import "./fantasque/stylesheet.css";
 @import "./fixes";
 
@@ -201,16 +209,25 @@ body {
 //// the garage
 
 .garage {
-  .app-root {
+  height: 100%;
+
+  ._app-root {
+    height: 100%;
+
+    ._bar {
+      border-bottom: $border-2;
+    }
+    ._viewer {
+      border-left: $border-2;
+    }
+
     @import "./battle-viewer/src/css/main";
 
-    display: flex;
-    .app-root {
-      flex-basis: 30%;
+    ._app-root {
+      height: 100%;
     }
-    code-editor {
-      flex-basis: 70%;
 
+    code-editor {
       .CodeMirror {
         height: 100%;
         border: 0;

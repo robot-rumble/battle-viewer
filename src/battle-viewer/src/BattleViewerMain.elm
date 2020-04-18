@@ -124,8 +124,8 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "app-root" ]
-        [ div [ class "main" ]
+    div [ class "_app-root" ]
+        [ div [ class "_battle-viewer-root d-flex flex-column align-items-center justify-content-center" ]
             [ viewButton model
             , Html.map GotRenderMsg <|
                 case model.renderState of
@@ -135,33 +135,35 @@ view model =
                     _ ->
                         BattleViewer.view Nothing
             ]
-        , viewLog model
+        , div [ class "_logs" ] [ viewLog model ]
         ]
 
 
 viewLog : Model -> Html Msg
 viewLog model =
-    textarea
-        [ readonly True
-        , class "log"
-        , class <|
-            case model.renderState of
-                Error _ ->
-                    "error"
+    div [ class "box" ]
+        [ p [] [ text "Logs" ]
+        , textarea
+            [ readonly True
+            , class <|
+                case model.renderState of
+                    Error _ ->
+                        "error"
 
-                _ ->
-                    ""
-        ]
-        [ text <|
-            case model.renderState of
-                Error error ->
-                    error
+                    _ ->
+                        ""
+            ]
+            [ text <|
+                case model.renderState of
+                    Error error ->
+                        error
 
-                Render state ->
-                    String.concat state.logs
+                    Render state ->
+                        String.concat state.logs
 
-                _ ->
-                    ""
+                    _ ->
+                        ""
+            ]
         ]
 
 
@@ -170,6 +172,9 @@ isLoading model =
     case model.renderState of
         Render render ->
             Array.length render.viewerState.turns /= model.totalTurns
+
+        Initializing ->
+            True
 
         _ ->
             False
@@ -197,28 +202,31 @@ viewButton model =
             else
                 Nothing
     in
-    div [ class "game-bar", class "mb-3" ]
-        [ case loadingBarPerc of
+    div [ class "_run-bar mb-5" ]
+        [ div [ class "_progress-outline" ] []
+        , case loadingBarPerc of
             Just perc ->
-                div [ class "progress", style "width" <| to_perc perc ] []
+                div [ class "_progress", style "width" <| to_perc perc ] []
 
             Nothing ->
                 div [] []
+        , button
+            [ onClick Run
+            , class "button"
+
+            -- hide button through CSS to preserve bar height
+            , style "visibility" <|
+                if loading then
+                    "hidden"
+
+                else
+                    "visible"
+            ]
+            [ text "battle!" ]
         , case model.renderState of
             Initializing ->
-                p [] [ text "Initializing..." ]
+                p [ class "_text" ] [ text "Initializing..." ]
 
             _ ->
-                button
-                    [ onClick Run
-
-                    -- hide button through CSS to preserve bar height
-                    , style "visibility" <|
-                        if loading then
-                            "hidden"
-
-                        else
-                            "visible"
-                    ]
-                    [ text "run" ]
+                div [] []
         ]

@@ -73,7 +73,7 @@ update msg model =
 view : Maybe Model -> Html Msg
 view maybeModel =
     div
-        []
+        [ style "width" "80%" ]
         [ viewGameBar maybeModel
         , GridViewer.view <|
             Maybe.andThen

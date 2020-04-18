@@ -11,12 +11,18 @@ customElements.define('robot-arena', class extends HTMLElement {
   connectedCallback () {
     // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
     if (!window.jsRoutes) {
-      throw new Error('No Play JS router found.')
+      throw new Error('No Play JS router found')
     }
 
     const user = this.getAttribute('user')
     const robot = this.getAttribute('robot')
-    const updatePath = user && robot && window.jsRoutes.controllers.RobotController.update(user, robot).url
+    if (!user || !robot) {
+      throw new Error('No user/robot attribute found')
+    }
+
+    const robotPath = window.jsRoutes.controllers.RobotController.view(user, robot).url
+    const updatePath = window.jsRoutes.controllers.RobotController.update(user, robot).url
+    const publishPath = window.jsRoutes.controllers.RobotController.publish(user, robot).url
 
     const code = this.getAttribute('code') || sampleRobot
 
@@ -24,7 +30,10 @@ customElements.define('robot-arena', class extends HTMLElement {
       node: this,
       flags: {
         totalTurns: window.turnNum,
+        robot,
+        robotPath,
         updatePath,
+        publishPath,
         code,
       },
     })

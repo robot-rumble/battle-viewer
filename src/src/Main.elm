@@ -1,6 +1,8 @@
 port module Main exposing (..)
 
+import BattleViewerMain
 import Browser
+import Data
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -8,8 +10,7 @@ import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-import Data
-import BattleViewerMain
+
 
 -- MAIN
 
@@ -30,23 +31,40 @@ main =
 
 type alias Model =
     { code : String
-    , updatePath : Maybe String
+    , robot : String
+    , updatePath : String
+    , robotPath : String
+    , publishPath : String
     , renderState : BattleViewerMain.Model
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
-    ( Model flags.code flags.updatePath (BattleViewerMain.init flags.totalTurns), Cmd.none )
+    ( Model flags.code
+        flags.robot
+        flags.updatePath
+        flags.robotPath
+        flags.publishPath
+        (BattleViewerMain.init flags.totalTurns)
+    , Cmd.none
+    )
 
 
 type alias Flags =
     { code : String
     , totalTurns : Int
-    , updatePath : Maybe String
+    , robot : String
+    , updatePath : String
+    , robotPath : String
+    , publishPath : String
     }
 
+
+
 -- UPDATE
+
+
 port startEval : String -> Cmd msg
 
 
@@ -64,7 +82,10 @@ type Msg
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
 handleDecodeError model error =
-    let (newModel, _) = update (GotRenderMsg (BattleViewerMain.GotInternalError)) model in
+    let
+        ( newModel, _ ) =
+            update (GotRenderMsg BattleViewerMain.GotInternalError) model
+    in
     ( newModel, reportDecodeError <| Decode.errorToString error )
 
 
@@ -90,30 +111,32 @@ update msg model =
         Save ->
             let
                 codeUpdateCmd =
-                    case model.updatePath of
-                        Just path ->
-                            Http.post
-                                { url = path
-                                , body = Http.jsonBody (Encode.object [ ( "code", Encode.string model.code ) ])
-                                , expect = Http.expectWhatever Saved
-                                }
-
-                        Nothing ->
-                            Cmd.none
+                    Http.post
+                        { url = model.updatePath
+                        , body = Http.jsonBody (Encode.object [ ( "code", Encode.string model.code ) ])
+                        , expect = Http.expectWhatever Saved
+                        }
             in
-            (model, codeUpdateCmd )
+            ( model, codeUpdateCmd )
 
         GotRenderMsg renderMsg ->
-            let cmd = case renderMsg of
-                    BattleViewerMain.Run -> startEval model.code
-                    _ -> Cmd.none
-            in ({ model | renderState = (BattleViewerMain.update renderMsg model.renderState) }, cmd )
+            let
+                cmd =
+                    case renderMsg of
+                        BattleViewerMain.Run ->
+                            startEval model.code
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | renderState = BattleViewerMain.update renderMsg model.renderState }, cmd )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )
 
         Saved _ ->
             ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -133,19 +156,37 @@ subscriptions _ =
     Sub.batch
         [ getOutput GotOutput
         , getProgress GotProgress
-        , getInternalError (always <| GotRenderMsg (BattleViewerMain.GotInternalError))
+        , getInternalError (always <| GotRenderMsg BattleViewerMain.GotInternalError)
         ]
 
 
 
 -- VIEW
 
+
 view : Model -> Html Msg
 view model =
-    div [ class "app-root" ] [
-        viewEditor model,
-        Html.map GotRenderMsg <| BattleViewerMain.view model.renderState
-    ]
+    div [ class "_app-root d-flex" ]
+        [ div [ style "width" "70%" ]
+            [ viewBar model
+            , div [ class "_editor p-5" ] [ viewEditor model ]
+            ]
+        , div [ class "_viewer", style "width" "30%" ]
+            [ Html.map GotRenderMsg <| BattleViewerMain.view model.renderState
+            ]
+        ]
+
+
+viewBar : Model -> Html Msg
+viewBar model =
+    div [ class "_bar p-2 d-flex justify-content-between align-items-center" ]
+        [ div [ class "d-flex align-items-center" ]
+            [ p [] [ text "The Garage -- editing ", a [ href model.robotPath ] [ text model.robot ] ]
+            , button [ class "button ml-5", onClick Save ] [ text "save" ]
+            ]
+        , a [ href model.publishPath ] [ text "ready to publish?" ]
+        ]
+
 
 viewEditor : Model -> Html Msg
 viewEditor model =
@@ -156,19 +197,19 @@ viewEditor model =
                     Decode.string
          , Html.Attributes.attribute "code" model.code
          ]
-            --++ (case model.renderState.renderState of
-            --        BattleViewerMain.Error error ->
-            --            case error.errorLoc of
-            --                Just errorLoc ->
-            --                    [ property "errorLoc" <|
-            --                        Data.errorLocEncoder errorLoc
-            --                    ]
-            --
-            --                Nothing ->
-            --                    []
-            --
-            --        _ ->
-            --            []
-            --   )
+         --++ (case model.renderState.renderState of
+         --        BattleViewerMain.Error error ->
+         --            case error.errorLoc of
+         --                Just errorLoc ->
+         --                    [ property "errorLoc" <|
+         --                        Data.errorLocEncoder errorLoc
+         --                    ]
+         --
+         --                Nothing ->
+         --                    []
+         --
+         --        _ ->
+         --            []
+         --   )
         )
         []

@@ -153,7 +153,7 @@ view model =
 
 viewLog : Model -> Html Msg
 viewLog model =
-    div [ class "box _logs" ]
+    div [ class "_logs" ]
         [ p [ class "font-bold" ] [ text "Logs" ]
         , case model.renderState of
             Error error ->

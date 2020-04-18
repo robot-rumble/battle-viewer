@@ -29,6 +29,15 @@ main =
 -- MODEL
 
 
+type
+    SaveAnimationPhase
+    -- hacky way to get the disappearing animation to restart on every save
+    -- by alternating between two different but equal animations
+    = Initial
+    | One
+    | Two
+
+
 type alias Model =
     { code : String
     , robot : String
@@ -36,6 +45,7 @@ type alias Model =
     , robotPath : String
     , publishPath : String
     , renderState : BattleViewer.Model
+    , saveAnimationPhase : SaveAnimationPhase
     }
 
 
@@ -47,6 +57,7 @@ init flags =
         flags.robotPath
         flags.publishPath
         (BattleViewer.init flags.totalTurns)
+        Initial
     , Cmd.none
     )
 
@@ -135,7 +146,20 @@ update msg model =
             ( { model | code = code }, Cmd.none )
 
         Saved _ ->
-            ( model, Cmd.none )
+            ( { model
+                | saveAnimationPhase =
+                    case model.saveAnimationPhase of
+                        Initial ->
+                            One
+
+                        One ->
+                            Two
+
+                        Two ->
+                            One
+              }
+            , Cmd.none
+            )
 
 
 
@@ -182,7 +206,29 @@ viewBar model =
     div [ class "_bar p-2 d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
             [ p [] [ text "The Garage -- editing ", a [ href model.robotPath ] [ text model.robot ] ]
-            , button [ class "button ml-5", onClick Save ] [ text "save" ]
+            , button [ class "button ml-5 mr-3", onClick Save ] [ text "save" ]
+            , p
+                [ class <|
+                    "disappearing-"
+                        ++ (case model.saveAnimationPhase of
+                                One ->
+                                    "one"
+
+                                Two ->
+                                    "two"
+
+                                Initial ->
+                                    ""
+                           )
+                , style "visibility" <|
+                    case model.saveAnimationPhase of
+                        Initial ->
+                            "hidden"
+
+                        _ ->
+                            "visible"
+                ]
+                [ text "saved" ]
             ]
         , a [ href model.publishPath ] [ text "ready to publish?" ]
         ]

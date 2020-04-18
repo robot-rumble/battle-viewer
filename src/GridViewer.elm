@@ -31,6 +31,7 @@ init firstTurn totalTurns =
 type Msg
     = ChangeTurn Direction
     | GotTurn Data.TurnState
+    | SliderChange String
 
 
 type Direction
@@ -65,6 +66,9 @@ update msg model =
                           )
             }
 
+        SliderChange change ->
+            { model | current_turn = Maybe.withDefault 0 (String.toInt change) }
+
 
 
 -- VIEW
@@ -84,13 +88,20 @@ view maybeModel =
 
 viewGameBar : Maybe Model -> Html Msg
 viewGameBar maybeModel =
-    div [ class "game-bar" ] <|
+    div [ class "_grid-viewer-controls d-flex justify-content-between align-items-center" ] <|
         case maybeModel of
             Just model ->
-                [ viewArrows model ]
+                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
+                , div
+                    [ class "d-flex justify-content-around align-items-center"
+                    ]
+                    [ viewArrows model
+                    , viewSlider model
+                    ]
+                ]
 
             Nothing ->
-                []
+                [ p [] [ text "Turn 0" ] ]
 
 
 viewArrows : Model -> Html Msg
@@ -102,7 +113,6 @@ viewArrows model =
             , class "arrow-button"
             ]
             [ text "←" ]
-        , div [ style "width" "5rem", class "text-center" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
         , button
             [ onClick (ChangeTurn Next)
             , disabled (model.current_turn == Array.length model.turns - 1)
@@ -110,3 +120,15 @@ viewArrows model =
             ]
             [ text "→" ]
         ]
+
+
+viewSlider : Model -> Html Msg
+viewSlider model =
+    input
+        [ type_ "range"
+        , Html.Attributes.min "1"
+        , Html.Attributes.max <| String.fromInt (model.total_turns - 1)
+        , value <| String.fromInt model.current_turn
+        , onInput SliderChange
+        ]
+        []

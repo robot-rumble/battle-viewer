@@ -66,7 +66,16 @@
     }
   }
 
-  $grid: rgba(135, 135, 135, .1);
+
+  ._grid-viewer-controls {
+    border: $border-2;
+    margin-bottom: -2px;
+    padding: 0 map_get($spacers, 1);
+
+    input {
+      width: 60%;
+    }
+  }
 
   ._renderer-wrapper {
     /* https://stackoverflow.com/questions/5445491/height-equal-to-dynamic-width-css-fluid-layout */
@@ -85,7 +94,7 @@
       display: grid;
 
       .grid-row, .grid-col {
-        border: 1px solid $grid;
+        border: $border-3;
       }
 
       .obj {

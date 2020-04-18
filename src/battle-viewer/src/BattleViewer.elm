@@ -135,13 +135,13 @@ view model =
                     _ ->
                         GridViewer.view Nothing
             ]
-        , div [ class "_logs" ] [ viewLog model ]
+        , viewLog model
         ]
 
 
 viewLog : Model -> Html Msg
 viewLog model =
-    div [ class "box" ]
+    div [ class "box _logs" ]
         [ p [] [ text "Logs" ]
         , textarea
             [ readonly True

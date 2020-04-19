@@ -14,8 +14,8 @@ import Html.Events exposing (..)
 
 type alias Model =
     { turns : Array Data.TurnState
-    , total_turns : Int
-    , current_turn : Int
+    , totalTurns : Int
+    , currentTurn : Int
     }
 
 
@@ -47,18 +47,18 @@ update msg model =
 
         ChangeTurn dir ->
             { model
-                | current_turn =
-                    model.current_turn
+                | currentTurn =
+                    model.currentTurn
                         + (case dir of
                             Next ->
-                                if model.current_turn == Array.length model.turns - 1 then
+                                if model.currentTurn == Array.length model.turns - 1 then
                                     0
 
                                 else
                                     1
 
                             Previous ->
-                                if model.current_turn == 0 then
+                                if model.currentTurn == 0 then
                                     0
 
                                 else
@@ -67,7 +67,7 @@ update msg model =
             }
 
         SliderChange change ->
-            { model | current_turn = Maybe.withDefault 0 (String.toInt change) }
+            { model | currentTurn = Maybe.withDefault 0 (String.toInt change) }
 
 
 
@@ -81,7 +81,7 @@ view maybeModel =
         [ viewGameBar maybeModel
         , Grid.view <|
             Maybe.andThen
-                (\model -> Array.get model.current_turn model.turns)
+                (\model -> Array.get model.currentTurn model.turns)
                 maybeModel
         ]
 
@@ -91,7 +91,7 @@ viewGameBar maybeModel =
     div [ class "_grid-viewer-controls d-flex justify-content-between align-items-center" ] <|
         case maybeModel of
             Just model ->
-                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
+                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
                 , div
                     [ class "d-flex justify-content-around align-items-center"
                     ]
@@ -109,13 +109,13 @@ viewArrows model =
     div [ class "d-flex justify-content-center align-items-center" ]
         [ button
             [ onClick (ChangeTurn Previous)
-            , disabled (model.current_turn == 0)
+            , disabled (model.currentTurn == 0)
             , class "arrow-button"
             ]
             [ text "←" ]
         , button
             [ onClick (ChangeTurn Next)
-            , disabled (model.current_turn == Array.length model.turns - 1)
+            , disabled (model.currentTurn == Array.length model.turns - 1)
             , class "arrow-button"
             ]
             [ text "→" ]
@@ -127,8 +127,8 @@ viewSlider model =
     input
         [ type_ "range"
         , Html.Attributes.min "1"
-        , Html.Attributes.max <| String.fromInt (model.total_turns - 1)
-        , value <| String.fromInt model.current_turn
+        , Html.Attributes.max <| String.fromInt (model.totalTurns - 1)
+        , value <| String.fromInt model.currentTurn
         , onInput SliderChange
         ]
         []

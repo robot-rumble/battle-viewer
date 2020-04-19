@@ -138,7 +138,7 @@ view : Model -> Html Msg
 view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ] [ p [] [ text "battle versus itself" ] ]
-        , div [ class "_battle-viewer-root d-flex flex-column align-items-center justify-content-center" ]
+        , div [ class "_battle-viewer-root" ]
             [ viewButton model
             , Html.map GotRenderMsg <|
                 case model.renderState of

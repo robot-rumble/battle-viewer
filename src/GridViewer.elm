@@ -50,7 +50,41 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotTurn turn ->
-            { model | turns = Array.push turn model.turns }
+            { model
+                | turns = Array.push turn model.turns
+                , selectedUnit =
+                    case model.selectedUnit of
+                        Just unit ->
+                            Just unit
+
+                        Nothing ->
+                            turn.robotOutputs
+                                |> Dict.toList
+                                |> List.filter
+                                    (\( id, _ ) ->
+                                        case turn.state.objs |> Dict.get id of
+                                            Just ( basic, details ) ->
+                                                case details of
+                                                    Data.UnitDetails unit ->
+                                                        unit.team == "Red"
+
+                                                    Data.TerrainDetails _ ->
+                                                        False
+
+                                            Nothing ->
+                                                False
+                                    )
+                                |> List.filterMap
+                                    (\( id, output ) ->
+                                        case output.action of
+                                            Ok _ ->
+                                                Nothing
+
+                                            Err _ ->
+                                                Just id
+                                    )
+                                |> List.head
+            }
 
         ChangeTurn dir ->
             { model

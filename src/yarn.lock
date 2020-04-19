@@ -2255,6 +2255,18 @@ elm-format@^0.8.3:
   dependencies:
     binwrap "^0.2.2"
 
+elm-hot-webpack-loader@^1.1.6:
+  version "1.1.6"
+  resolved "https://registry.yarnpkg.com/elm-hot-webpack-loader/-/elm-hot-webpack-loader-1.1.6.tgz#da4a17290e2d68e4c4c1b5946d15be928426d99d"
+  integrity sha512-fY+36uG8/h/PvlO2HZSXBa6qGNkVCwn+QjoL/5WWHOocf7EfYAYFgJlWQqsgNQi/eYO4/dt/OglRuSsFfkFvtA==
+  dependencies:
+    elm-hot "^1.1.4"
+
+elm-hot@^1.1.4:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/elm-hot/-/elm-hot-1.1.4.tgz#4984592b3554670255ea4e08f4e98aa9103ab51f"
+  integrity sha512-qPDP/o/Fkifriaxaf3E7hHFB5L6Ijihyg8is4A6xna6/h/zebUiNssbQrxywI2oxNUkr6W/leEu/WlIC1tmVnw==
+
 elm-webpack-loader@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/elm-webpack-loader/-/elm-webpack-loader-6.0.1.tgz#45db22979385f114cd56530700cef5b7f33cc9cb"

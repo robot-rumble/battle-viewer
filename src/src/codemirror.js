@@ -74,6 +74,7 @@ customElements.define(
         lineNumbers: true,
         matchBrackets: true,
         autoRefresh: true,
+        lineWrapping: true,
         // value: initialValue,
         value: this.getAttribute('code'),
         extraKeys: {

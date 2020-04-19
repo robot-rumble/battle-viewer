@@ -14,7 +14,7 @@ body {
   flex-direction: column;
 
   ._battle-viewer-root {
-    margin: map_get($spacers, 4) 0;
+    margin: map_get($spacers, 3) 0;
   }
 
   ._bar {
@@ -67,6 +67,7 @@ body {
     width: 100%;
     text-align: center;
     position: relative;
+    margin-bottom: map_get($spacers, 3);
 
     & > * {
       margin: auto;
@@ -102,21 +103,29 @@ body {
 
 
   ._grid-viewer {
-    width: 90%;
-    max-width: 320px;
+    width: 95%;
+    display: flex;
   }
 
-  ._grid-viewer-controls {
-    border: $border-2;
-    margin-bottom: -2px;
-    padding: 0 map_get($spacers, 1);
+  ._grid-viewer-main {
+    //max-width: 320px;
+    //margin: auto;
+    margin-right: map_get($spacers, 2);
+    width: 50%;
 
-    input {
-      width: 60%;
+    ._grid-viewer-controls {
+      border: $border-2;
+      margin-bottom: -2px;
+      padding: 0 map_get($spacers, 1);
+
+      input {
+        width: 60%;
+      }
     }
   }
 
   ._inspector {
+    width: 50%;
     border: $border-2;
     overflow: auto;
 

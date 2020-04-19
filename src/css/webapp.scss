@@ -111,9 +111,15 @@ body {
     width: 50%;
 
     ._grid-viewer-controls {
+      // styles borrowed from .box
+
       border: $border-2;
       margin-bottom: -2px;
-      padding: 0 map_get($spacers, 1);
+      padding: map_get($spacers, 1) map_get($spacers, 2);
+
+      p {
+        font-weight: bold;
+      }
 
       input {
         width: 60%;

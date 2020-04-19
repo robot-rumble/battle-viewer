@@ -197,11 +197,12 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [ class "_app-root d-flex" ]
+    div [ class "_root-app-root d-flex" ]
         [ div [ class "_ui" ]
             [ viewBar model
             , viewEditor model
             ]
+        , div [ class "gutter" ] []
         , div [ class "_viewer" ]
             [ Html.map GotRenderMsg <| BattleViewer.view model.renderState
             ]

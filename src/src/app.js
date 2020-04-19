@@ -3,6 +3,8 @@ import { Elm } from './Main.elm'
 import sampleRobot from './robots/sample.raw.py'
 import './codemirror'
 
+import Split from 'split.js'
+
 window.turnNum = 20
 window.language = 'python'
 window.runCount = 0
@@ -63,6 +65,13 @@ customElements.define('robot-arena', class extends HTMLElement {
 function init (node, flags, workerUrl) {
   const app = Elm.Main.init({
     node, flags,
+  })
+
+  Split(['._ui', '._viewer'], {
+    sizes: [60, 40],
+    minSize: [600, 400],
+    gutterSize: 5,
+    gutter: () => document.querySelector('.gutter'),
   })
 
   const matchWorker = new Worker(workerUrl)

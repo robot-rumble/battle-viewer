@@ -260,7 +260,7 @@ actionToString action =
                     "North"
 
                 South ->
-                    "Attack"
+                    "South"
 
                 West ->
                     "West"

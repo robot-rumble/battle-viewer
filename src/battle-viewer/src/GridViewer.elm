@@ -2,10 +2,12 @@ module GridViewer exposing (Model, Msg(..), init, update, view)
 
 import Array exposing (Array)
 import Data
+import Dict
 import Grid
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Tuple
 
 
 
@@ -13,14 +15,14 @@ import Html.Events exposing (..)
 
 
 type alias Model =
-    { turns : Array Data.TurnState
+    { turns : Array ( Data.TurnState, Data.RobotOutputs )
     , totalTurns : Int
     , currentTurn : Int
     , selectedUnit : Maybe Data.Id
     }
 
 
-init : Data.TurnState -> Int -> Model
+init : ( Data.TurnState, Data.RobotOutputs ) -> Int -> Model
 init firstTurn totalTurns =
     Model (Array.fromList [ firstTurn ]) totalTurns 0 Nothing
 
@@ -31,7 +33,7 @@ init firstTurn totalTurns =
 
 type Msg
     = ChangeTurn Direction
-    | GotTurn Data.TurnState
+    | GotTurn ( Data.TurnState, Data.RobotOutputs )
     | SliderChange String
     | GotGridMsg Grid.Msg
 
@@ -90,7 +92,7 @@ view maybeModel =
             , Html.map GotGridMsg
                 (Grid.view <|
                     Maybe.andThen
-                        (\model -> Maybe.map (\state -> ( state, model.selectedUnit )) <| Array.get model.currentTurn model.turns)
+                        (\model -> Maybe.map (\state -> ( Tuple.first state, model.selectedUnit )) <| Array.get model.currentTurn model.turns)
                         maybeModel
                 )
             ]
@@ -164,13 +166,33 @@ viewRobotInspector maybeModel =
           of
             Just ( model, unitId ) ->
                 case Array.get model.currentTurn model.turns of
-                    Just turnState ->
-                        p [] []
+                    Just ( _, robotOutputs ) ->
+                        div []
+                            [ case Dict.get unitId robotOutputs of
+                                Just robotOutput ->
+                                    let
+                                        debugPairs =
+                                            Dict.toList robotOutput.debugTable
+                                    in
+                                    if List.isEmpty debugPairs then
+                                        -- TODO link for robot debugging information
+                                        p [ class "font-italic" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+
+                                    else
+                                        div [ class "_table" ] <|
+                                            List.map
+                                                (\( key, val ) ->
+                                                    p [] [ text <| key ++ ": " ++ val ]
+                                                )
+                                                debugPairs
+
+                                Nothing ->
+                                    p [] []
+                            ]
 
                     Nothing ->
                         div [] []
 
             Nothing ->
-                -- TODO link for robot debugging information
-                p [ class "font-italic" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+                p [ class "font-italic" ] [ text "nothing here" ]
         ]

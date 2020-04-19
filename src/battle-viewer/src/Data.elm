@@ -39,12 +39,13 @@ stringAsUnion mapping =
 
 result : Decoder b -> Decoder a -> Decoder (Result b a)
 result err ok =
-    oneOf [
-        field "Ok" ok
-            |> andThen (\okData -> succeed (Ok okData)),
-        field "Err" err
+    oneOf
+        [ field "Ok" ok
+            |> andThen (\okData -> succeed (Ok okData))
+        , field "Err" err
             |> andThen (\errData -> succeed (Err errData))
-    ]
+        ]
+
 
 
 -- OUTCOME/PROGRESS DATA
@@ -61,7 +62,9 @@ type alias Coords =
 type alias Team =
     String
 
-type alias E = String
+
+type alias E =
+    String
 
 
 type alias OutcomeData =
@@ -122,10 +125,14 @@ errorLocEncoder errorLoc =
         ]
 
 
+type alias RobotOutputs =
+    Dict Id RobotOutput
+
+
 type alias ProgressData =
     { state : TurnState
     , logs : Dict Team (List String)
-    , robotOutputs: Dict Id RobotOutput
+    , robotOutputs : RobotOutputs
     }
 
 
@@ -143,9 +150,10 @@ progressDataDecoder =
 
 
 type alias RobotOutput =
-    { action: Result E Action
-    , debug_table: Dict Team String
+    { action : Result E Action
+    , debugTable : Dict String String
     }
+
 
 robotOutputDecoder : Decoder RobotOutput
 robotOutputDecoder =
@@ -155,21 +163,28 @@ robotOutputDecoder =
 
 
 type ActionType
-    = Move | Attack
+    = Move
+    | Attack
+
 
 type Direction
-    = North | South | East | West
+    = North
+    | South
+    | East
+    | West
+
 
 type alias Action =
-    { type_: ActionType
-    , direction: Direction
+    { type_ : ActionType
+    , direction : Direction
     }
+
 
 actionDecoder : Decoder Action
 actionDecoder =
     succeed Action
-        |> required "type" (string |> stringAsUnion [ ("Move", Move), ("Attack", Attack) ] )
-        |> required "direction" (string |> stringAsUnion [ ("North", North), ("South", South), ("East", East), ("West", West) ] )
+        |> required "type" (string |> stringAsUnion [ ( "Move", Move ), ( "Attack", Attack ) ])
+        |> required "direction" (string |> stringAsUnion [ ( "North", North ), ( "South", South ), ( "East", East ), ( "West", West ) ])
 
 
 type alias TurnState =

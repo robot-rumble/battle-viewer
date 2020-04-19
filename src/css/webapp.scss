@@ -75,8 +75,7 @@ body {
     
     ._text {
       position: absolute;
-      // fix text not being vertically centered
-      top: 2px;
+      top: 0;
       bottom: 0;
       left: 0;
       right: 0;

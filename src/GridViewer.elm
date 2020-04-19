@@ -7,6 +7,7 @@ import Grid
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Decode
 import Tuple
 
 
@@ -36,6 +37,8 @@ type Msg
     | GotTurn Data.ProgressData
     | SliderChange String
     | GotGridMsg Grid.Msg
+    | ResetSelectedUnit
+    | NoOp
 
 
 type Direction
@@ -78,6 +81,12 @@ update msg model =
                 Grid.UnitSelected unitId ->
                     { model | selectedUnit = Just unitId }
 
+        ResetSelectedUnit ->
+            { model | selectedUnit = Nothing }
+
+        NoOp ->
+            model
+
 
 
 -- VIEW
@@ -85,9 +94,34 @@ update msg model =
 
 view : Maybe Model -> Html Msg
 view maybeModel =
+    let
+        selectedUnit =
+            maybeModel
+                |> Maybe.andThen
+                    (\model ->
+                        case model.selectedUnit of
+                            Just unitId ->
+                                Just ( model, unitId )
+
+                            Nothing ->
+                                Nothing
+                    )
+    in
     div
-        [ class "_grid-viewer" ]
-        [ div [ class "_grid-viewer-main" ]
+        [ class "_grid-viewer", onClick ResetSelectedUnit ]
+        [ div
+            [ class "_grid-viewer-main"
+            , class <|
+                case selectedUnit of
+                    Nothing ->
+                        "mx-auto"
+
+                    Just _ ->
+                        ""
+
+            -- prevent clicking on grid from closing the inspector
+            , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+            ]
             [ viewGameBar maybeModel
             , Html.map GotGridMsg
                 (Grid.view
@@ -100,7 +134,17 @@ view maybeModel =
                     )
                 )
             ]
-        , viewRobotInspector maybeModel
+        , case selectedUnit of
+            Just ( model, unitId ) ->
+                div
+                    [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+                    , class "_inspector"
+                    ]
+                    [ viewRobotInspector model unitId
+                    ]
+
+            Nothing ->
+                div [] []
         ]
 
 
@@ -152,60 +196,45 @@ viewSlider model =
         []
 
 
-viewRobotInspector : Maybe Model -> Html Msg
-viewRobotInspector maybeModel =
-    div [ class "_inspector box" ]
+viewRobotInspector : Model -> Data.Id -> Html Msg
+viewRobotInspector model unitId =
+    div [ class "box" ]
         [ p [ class "header" ] [ text "Robot Data" ]
-        , case
-            Maybe.andThen
-                (\model ->
-                    case model.selectedUnit of
-                        Just unitId ->
-                            Just ( model, unitId )
+        , case Array.get model.currentTurn model.turns of
+            Just data ->
+                div []
+                    [ case Dict.get unitId data.robotOutputs of
+                        Just robotOutput ->
+                            div []
+                                [ div [ class "mb-3" ]
+                                    [ case robotOutput.action of
+                                        Ok action ->
+                                            p [] [ text <| "Action: " ++ Data.actionToString action ]
+
+                                        Err error ->
+                                            p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                                    ]
+                                , let
+                                    debugPairs =
+                                        Dict.toList robotOutput.debugTable
+                                  in
+                                  if List.isEmpty debugPairs then
+                                    -- TODO link for robot debugging information
+                                    p [ class "info" ] [ text "no watch data. ", a [ href "" ] [ text "learn more" ] ]
+
+                                  else
+                                    div [ class "_table" ] <|
+                                        List.map
+                                            (\( key, val ) ->
+                                                p [] [ text <| key ++ ": " ++ val ]
+                                            )
+                                            debugPairs
+                                ]
 
                         Nothing ->
-                            Nothing
-                )
-                maybeModel
-          of
-            Just ( model, unitId ) ->
-                case Array.get model.currentTurn model.turns of
-                    Just data ->
-                        div []
-                            [ case Dict.get unitId data.robotOutputs of
-                                Just robotOutput ->
-                                    div []
-                                        [ div [ class "mb-3" ] [case robotOutput.action of
-                                            Ok action ->
-                                                p [] [ text <| "Action: " ++ Data.actionToString action ]
-
-                                            Err error ->
-                                                p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]]
-
-                                        , let
-                                            debugPairs =
-                                                Dict.toList robotOutput.debugTable
-                                          in
-                                          if List.isEmpty debugPairs then
-                                            -- TODO link for robot debugging information
-                                            p [ class "info" ] [ text "no watch data. ", a [ href "" ] [ text "learn more" ] ]
-
-                                          else
-                                            div [ class "_table" ] <|
-                                                List.map
-                                                    (\( key, val ) ->
-                                                        p [] [ text <| key ++ ": " ++ val ]
-                                                    )
-                                                    debugPairs
-                                        ]
-
-                                Nothing ->
-                                    p [] []
-                            ]
-
-                    Nothing ->
-                        div [] []
+                            p [] []
+                    ]
 
             Nothing ->
-                p [ class "info" ] [ text "nothing here" ]
+                div [] []
         ]

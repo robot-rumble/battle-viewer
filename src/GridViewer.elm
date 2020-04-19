@@ -15,14 +15,14 @@ import Tuple
 
 
 type alias Model =
-    { turns : Array ( Data.TurnState, Data.RobotOutputs )
+    { turns : Array Data.ProgressData
     , totalTurns : Int
     , currentTurn : Int
     , selectedUnit : Maybe Data.Id
     }
 
 
-init : ( Data.TurnState, Data.RobotOutputs ) -> Int -> Model
+init : Data.ProgressData -> Int -> Model
 init firstTurn totalTurns =
     Model (Array.fromList [ firstTurn ]) totalTurns 0 Nothing
 
@@ -33,7 +33,7 @@ init firstTurn totalTurns =
 
 type Msg
     = ChangeTurn Direction
-    | GotTurn ( Data.TurnState, Data.RobotOutputs )
+    | GotTurn Data.ProgressData
     | SliderChange String
     | GotGridMsg Grid.Msg
 
@@ -90,10 +90,14 @@ view maybeModel =
         [ div [ class "mb-3" ]
             [ viewGameBar maybeModel
             , Html.map GotGridMsg
-                (Grid.view <|
-                    Maybe.andThen
-                        (\model -> Maybe.map (\state -> ( Tuple.first state, model.selectedUnit )) <| Array.get model.currentTurn model.turns)
-                        maybeModel
+                (Grid.view
+                    (maybeModel
+                        |> Maybe.andThen
+                            (\model ->
+                                Array.get model.currentTurn model.turns
+                                    |> Maybe.map (\state -> ( state, model.selectedUnit ))
+                            )
+                    )
                 )
             ]
         , viewRobotInspector maybeModel
@@ -166,25 +170,34 @@ viewRobotInspector maybeModel =
           of
             Just ( model, unitId ) ->
                 case Array.get model.currentTurn model.turns of
-                    Just ( _, robotOutputs ) ->
+                    Just data ->
                         div []
-                            [ case Dict.get unitId robotOutputs of
+                            [ case Dict.get unitId data.robotOutputs of
                                 Just robotOutput ->
-                                    let
-                                        debugPairs =
-                                            Dict.toList robotOutput.debugTable
-                                    in
-                                    if List.isEmpty debugPairs then
-                                        -- TODO link for robot debugging information
-                                        p [ class "info" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+                                    div []
+                                        [ div [ class "mb-3" ] [case robotOutput.action of
+                                            Ok action ->
+                                                p [] [ text <| "Action: " ++ Data.actionToString action ]
 
-                                    else
-                                        div [ class "_table" ] <|
-                                            List.map
-                                                (\( key, val ) ->
-                                                    p [] [ text <| key ++ ": " ++ val ]
-                                                )
-                                                debugPairs
+                                            Err error ->
+                                                p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]]
+
+                                        , let
+                                            debugPairs =
+                                                Dict.toList robotOutput.debugTable
+                                          in
+                                          if List.isEmpty debugPairs then
+                                            -- TODO link for robot debugging information
+                                            p [ class "info" ] [ text "no watch data. ", a [ href "" ] [ text "learn more" ] ]
+
+                                          else
+                                            div [ class "_table" ] <|
+                                                List.map
+                                                    (\( key, val ) ->
+                                                        p [] [ text <| key ++ ": " ++ val ]
+                                                    )
+                                                    debugPairs
+                                        ]
 
                                 Nothing ->
                                     p [] []

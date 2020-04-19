@@ -105,13 +105,13 @@ update msg model =
                             Render
                                 { logs = List.append renderState.logs finalLogs
                                 , viewerState =
-                                    GridViewer.update (GridViewer.GotTurn ( progress.state, progress.robotOutputs )) renderState.viewerState
+                                    GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
                                 }
 
                         _ ->
                             Render
                                 { logs = finalLogs
-                                , viewerState = GridViewer.init ( progress.state, progress.robotOutputs ) model.totalTurns
+                                , viewerState = GridViewer.init progress model.totalTurns
                                 }
             }
 

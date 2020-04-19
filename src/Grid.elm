@@ -32,8 +32,8 @@ type Msg
 -- VIEW
 
 
-view : Maybe ( Data.TurnState, Maybe Data.Id ) -> Html Msg
-view maybeState =
+view : Maybe ( Data.ProgressData, Maybe Data.Id ) -> Html Msg
+view maybeData =
     let
         gridTemplateRows =
             "repeat(" ++ String.fromInt map_size ++ ", 1fr)"
@@ -49,9 +49,9 @@ view maybeState =
             ]
           <|
             List.append gameGrid
-                (case maybeState of
-                    Just ( state, selectedId ) ->
-                        gameObjs state selectedId
+                (case maybeData of
+                    Just ( data, selectedId ) ->
+                        gameObjs data selectedId
 
                     Nothing ->
                         []
@@ -76,9 +76,9 @@ gameGrid =
         )
 
 
-gameObjs : Data.TurnState -> Maybe Data.Id -> List (Html Msg)
-gameObjs state selectedUnit =
-    Dict.values state.objs
+gameObjs : Data.ProgressData -> Maybe Data.Id -> List (Html Msg)
+gameObjs data selectedUnit =
+    Dict.values data.state.objs
         |> List.map
             (\( basic, details ) ->
                 let
@@ -106,6 +106,13 @@ gameObjs state selectedUnit =
                                                     ""
 
                                             Nothing ->
+                                                ""
+                                    , class <|
+                                        case Dict.get basic.id data.robotOutputs |> Maybe.map (\output -> output.action) of
+                                            Just (Err _) ->
+                                                "errored"
+
+                                            _ ->
                                                 ""
                                     ]
 

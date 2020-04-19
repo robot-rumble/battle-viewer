@@ -115,7 +115,7 @@ outcomeErrorDecoder =
 
 type alias Error =
     { message : String
-    , loc : ErrorLoc
+    , loc : Maybe ErrorLoc
     }
 
 
@@ -123,7 +123,7 @@ errorDecoder : Decoder Error
 errorDecoder =
     succeed Error
         |> required "message" string
-        |> required "loc" errorLocDecoder
+        |> required "loc" (nullable errorLocDecoder)
 
 
 type alias Range =
@@ -190,7 +190,7 @@ progressDataDecoder =
 
 
 type alias RobotOutput =
-    { action : Result String Action
+    { action : Result RobotError Action
     , debugTable : Dict String String
     }
 
@@ -198,8 +198,31 @@ type alias RobotOutput =
 robotOutputDecoder : Decoder RobotOutput
 robotOutputDecoder =
     succeed RobotOutput
-        |> required "action" (result string actionDecoder)
+        |> required "action" (result robotErrorDecoder actionDecoder)
         |> required "debug_table" (dict string)
+
+
+type RobotError
+    = RuntimeError Error
+    | InvalidAction String
+
+
+robotErrorToString : RobotError -> String
+robotErrorToString error =
+    case error of
+        RuntimeError runtimeError ->
+            runtimeError.message
+
+        InvalidAction message ->
+            message
+
+
+robotErrorDecoder : Decoder RobotError
+robotErrorDecoder =
+    oneOf
+        [ field "RuntimeError" errorDecoder |> map RuntimeError
+        , field "InvalidAction" string |> map InvalidAction
+        ]
 
 
 type ActionType
@@ -218,6 +241,34 @@ type alias Action =
     { type_ : ActionType
     , direction : Direction
     }
+
+
+actionToString : Action -> String
+actionToString action =
+    let
+        verb =
+            case action.type_ of
+                Move ->
+                    "Move"
+
+                Attack ->
+                    "Attack"
+
+        direction =
+            case action.direction of
+                North ->
+                    "North"
+
+                South ->
+                    "Attack"
+
+                West ->
+                    "West"
+
+                East ->
+                    "East"
+    in
+    verb ++ " " ++ direction
 
 
 actionDecoder : Decoder Action

@@ -186,10 +186,8 @@ body {
         }
       }
 
-      .obj.selected::after {
+      .obj.selected::after, .obj.errored::after {
         content: "";
-        background: white;
-        border-radius: 100%;
         position: absolute;
         height: 50%;
         width: 50%;
@@ -198,7 +196,16 @@ body {
         left: 0;
         right: 0;
         margin: auto;
+      }
+
+      .obj.selected::after, .obj.selected.errored::after {
+        background: white;
         opacity: 0.8;
+        border-radius: 100%;
+      }
+
+      .obj.errored::after {
+        background: map_get($colors, "dark-red");
       }
     }
   }

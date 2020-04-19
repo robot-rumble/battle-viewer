@@ -1,6 +1,9 @@
 //noinspection SassScssResolvedByNameOnly
 
-@import "base";
+@mixin bar {
+  padding: map-get($spacers, 2) map-get($spacers, 3);
+  border-bottom: $border-2;
+}
 
 ._app-root {
   display: flex;
@@ -8,6 +11,10 @@
 
   ._battle-viewer-root {
     margin: map_get($spacers, 4) 0;
+  }
+
+  ._bar {
+    @include bar;
   }
 
   ._logs {

@@ -80,7 +80,9 @@ button {
 }
 
 .button {
-  border: 2px solid map_get($colors, "blue");
+  // use box-shadow instead of border so that the height isn't increased
+  box-shadow: inset 0 0 0 2px map_get($colors, "blue");
+
   color: map_get($colors, "blue");
   background: none;
   padding: 0 0.5rem;

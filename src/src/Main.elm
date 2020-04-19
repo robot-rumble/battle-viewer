@@ -191,8 +191,7 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "_app-root d-flex" ]
-        -- fix codemirror vertical overflow
-        [ div [ style "width" "70%", class "d-flex flex-column" ]
+        [ div [ class "_ui", style "width" "70%" ]
             [ viewBar model
             , viewEditor model
             ]
@@ -204,7 +203,7 @@ view model =
 
 viewBar : Model -> Html Msg
 viewBar model =
-    div [ class "_bar p-2 d-flex justify-content-between align-items-center" ]
+    div [ class "_bar d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
             [ p [] [ text "The Garage -- editing ", a [ href model.robotPath ] [ text model.robot ] ]
             , button [ class "button ml-5 mr-3", onClick Save ] [ text "save" ]

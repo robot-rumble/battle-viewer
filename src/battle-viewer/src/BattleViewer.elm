@@ -1,4 +1,4 @@
-module BattleViewer exposing (Model, Msg(..), RenderState(..), init, update, view)
+module BattleViewer exposing (Model, Msg(..), init, update, view)
 
 import Array exposing (Array)
 import Data
@@ -137,7 +137,8 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "_app-root" ]
-        [ div [ class "_battle-viewer-root d-flex flex-column align-items-center justify-content-center" ]
+        [ div [ class "_bar" ] [ p [] [ text "battle versus itself" ] ]
+        , div [ class "_battle-viewer-root d-flex flex-column align-items-center justify-content-center" ]
             [ viewButton model
             , Html.map GotRenderMsg <|
                 case model.renderState of

@@ -16,12 +16,13 @@ type alias Model =
     { turns : Array Data.TurnState
     , totalTurns : Int
     , currentTurn : Int
+    , selectedUnit : Maybe Data.Id
     }
 
 
 init : Data.TurnState -> Int -> Model
 init firstTurn totalTurns =
-    Model (Array.fromList [ firstTurn ]) totalTurns 0
+    Model (Array.fromList [ firstTurn ]) totalTurns 0 Nothing
 
 
 
@@ -32,6 +33,7 @@ type Msg
     = ChangeTurn Direction
     | GotTurn Data.TurnState
     | SliderChange String
+    | GotGridMsg Grid.Msg
 
 
 type Direction
@@ -69,6 +71,11 @@ update msg model =
         SliderChange change ->
             { model | currentTurn = Maybe.withDefault 0 (String.toInt change) }
 
+        GotGridMsg gridMsg ->
+            case gridMsg of
+                Grid.UnitSelected unitId ->
+                    { model | selectedUnit = Just unitId }
+
 
 
 -- VIEW
@@ -78,11 +85,16 @@ view : Maybe Model -> Html Msg
 view maybeModel =
     div
         [ style "width" "80%" ]
-        [ viewGameBar maybeModel
-        , Grid.view <|
-            Maybe.andThen
-                (\model -> Array.get model.currentTurn model.turns)
-                maybeModel
+        [ div [ class "mb-3" ]
+            [ viewGameBar maybeModel
+            , Html.map GotGridMsg
+                (Grid.view <|
+                    Maybe.andThen
+                        (\model -> Maybe.map (\state -> ( state, model.selectedUnit )) <| Array.get model.currentTurn model.turns)
+                        maybeModel
+                )
+            ]
+        , viewRobotInspector maybeModel
         ]
 
 
@@ -132,3 +144,33 @@ viewSlider model =
         , onInput SliderChange
         ]
         []
+
+
+viewRobotInspector : Maybe Model -> Html Msg
+viewRobotInspector maybeModel =
+    div [ class "_inspector" ]
+        [ p [ class "font-bold" ] [ text "Robot Data" ]
+        , case
+            Maybe.andThen
+                (\model ->
+                    case model.selectedUnit of
+                        Just unitId ->
+                            Just ( model, unitId )
+
+                        Nothing ->
+                            Nothing
+                )
+                maybeModel
+          of
+            Just ( model, unitId ) ->
+                case Array.get model.currentTurn model.turns of
+                    Just turnState ->
+                        p [] []
+
+                    Nothing ->
+                        div [] []
+
+            Nothing ->
+                -- TODO link for robot debugging information
+                p [ class "font-italic" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+        ]

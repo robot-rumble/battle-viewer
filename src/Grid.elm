@@ -1,9 +1,10 @@
-module Grid exposing (view)
+module Grid exposing (Msg(..), view)
 
 import Data
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (..)
 
 
 to_perc : Float -> String
@@ -19,7 +20,19 @@ max_health =
     5
 
 
-view : Maybe Data.TurnState -> Html msg
+
+-- UPDATE
+
+
+type Msg
+    = UnitSelected Data.Id
+
+
+
+-- VIEW
+
+
+view : Maybe ( Data.TurnState, Maybe Data.Id ) -> Html Msg
 view maybeState =
     let
         gridTemplateRows =
@@ -37,8 +50,8 @@ view maybeState =
           <|
             List.append gameGrid
                 (case maybeState of
-                    Just state ->
-                        gameObjs state
+                    Just ( state, selectedId ) ->
+                        gameObjs state selectedId
 
                     Nothing ->
                         []
@@ -46,7 +59,7 @@ view maybeState =
         ]
 
 
-gameGrid : List (Html msg)
+gameGrid : List (Html Msg)
 gameGrid =
     List.append
         (List.range 1 map_size
@@ -63,8 +76,8 @@ gameGrid =
         )
 
 
-gameObjs : Data.TurnState -> List (Html msg)
-gameObjs state =
+gameObjs : Data.TurnState -> Maybe Data.Id -> List (Html Msg)
+gameObjs state selectedUnit =
     Dict.values state.objs
         |> List.map
             (\( basic, details ) ->
@@ -82,6 +95,18 @@ gameObjs state =
                                 Data.UnitDetails unit ->
                                     [ class "unit"
                                     , class <| "team-" ++ unit.team
+                                    , onClick (UnitSelected basic.id)
+                                    , class <|
+                                        case selectedUnit of
+                                            Just id ->
+                                                if id == basic.id then
+                                                    "selected"
+
+                                                else
+                                                    ""
+
+                                            Nothing ->
+                                                ""
                                     ]
 
                                 Data.TerrainDetails terrain ->

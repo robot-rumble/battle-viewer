@@ -103,6 +103,14 @@ body {
     }
   }
 
+  ._inspector {
+    border: $border-2;
+
+    p {
+      padding: map_get($spacers, 1) map_get($spacers, 2);
+    }
+  }
+
   ._renderer-wrapper {
     /* https://stackoverflow.com/questions/5445491/height-equal-to-dynamic-width-css-fluid-layout */
     width: 100%;
@@ -157,6 +165,21 @@ body {
           top: 0;
           bottom: 0;
         }
+      }
+
+      .obj.selected::after {
+        content: "";
+        background: white;
+        border-radius: 100%;
+        position: absolute;
+        height: 50%;
+        width: 50%;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        opacity: 0.8;
       }
     }
   }

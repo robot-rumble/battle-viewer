@@ -1,0 +1,98 @@
+@import "../../battle-viewer/src/css/fantasque/stylesheet.css";
+@import "../../battle-viewer/src/css/base";
+
+//// main.html
+
+// https://css-tricks.com/couple-takes-sticky-footer/#article-header-id-3
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1 0 auto;
+  height: 100%;
+}
+
+.footer {
+  flex-shrink: 0;
+}
+
+.header {
+  padding: map-get($spacers, 5);
+
+  .links {
+    & > * {
+      margin-right: 0.8rem;
+    }
+  }
+}
+
+.footer {
+  padding: map-get($spacers, 3);
+  color: map_get($colors, "grey-1");
+  border-top: $border-2;
+}
+
+//// tags
+
+.panel {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+  border: $border-1;
+  border-radius: 5px;
+  padding: map-get($spacers, 1);
+
+  li {
+    margin: 0 map-get($spacers, 2);
+  }
+
+  .separator::after {
+    position: absolute;
+    height: 50%;
+    border-right: $border-1;
+    content: "";
+    top: 0;
+    bottom: 0;
+    margin: auto;
+  }
+}
+
+//// index.html
+
+.index {
+  .overview {
+    font-size: $h5-font-size;
+
+    .rules {
+      margin-left: map-get($spacers, 3);
+      margin-top: map-get($spacers, 2);
+      margin-bottom: map-get($spacers, 2);
+    }
+  }
+}
+
+//// viewCode.html
+.view-code {
+  textarea {
+    width: 100%;
+    height: 70vh;
+    border: $border-2;
+    padding: map-get($spacers, 3);
+  }
+}
+
+//// robot/view.html
+.robot-page {
+  .actions {
+    & > * {
+      margin-right: map-get($spacers, 4);
+    }
+  }
+}
+

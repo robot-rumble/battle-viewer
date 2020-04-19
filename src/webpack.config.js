@@ -9,8 +9,9 @@ const browserConfig = {
   mode: process.env.NODE_ENV || 'development',
   stats: 'minimal',
   entry: {
-    app: ['@babel/polyfill', './src/app.js'],
-    main: './src/css/app.scss',
+    webapp_js: ['@babel/polyfill', './src/app.js'],
+    webapp_css: './src/css/webapp.scss',
+    site_css: './src/css/site.scss',
   },
   output: {
     path: dist,

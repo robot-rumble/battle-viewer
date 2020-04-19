@@ -43,3 +43,8 @@ p {
 a img {
   display: inline-block;
 }
+
+// fix Bootstrap Reboot breaking CodeMirror CSS with margin
+pre {
+  margin-bottom: 0;
+}

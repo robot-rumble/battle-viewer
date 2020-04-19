@@ -1,11 +1,14 @@
 const path = require('path')
+const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+
+// NOTE: all NODE_ENV checks must be done in terms of 'production'
 
 const dist = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, './dist')
   : path.join(__dirname, '../public/dist')
 
-const browserConfig = {
+module.exports = {
   mode: process.env.NODE_ENV || 'development',
   stats: 'minimal',
   entry: {
@@ -26,19 +29,25 @@ const browserConfig = {
       {
         test: /\.(sa|sc|c)ss$/,
         use: [
-          MiniCssExtractPlugin.loader,
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              hmr: process.env.HOT === '1',
+            },
+          },
           'css-loader',
           'sass-loader',
         ],
       },
       {
         test: /\.elm$/,
-        use: {
+        exclude: [/elm-stuff/, /node_modules/],
+        use: (process.env.HOT ? ['elm-hot-webpack-loader'] : []).concat([{
           loader: 'elm-webpack-loader',
           options: {
             optimize: process.env.NODE_ENV === 'production',
           },
-        },
+        }]),
       },
       {
         test: /\.(woff|ttf)$/,
@@ -56,6 +65,7 @@ const browserConfig = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
+    new webpack.EnvironmentPlugin(['NODE_ENV', 'HOT']),
   ],
   devServer: {
     contentBase: dist,
@@ -66,41 +76,3 @@ const browserConfig = {
   devtool: 'source-map',
 }
 
-const workerConfig = {
-  mode: process.env.NODE_ENV || 'development',
-  stats: 'minimal',
-  entry: ['@babel/polyfill', './src/match.worker.js'],
-  target: 'webworker',
-  output: {
-    path: dist,
-    filename: 'worker.js',
-  },
-  resolve: {
-    alias: {
-      logic:
-        process.env.NODE_ENV === 'production'
-          // TODO determine S3 path
-          ? path.join(__dirname, '')
-          : path.join(__dirname, '../../logic/runners/webapp/pkg'),
-    },
-  },
-  node: {
-    fs: 'empty',
-  },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: { loader: 'babel-loader' },
-      },
-      {
-        test: /\.raw.*$/,
-        use: 'raw-loader',
-      },
-    ],
-  },
-  devtool: 'source-map',
-}
-
-module.exports = [browserConfig, workerConfig]

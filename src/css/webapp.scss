@@ -101,6 +101,11 @@ body {
   }
 
 
+  ._grid-viewer {
+    width: 90%;
+    max-width: 320px;
+  }
+
   ._grid-viewer-controls {
     border: $border-2;
     margin-bottom: -2px;
@@ -113,6 +118,10 @@ body {
 
   ._inspector {
     border: $border-2;
+    overflow: auto;
+
+    // TODO create manually-adjustable slider
+    max-height: 130px;
 
     ._table {
       line-height: 1;

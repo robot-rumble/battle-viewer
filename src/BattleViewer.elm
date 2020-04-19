@@ -214,7 +214,7 @@ viewButton model =
             else
                 Nothing
     in
-    div [ class "_run-bar mb-5" ]
+    div [ class "_run-bar mb-3" ]
         [ div [ class "_progress-outline" ] []
         , case loadingBarPerc of
             Just perc ->

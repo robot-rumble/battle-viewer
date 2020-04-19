@@ -86,7 +86,7 @@ update msg model =
 view : Maybe Model -> Html Msg
 view maybeModel =
     div
-        [ style "width" "80%" ]
+        [ class "_grid-viewer" ]
         [ div [ class "mb-3" ]
             [ viewGameBar maybeModel
             , Html.map GotGridMsg

@@ -253,9 +253,14 @@ viewEditor model =
          ]
             ++ (case model.error of
                     Just (Data.InitError error) ->
-                        [ property "errorLoc" <|
-                            Data.errorLocEncoder error.loc
-                        ]
+                        case error.loc of
+                            Just loc ->
+                                [ property "errorLoc" <|
+                                    Data.errorLocEncoder loc
+                                ]
+
+                            Nothing ->
+                                []
 
                     _ ->
                         []

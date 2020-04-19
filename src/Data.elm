@@ -2,8 +2,8 @@ module Data exposing (..)
 
 import Dict exposing (Dict)
 import Json.Decode exposing (..)
-import Json.Decode.Pipeline exposing (custom, required)
-import Json.Encode as Encode
+import Json.Decode.Pipeline exposing (required)
+import Json.Encode as E
 
 
 
@@ -20,21 +20,15 @@ arrayAsTuple2 a b =
             )
 
 
-stringAsUnion : List ( String, a ) -> Decoder String -> Decoder a
-stringAsUnion mapping =
-    let
-        dict =
-            Dict.fromList mapping
-    in
-    andThen
-        (\str ->
-            case Dict.get str dict of
-                Just a ->
-                    succeed a
-
-                Nothing ->
-                    fail ("Invalid type: " ++ str)
-        )
+union : List ( String, a ) -> Decoder a
+union mapping =
+    string
+        |> andThen
+            (\str ->
+                Dict.get str (Dict.fromList mapping)
+                    |> Maybe.map (\a -> succeed a)
+                    |> Maybe.withDefault (fail ("Invalid type: " ++ str))
+            )
 
 
 result : Decoder b -> Decoder a -> Decoder (Result b a)
@@ -45,6 +39,16 @@ result err ok =
         , field "Err" err
             |> andThen (\errData -> succeed (Err errData))
         ]
+
+
+encodeNull : (a -> E.Value) -> Maybe a -> E.Value
+encodeNull encode val =
+    case val of
+        Just a ->
+            encode a
+
+        Nothing ->
+            E.null
 
 
 
@@ -63,13 +67,9 @@ type alias Team =
     String
 
 
-type alias E =
-    String
-
-
 type alias OutcomeData =
     { winner : Maybe Team
-    , errors : Dict Team E
+    , errors : Dict Team OutcomeError
     }
 
 
@@ -82,12 +82,40 @@ outcomeDataDecoder : Decoder OutcomeData
 outcomeDataDecoder =
     succeed OutcomeData
         |> required "winner" (nullable string)
-        |> required "errors" (dict string)
+        |> required "errors" (dict outcomeErrorDecoder)
+
+
+type OutcomeError
+    = InternalError
+    | NoData
+    | InitError Error
+    | NoInitError
+    | DataError String
+    | IOError String
+
+
+outcomeErrorToString : OutcomeError -> String
+outcomeErrorToString outcomeError =
+    case outcomeError of
+        InitError error ->
+            error.message
+
+        _ ->
+            "Internal error!"
+
+
+outcomeErrorDecoder : Decoder OutcomeError
+outcomeErrorDecoder =
+    oneOf
+        [ field "InitError" errorDecoder |> map InitError
+        , field "DataError" string |> map DataError
+        , field "IOError" string |> map IOError
+        ]
 
 
 type alias Error =
     { message : String
-    , errorLoc : Maybe ErrorLoc
+    , loc : ErrorLoc
     }
 
 
@@ -95,33 +123,45 @@ errorDecoder : Decoder Error
 errorDecoder =
     succeed Error
         |> required "message" string
-        |> custom (field "errorLoc" (nullable errorLocDecoder))
+        |> required "loc" errorLocDecoder
+
+
+type alias Range =
+    ( Int, Maybe Int )
 
 
 type alias ErrorLoc =
-    { line : Int
-    , ch : Int
-    , endline : Int
-    , endch : Int
+    { start : Range
+    , end : Maybe Range
     }
 
 
 errorLocDecoder : Decoder ErrorLoc
 errorLocDecoder =
     succeed ErrorLoc
-        |> required "line" int
-        |> required "ch" int
-        |> required "endline" int
-        |> required "endch" int
+        |> required "start" (arrayAsTuple2 int (nullable int))
+        |> required "end" (nullable (arrayAsTuple2 int (nullable int)))
 
 
-errorLocEncoder : ErrorLoc -> Encode.Value
+errorLocEncoder : ErrorLoc -> E.Value
 errorLocEncoder errorLoc =
-    Encode.object
-        [ ( "line", Encode.int errorLoc.line )
-        , ( "ch", Encode.int errorLoc.ch )
-        , ( "endline", Encode.int errorLoc.endline )
-        , ( "endch", Encode.int errorLoc.endch )
+    let
+        ( line, ch ) =
+            errorLoc.start
+
+        ( endline, endch ) =
+            case errorLoc.end of
+                Just ( a, b ) ->
+                    ( Just a, b )
+
+                Nothing ->
+                    ( Nothing, Nothing )
+    in
+    E.object
+        [ ( "line", E.int line )
+        , ( "ch", encodeNull E.int ch )
+        , ( "endline", encodeNull E.int endline )
+        , ( "endch", encodeNull E.int endch )
         ]
 
 
@@ -150,7 +190,7 @@ progressDataDecoder =
 
 
 type alias RobotOutput =
-    { action : Result E Action
+    { action : Result String Action
     , debugTable : Dict String String
     }
 
@@ -183,8 +223,8 @@ type alias Action =
 actionDecoder : Decoder Action
 actionDecoder =
     succeed Action
-        |> required "type" (string |> stringAsUnion [ ( "Move", Move ), ( "Attack", Attack ) ])
-        |> required "direction" (string |> stringAsUnion [ ( "North", North ), ( "South", South ), ( "East", East ), ( "West", West ) ])
+        |> required "type" (union [ ( "Move", Move ), ( "Attack", Attack ) ])
+        |> required "direction" (union [ ( "North", North ), ( "South", South ), ( "East", East ), ( "West", West ) ])
 
 
 type alias TurnState =
@@ -270,7 +310,7 @@ type UnitType
 unitDecoder : Decoder Unit
 unitDecoder =
     succeed Unit
-        |> required "type" (string |> stringAsUnion [ ( "Soldier", Soldier ) ])
+        |> required "type" (union [ ( "Soldier", Soldier ) ])
         |> required "health" int
         |> required "team" string
 
@@ -287,4 +327,4 @@ type TerrainType
 terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
-        |> required "type" (string |> stringAsUnion [ ( "Wall", Wall ) ])
+        |> required "type" (union [ ( "Wall", Wall ) ])

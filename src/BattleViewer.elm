@@ -27,7 +27,7 @@ type alias Model =
 type RenderState
     = Initializing
     | Render RenderStateVal
-    | Error Data.E
+    | Error Data.OutcomeError
     | NoRender
     | InternalError
 
@@ -162,7 +162,7 @@ viewLog model =
                     [ readonly True
                     , class "error"
                     ]
-                    [ text error ]
+                    [ text <| Data.outcomeErrorToString error ]
 
             Render state ->
                 if List.isEmpty state.logs then

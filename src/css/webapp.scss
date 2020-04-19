@@ -105,9 +105,11 @@ body {
 
   ._inspector {
     border: $border-2;
+    padding: map_get($spacers, 1) map_get($spacers, 2);
 
-    p {
-      padding: map_get($spacers, 1) map_get($spacers, 2);
+    ._table {
+      margin-top: map_get($spacers, 2);
+      line-height: 1;
     }
   }
 
@@ -135,6 +137,8 @@ body {
         position: relative;
 
         &.unit {
+          cursor: pointer;
+
           &.team-Red {
             background: map_get($colors, "light-red");
 

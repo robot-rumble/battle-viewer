@@ -1,8 +1,0 @@
-{
-  "name": "battle-viewer",
-  "version": "1.0.0",
-  "license": "GPLv3",
-  "dependencies": {
-    "bootstrap": "^4.4.1"
-  }
-}

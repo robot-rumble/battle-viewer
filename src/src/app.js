@@ -22,7 +22,7 @@ def _robot(state, unit, debug):
     return move(Direction.East)
   else:
     return attack(Direction.South)
-    `
+`,
   }, 'worker.js')
 }
 

@@ -26,13 +26,14 @@ customElements.define(
     }
 
     set errorLoc (errorLoc) {
-      if (errorLoc && window.runCount !== this.lastRunCount) {
+      if (window.runCount !== this.lastRunCount) {
         this.lastRunCount = window.runCount
 
-        const from = { line: errorLoc.line - 1, ch: errorLoc.ch - 1 }
+        const from = { line: errorLoc.line - 1, ch: errorLoc.ch ? errorLoc.ch - 1 : 0 }
         const to = {
-          line: errorLoc.endline == -1 ? from.line : errorLoc.endline - 1,
-          ch: errorLoc.endch == -1 ? this._editor.getLine(from.line).length : errorLoc.endch - 1,
+          line: errorLoc.endline ? errorLoc.endline - 1 : from.line,
+          // if the line is empty, set ch to 1 so that the error indicator is still shown
+          ch: errorLoc.endch ? errorLoc.endch - 1 : (this._editor.getLine(from.line).length || 1),
         }
 
         let mark = this._editor.markText(from, to, {
@@ -66,7 +67,6 @@ customElements.define(
       // } else {
       //   initialValue = this.code || localCode || sampleRobot
       // }
-      window.b = this.getAttribute('code')
 
       this._editor = CodeMirror(this, {
         tabSize: 2,

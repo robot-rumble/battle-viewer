@@ -3,6 +3,7 @@ port module Main exposing (..)
 import BattleViewer
 import Browser
 import Data
+import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -46,6 +47,7 @@ type alias Model =
     , publishPath : String
     , renderState : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
+    , error : Maybe Data.OutcomeError
     }
 
 
@@ -58,6 +60,7 @@ init flags =
         flags.publishPath
         (BattleViewer.init flags.totalTurns)
         Initial
+        Nothing
     , Cmd.none
     )
 
@@ -106,7 +109,11 @@ update msg model =
         GotOutput output ->
             case Data.decodeOutcomeData output of
                 Ok data ->
-                    update (GotRenderMsg (BattleViewer.GotOutput data)) model
+                    let
+                        ( newModel, _ ) =
+                            update (GotRenderMsg (BattleViewer.GotOutput data)) model
+                    in
+                    ( { newModel | error = data.errors |> Dict.get "Red" }, Cmd.none )
 
                 Err error ->
                     handleDecodeError model error
@@ -244,19 +251,14 @@ viewEditor model =
          , Html.Attributes.attribute "code" model.code
          , class "_editor"
          ]
-         --++ (case model.renderState.renderState of
-         --        BattleViewerMain.Error error ->
-         --            case error.errorLoc of
-         --                Just errorLoc ->
-         --                    [ property "errorLoc" <|
-         --                        Data.errorLocEncoder errorLoc
-         --                    ]
-         --
-         --                Nothing ->
-         --                    []
-         --
-         --        _ ->
-         --            []
-         --   )
+            ++ (case model.error of
+                    Just (Data.InitError error) ->
+                        [ property "errorLoc" <|
+                            Data.errorLocEncoder error.loc
+                        ]
+
+                    _ ->
+                        []
+               )
         )
         []

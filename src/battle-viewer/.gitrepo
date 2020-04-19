@@ -6,8 +6,8 @@
 [subrepo]
 	remote = https://github.com/robot-rumble/battle-viewer
 	branch = master
-	commit = be971a01867cc3e5d22b111d4cde74b55daab024
+	commit = 047d71f72f79d73582ca4667c24882893dc326ba
 	method = merge
 	update = auto
 	cmdver = 0.4.1
-	parent = f2d397790c7d46f6fadb59d257ea1178d1fbc1f8
+	parent = 7af4fe527a51354a6ff545457c766c716063bab4

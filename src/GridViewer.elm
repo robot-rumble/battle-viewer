@@ -150,8 +150,8 @@ viewSlider model =
 
 viewRobotInspector : Maybe Model -> Html Msg
 viewRobotInspector maybeModel =
-    div [ class "_inspector" ]
-        [ p [ class "font-bold" ] [ text "Robot Data" ]
+    div [ class "_inspector box" ]
+        [ p [ class "header" ] [ text "Robot Data" ]
         , case
             Maybe.andThen
                 (\model ->
@@ -176,7 +176,7 @@ viewRobotInspector maybeModel =
                                     in
                                     if List.isEmpty debugPairs then
                                         -- TODO link for robot debugging information
-                                        p [ class "font-italic" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+                                        p [ class "info" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
 
                                     else
                                         div [ class "_table" ] <|
@@ -194,5 +194,5 @@ viewRobotInspector maybeModel =
                         div [] []
 
             Nothing ->
-                p [ class "font-italic" ] [ text "nothing here" ]
+                p [ class "info" ] [ text "nothing here" ]
         ]

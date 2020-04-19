@@ -150,16 +150,12 @@ view maybeModel =
 
 viewGameBar : Maybe Model -> Html Msg
 viewGameBar maybeModel =
-    div [ class "_grid-viewer-controls d-flex justify-content-between align-items-center" ] <|
+    div [ class "_grid-viewer-controls" ] <|
         case maybeModel of
             Just model ->
-                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
-                , div
-                    [ class "d-flex justify-content-around align-items-center"
-                    ]
-                    [ viewArrows model
-                    , viewSlider model
-                    ]
+                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
+                , viewArrows model
+                , viewSlider model
                 ]
 
             Nothing ->

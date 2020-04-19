@@ -59,14 +59,6 @@ body {
     }
   }
 
-  .arrow-button {
-    padding: 0 0.5rem;
-
-    &:disabled {
-      color: map_get($colors, "grey-2");
-    }
-  }
-
   ._run-bar {
     width: 100%;
     text-align: center;
@@ -117,14 +109,31 @@ body {
     width: 50%;
 
     ._grid-viewer-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
       // styles borrowed from .box
 
       border: $border-2;
       margin-bottom: -2px;
-      padding: map_get($spacers, 1) map_get($spacers, 2);
+      & > * {
+        margin: map_get($spacers, 1) map_get($spacers, 2);
+      }
 
-      p {
+      ._turn-indicator {
         font-weight: bold;
+        // stop wrapping and increasing control box height
+        white-space: nowrap;
+      }
+
+      .arrow-button {
+        padding: 0 0.5rem;
+        margin-top: -3px;
+
+        &:disabled {
+          color: map_get($colors, "grey-2");
+        }
       }
 
       input {

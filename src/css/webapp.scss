@@ -205,7 +205,7 @@ body {
       }
 
       .obj.errored::after {
-        background: map_get($colors, "dark-red");
+        background: black;
       }
     }
   }

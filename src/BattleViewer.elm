@@ -95,7 +95,7 @@ update msg model =
                                         else
                                             "\nTurn "
                                 in
-                                (headingStart ++ String.fromInt progress.state.turn) :: logs
+                                (headingStart ++ String.fromInt progress.state.turn ++ "\n") :: logs
 
                         finalLogs =
                             Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)

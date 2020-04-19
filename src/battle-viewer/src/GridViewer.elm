@@ -2,10 +2,12 @@ module GridViewer exposing (Model, Msg(..), init, update, view)
 
 import Array exposing (Array)
 import Data
+import Dict
 import Grid
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Tuple
 
 
 
@@ -13,15 +15,16 @@ import Html.Events exposing (..)
 
 
 type alias Model =
-    { turns : Array Data.TurnState
-    , total_turns : Int
-    , current_turn : Int
+    { turns : Array ( Data.TurnState, Data.RobotOutputs )
+    , totalTurns : Int
+    , currentTurn : Int
+    , selectedUnit : Maybe Data.Id
     }
 
 
-init : Data.TurnState -> Int -> Model
+init : ( Data.TurnState, Data.RobotOutputs ) -> Int -> Model
 init firstTurn totalTurns =
-    Model (Array.fromList [ firstTurn ]) totalTurns 0
+    Model (Array.fromList [ firstTurn ]) totalTurns 0 Nothing
 
 
 
@@ -30,8 +33,9 @@ init firstTurn totalTurns =
 
 type Msg
     = ChangeTurn Direction
-    | GotTurn Data.TurnState
+    | GotTurn ( Data.TurnState, Data.RobotOutputs )
     | SliderChange String
+    | GotGridMsg Grid.Msg
 
 
 type Direction
@@ -47,18 +51,18 @@ update msg model =
 
         ChangeTurn dir ->
             { model
-                | current_turn =
-                    model.current_turn
+                | currentTurn =
+                    model.currentTurn
                         + (case dir of
                             Next ->
-                                if model.current_turn == Array.length model.turns - 1 then
+                                if model.currentTurn == Array.length model.turns - 1 then
                                     0
 
                                 else
                                     1
 
                             Previous ->
-                                if model.current_turn == 0 then
+                                if model.currentTurn == 0 then
                                     0
 
                                 else
@@ -67,7 +71,12 @@ update msg model =
             }
 
         SliderChange change ->
-            { model | current_turn = Maybe.withDefault 0 (String.toInt change) }
+            { model | currentTurn = Maybe.withDefault 0 (String.toInt change) }
+
+        GotGridMsg gridMsg ->
+            case gridMsg of
+                Grid.UnitSelected unitId ->
+                    { model | selectedUnit = Just unitId }
 
 
 
@@ -78,11 +87,16 @@ view : Maybe Model -> Html Msg
 view maybeModel =
     div
         [ style "width" "80%" ]
-        [ viewGameBar maybeModel
-        , Grid.view <|
-            Maybe.andThen
-                (\model -> Array.get model.current_turn model.turns)
-                maybeModel
+        [ div [ class "mb-3" ]
+            [ viewGameBar maybeModel
+            , Html.map GotGridMsg
+                (Grid.view <|
+                    Maybe.andThen
+                        (\model -> Maybe.map (\state -> ( Tuple.first state, model.selectedUnit )) <| Array.get model.currentTurn model.turns)
+                        maybeModel
+                )
+            ]
+        , viewRobotInspector maybeModel
         ]
 
 
@@ -91,7 +105,7 @@ viewGameBar maybeModel =
     div [ class "_grid-viewer-controls d-flex justify-content-between align-items-center" ] <|
         case maybeModel of
             Just model ->
-                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.current_turn + 1) ]
+                [ p [ style "flex-basis" "30%" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
                 , div
                     [ class "d-flex justify-content-around align-items-center"
                     ]
@@ -109,13 +123,13 @@ viewArrows model =
     div [ class "d-flex justify-content-center align-items-center" ]
         [ button
             [ onClick (ChangeTurn Previous)
-            , disabled (model.current_turn == 0)
+            , disabled (model.currentTurn == 0)
             , class "arrow-button"
             ]
             [ text "←" ]
         , button
             [ onClick (ChangeTurn Next)
-            , disabled (model.current_turn == Array.length model.turns - 1)
+            , disabled (model.currentTurn == Array.length model.turns - 1)
             , class "arrow-button"
             ]
             [ text "→" ]
@@ -127,8 +141,58 @@ viewSlider model =
     input
         [ type_ "range"
         , Html.Attributes.min "1"
-        , Html.Attributes.max <| String.fromInt (model.total_turns - 1)
-        , value <| String.fromInt model.current_turn
+        , Html.Attributes.max <| String.fromInt (model.totalTurns - 1)
+        , value <| String.fromInt model.currentTurn
         , onInput SliderChange
         ]
         []
+
+
+viewRobotInspector : Maybe Model -> Html Msg
+viewRobotInspector maybeModel =
+    div [ class "_inspector box" ]
+        [ p [ class "header" ] [ text "Robot Data" ]
+        , case
+            Maybe.andThen
+                (\model ->
+                    case model.selectedUnit of
+                        Just unitId ->
+                            Just ( model, unitId )
+
+                        Nothing ->
+                            Nothing
+                )
+                maybeModel
+          of
+            Just ( model, unitId ) ->
+                case Array.get model.currentTurn model.turns of
+                    Just ( _, robotOutputs ) ->
+                        div []
+                            [ case Dict.get unitId robotOutputs of
+                                Just robotOutput ->
+                                    let
+                                        debugPairs =
+                                            Dict.toList robotOutput.debugTable
+                                    in
+                                    if List.isEmpty debugPairs then
+                                        -- TODO link for robot debugging information
+                                        p [ class "info" ] [ text "no data added. ", a [ href "" ] [ text "learn more" ] ]
+
+                                    else
+                                        div [ class "_table" ] <|
+                                            List.map
+                                                (\( key, val ) ->
+                                                    p [] [ text <| key ++ ": " ++ val ]
+                                                )
+                                                debugPairs
+
+                                Nothing ->
+                                    p [] []
+                            ]
+
+                    Nothing ->
+                        div [] []
+
+            Nothing ->
+                p [ class "info" ] [ text "nothing here" ]
+        ]

@@ -105,13 +105,13 @@ update msg model =
                             Render
                                 { logs = List.append renderState.logs finalLogs
                                 , viewerState =
-                                    GridViewer.update (GridViewer.GotTurn progress.state) renderState.viewerState
+                                    GridViewer.update (GridViewer.GotTurn ( progress.state, progress.robotOutputs )) renderState.viewerState
                                 }
 
                         _ ->
                             Render
                                 { logs = finalLogs
-                                , viewerState = GridViewer.init progress.state model.totalTurns
+                                , viewerState = GridViewer.init ( progress.state, progress.robotOutputs ) model.totalTurns
                                 }
             }
 
@@ -154,8 +154,8 @@ view model =
 
 viewLog : Model -> Html Msg
 viewLog model =
-    div [ class "_logs" ]
-        [ p [ class "font-bold" ] [ text "Logs" ]
+    div [ class "_logs box" ]
+        [ p [ class "header" ] [ text "Logs" ]
         , case model.renderState of
             Error error ->
                 textarea
@@ -166,7 +166,7 @@ viewLog model =
 
             Render state ->
                 if List.isEmpty state.logs then
-                    p [ class "font-italic" ] [ text "nothing here" ]
+                    p [ class "info" ] [ text "nothing here" ]
 
                 else
                     textarea
@@ -175,7 +175,7 @@ viewLog model =
                         [ text <| String.concat state.logs ]
 
             _ ->
-                p [ class "font-italic" ] [ text "nothing here" ]
+                p [ class "info" ] [ text "nothing here" ]
         ]
 
 

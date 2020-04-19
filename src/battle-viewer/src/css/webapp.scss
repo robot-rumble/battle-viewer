@@ -21,6 +21,19 @@ body {
     @include bar;
   }
 
+  .box {
+    .header {
+      font-weight: bold;
+    }
+    .info {
+      font-style: italic;
+    }
+
+    & > * {
+      padding: map_get($spacers, 1) map_get($spacers, 2);
+    }
+  }
+
   ._logs {
     // using display: flex fixes a problem where setting
     // height: 100% on textarea makes it go beyond the box
@@ -30,19 +43,14 @@ body {
     border-top: $border-2;
     height: 100%;
 
-    // apply padding separately so that the textarea background
-    // stretches all the way across
-    p {
-      padding: map_get($spacers, 1) map_get($spacers, 2);
-    }
 
     textarea {
+      // cancel padding so that the textarea background stretches all the way across
       width: 100%;
       height: 100%;
       resize: none;
       font-family: monospace;
       font-size: 1rem;
-      padding: map_get($spacers, 1);
       background: hsl(0, 0%, 97%);
     }
   }
@@ -103,6 +111,14 @@ body {
     }
   }
 
+  ._inspector {
+    border: $border-2;
+
+    ._table {
+      line-height: 1;
+    }
+  }
+
   ._renderer-wrapper {
     /* https://stackoverflow.com/questions/5445491/height-equal-to-dynamic-width-css-fluid-layout */
     width: 100%;
@@ -127,6 +143,8 @@ body {
         position: relative;
 
         &.unit {
+          cursor: pointer;
+
           &.team-Red {
             background: map_get($colors, "light-red");
 
@@ -157,6 +175,21 @@ body {
           top: 0;
           bottom: 0;
         }
+      }
+
+      .obj.selected::after {
+        content: "";
+        background: white;
+        border-radius: 100%;
+        position: absolute;
+        height: 50%;
+        width: 50%;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+        opacity: 0.8;
       }
     }
   }

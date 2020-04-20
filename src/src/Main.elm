@@ -85,6 +85,9 @@ port startEval : String -> Cmd msg
 port reportDecodeError : String -> Cmd msg
 
 
+port savedCode : String -> Cmd msg
+
+
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
@@ -135,7 +138,7 @@ update msg model =
                         , expect = Http.expectWhatever Saved
                         }
             in
-            ( model, codeUpdateCmd )
+            ( model, Cmd.batch [ codeUpdateCmd, savedCode model.code ] )
 
         GotRenderMsg renderMsg ->
             let

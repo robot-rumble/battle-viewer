@@ -92,6 +92,7 @@ customElements.define(
             lastEdit: Math.floor(Date.now() / 1000),
           }),
         )
+        window.code = this._editor.getValue()
         this.dispatchEvent(new CustomEvent('editorChanged'))
       })
 

@@ -105,4 +105,15 @@ function init (node, flags, workerUrl) {
     console.log('Decode Error!')
     console.error(error)
   })
+
+  window.savedCode = flags.code
+  app.ports.savedCode.subscribe(code => {
+    window.savedCode = code
+  })
+
+  window.onbeforeunload = () => {
+    if (window.code && window.code !== window.savedCode) {
+      return 'You\'ve made unsaved changes.'
+    }
+  }
 }

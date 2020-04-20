@@ -9,6 +9,17 @@ window.turnNum = 20
 window.language = 'python'
 window.runCount = 0
 
+function loadSettings() {
+  let settings
+  try {
+    settings = JSON.parse(localStorage.getItem('settings'))
+  } catch (e) {
+    settings = null
+  }
+  return settings
+}
+
+
 if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
   import('./css/webapp.scss')
 
@@ -18,6 +29,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
     robotPath: '',
     updatePath: '',
     publishPath: '',
+    assetPath: '/',
+    settings: loadSettings(),
     code: `
 def _robot(state, unit, debug):
   if state.turn % 2 == 0:
@@ -44,6 +57,7 @@ customElements.define('robot-arena', class extends HTMLElement {
     const robotPath = window.jsRoutes.controllers.RobotController.view(user, robot).url
     const updatePath = window.jsRoutes.controllers.RobotController.update(user, robot).url
     const publishPath = window.jsRoutes.controllers.RobotController.publish(user, robot).url
+    const assetPath = window.jsRoutes.controllers.Assets.at('').url
 
     const code = this.getAttribute('code') || sampleRobot
 
@@ -55,7 +69,9 @@ customElements.define('robot-arena', class extends HTMLElement {
         robotPath,
         updatePath,
         publishPath,
+        assetPath,
         code,
+        settings: loadSettings(),
       },
       window.jsRoutes.controllers.Assets.at('dist/worker.js').url
     )
@@ -104,6 +120,10 @@ function init (node, flags, workerUrl) {
   app.ports.reportDecodeError.subscribe((error) => {
     console.log('Decode Error!')
     console.error(error)
+  })
+
+  app.ports.saveSettings.subscribe(settings => {
+    window.localStorage.setItem('settings', JSON.stringify(settings))
   })
 
   window.savedCode = flags.code

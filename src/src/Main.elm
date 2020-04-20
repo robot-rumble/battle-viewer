@@ -10,6 +10,7 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Settings
 
 
 
@@ -45,22 +46,42 @@ type alias Model =
     , updatePath : String
     , robotPath : String
     , publishPath : String
+    , assetPath : String
     , renderState : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
     , error : Maybe Data.OutcomeError
+    , settings : Settings.Model
+    , viewingSettings : Bool
     }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
+    let
+        settings =
+            case flags.settings of
+                Just encodedSettings ->
+                    case Settings.decodeSettings encodedSettings of
+                        Ok ok ->
+                            ok
+
+                        Err _ ->
+                            Settings.default
+
+                Nothing ->
+                    Settings.default
+    in
     ( Model flags.code
         flags.robot
         flags.updatePath
         flags.robotPath
         flags.publishPath
+        flags.assetPath
         (BattleViewer.init flags.totalTurns)
         Initial
         Nothing
+        settings
+        False
     , Cmd.none
     )
 
@@ -72,6 +93,8 @@ type alias Flags =
     , updatePath : String
     , robotPath : String
     , publishPath : String
+    , assetPath : String
+    , settings : Maybe Encode.Value
     }
 
 
@@ -88,13 +111,19 @@ port reportDecodeError : String -> Cmd msg
 port savedCode : String -> Cmd msg
 
 
+port saveSettings : Encode.Value -> Cmd msg
+
+
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
     | GotRenderMsg BattleViewer.Msg
+    | GotSettingsMsg Settings.Msg
     | CodeChanged String
     | Save
     | Saved (Result Http.Error ())
+    | ViewSettings
+    | CloseSettings
 
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
@@ -171,6 +200,15 @@ update msg model =
             , Cmd.none
             )
 
+        ViewSettings ->
+            ( { model | viewingSettings = True }, Cmd.none )
+
+        CloseSettings ->
+            ( { model | viewingSettings = False }, saveSettings (Settings.encodeSettings model.settings) )
+
+        GotSettingsMsg settingsMsg ->
+            ( { model | settings = Settings.update settingsMsg model.settings }, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
@@ -201,10 +239,16 @@ subscriptions _ =
 view : Model -> Html Msg
 view model =
     div [ class "_root-app-root d-flex" ]
-        [ div [ class "_ui" ]
-            [ viewBar model
-            , viewEditor model
-            ]
+        [ div [ class "_ui" ] <|
+            if model.viewingSettings then
+                [ Settings.view model.settings |> Html.map GotSettingsMsg
+                , button [ onClick CloseSettings ] [ text "done" ]
+                ]
+
+            else
+                [ viewBar model
+                , viewEditor model
+                ]
         , div [ class "gutter" ] []
         , div [ class "_viewer" ]
             [ Html.map GotRenderMsg <| BattleViewer.view model.renderState
@@ -240,8 +284,9 @@ viewBar model =
                             "visible"
                 ]
                 [ text "saved" ]
+            , a [ href model.publishPath ] [ text "ready to publish?" ]
             ]
-        , a [ href model.publishPath ] [ text "ready to publish?" ]
+        , button [ onClick ViewSettings ] [ img [ src <| model.assetPath ++ "images/settings.svg" ] [] ]
         ]
 
 

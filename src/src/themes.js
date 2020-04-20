@@ -9,6 +9,7 @@ const darkTheme = {
   'grey-1': '#999999',
   'grey-2': '#383838',
   'grey-3': '#262626',
+  'grey-4': '#171717',
 }
 
 export function applyTheme (theme) {

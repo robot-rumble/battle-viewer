@@ -137,4 +137,5 @@ view model =
             [ p [] [ text "theme" ]
             , createSelect SetTheme (encodeTheme model.theme) themeDict
             ]
+        , p [] [ text "You'll need to reload the page for the changes to take effect." ]
         ]

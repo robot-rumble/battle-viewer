@@ -9,13 +9,14 @@ window.turnNum = 20
 window.language = 'python'
 window.runCount = 0
 
-function loadSettings() {
+function loadSettings () {
   let settings
   try {
     settings = JSON.parse(localStorage.getItem('settings'))
   } catch (e) {
     settings = null
   }
+  window.settings = settings
   return settings
 }
 

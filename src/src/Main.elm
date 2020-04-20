@@ -242,7 +242,7 @@ view model =
         [ div [ class "_ui" ] <|
             if model.viewingSettings then
                 [ Settings.view model.settings |> Html.map GotSettingsMsg
-                , button [ onClick CloseSettings ] [ text "done" ]
+                , button [ class "button", onClick CloseSettings ] [ text "done" ]
                 ]
 
             else

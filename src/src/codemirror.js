@@ -1,6 +1,9 @@
 import CodeMirror from 'codemirror'
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/mode/python/python.js'
+import 'codemirror/keymap/vim.js'
+import 'codemirror/keymap/emacs.js'
+import 'codemirror/keymap/sublime.js'
 
 function getModeFromLanguage (language) {
   switch (language) {
@@ -75,6 +78,8 @@ customElements.define(
         matchBrackets: true,
         autoRefresh: true,
         lineWrapping: true,
+        theme: settings.theme === 'Dark' ? 'material-palenight' : 'default',
+        keyMap: settings.keyMap ? settings.keyMap.toLowerCase() : 'default',
         // value: initialValue,
         value: this.getAttribute('code'),
         extraKeys: {

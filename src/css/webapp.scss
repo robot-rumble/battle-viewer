@@ -87,7 +87,7 @@ body {
     }
 
     ._progress {
-      background: map_get($colors, "light-blue");
+      background: var(--light-blue);
       position: absolute;
       height: 100%;
       z-index: -1;
@@ -130,7 +130,7 @@ body {
         margin-top: -3px;
 
         &:disabled {
-          color: map_get($colors, "grey-2");
+          color: var(--grey-2);
         }
       }
 
@@ -181,24 +181,24 @@ body {
           cursor: pointer;
 
           &.team-Red {
-            background: map_get($colors, "light-red");
+            background: var(--light-red);
 
             .health-bar {
-              background: map_get($colors, "red");
+              background: var(--red);
             }
           }
 
           &.team-Blue {
-            background: map_get($colors, "light-blue");
+            background: var(--light-blue);
 
             .health-bar {
-              background: map_get($colors, "blue");
+              background: var(--blue);
             }
           }
         }
 
         &.terrain {
-          background: map_get($colors, "grey-3");
+          background: var(--grey-3);
           z-index: -1;
         }
 

@@ -7,24 +7,24 @@ $font-size-base: 1.2rem;
 $code-font: Fantasque;
 $font-family-base: $code-font;
 
-$colors: (
-        "black": black,
-        "red": #F392B1,
-        "dark-red": #ba1528,
-        "blue": #578eb3,
-        "orange": #EF8509,
-        "dark-blue": #39ACFF,
-        "light-red": #FCDEE7,
-        "light-blue": #CAE9FF,
-        "grey-1": hsl(0, 0, 39%),
-        "grey-2": hsl(0, 0, 78%),
-        "grey-3": hsl(0, 0, 94%),
-        "grey-4": hsl(0, 0, 97%)
-);
 
-$border-1: 2px solid map_get($colors, "grey-2");
-$border-2: 2px solid map_get($colors, "grey-3");
-$border-3: 1px solid map_get($colors, "grey-3");
+:root {
+  --white: white;
+  --black: black;
+  --red: #F392B1;
+  --blue: #578eb3;
+  --orange: #EF8509;
+  --dark-blue: #39ACFF;
+  --light-red: #FCDEE7;
+  --light-blue: #CAE9FF;
+  --grey-1: #636363;
+  --grey-2: #c7c7c7;
+  --grey-3: #f0f0f0;
+}
+
+$border-1: 2px solid var(--grey-2);
+$border-2: 2px solid var(--grey-3);
+$border-3: 1px solid var(--grey-3);
 
 @import "../../node_modules/bootstrap/scss/bootstrap-reboot";
 @import "../../node_modules/bootstrap/scss/utilities/flex";
@@ -58,6 +58,11 @@ $border-3: 1px solid map_get($colors, "grey-3");
 
 //// global
 
+body {
+  background: var(--white);
+  color: var(--black);
+}
+
 h1, h2, h3, h4, h5, h6 {
   text-align: left;
   font-weight: normal !important;
@@ -72,32 +77,32 @@ input {
 }
 
 a {
-  color: map_get($colors, "blue") !important;
+  color: var(--blue) !important;
 }
 
 button {
-  color: map_get($colors, "blue");
+  color: var(--blue);
   font-weight: bold;
 }
 
 .button {
   // use box-shadow instead of border so that the height isn't increased
-  box-shadow: inset 0 0 0 2px map_get($colors, "blue");
+  box-shadow: inset 0 0 0 2px var(--blue);
 
-  color: map_get($colors, "blue");
+  color: var(--blue);
   background: none;
   padding: 0 0.5rem;
 
   &:disabled {
-    border-color: map_get($colors, "light-blue");
-    color: map_get($colors, "blue");
+    border-color: var(--light-blue);
+    color: var(--blue);
   }
 }
 
 .error {
-  color: map_get($colors, "orange");
+  color: var(--orange);
 }
 
 .internal-error {
-  color: map_get($colors, "red");
+  color: var(--red);
 }

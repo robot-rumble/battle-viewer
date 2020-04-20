@@ -34,7 +34,7 @@ body {
 
 .footer {
   padding: map-get($spacers, 3);
-  color: map_get($colors, "grey-1");
+  color: var(--grey-1);
   border-top: $border-2;
 }
 

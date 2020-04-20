@@ -11,7 +11,7 @@ import Json.Encode as E
 
 
 type KeyMap
-    = None
+    = Default
     | Sublime
     | Emacs
     | Vim
@@ -19,8 +19,8 @@ type KeyMap
 
 encodeKeyMap keyMap =
     case keyMap of
-        None ->
-            "None"
+        Default ->
+            "Default"
 
         Sublime ->
             "Sublime"
@@ -33,7 +33,7 @@ encodeKeyMap keyMap =
 
 
 keyMapDict =
-    [ ( "None", None ), ( "Sublime", Sublime ), ( "Emacs", Emacs ), ( "Vim", Vim ) ]
+    [ ( "Default", Default ), ( "Sublime", Sublime ), ( "Emacs", Emacs ), ( "Vim", Vim ) ]
 
 
 keyMapDecoder =
@@ -69,7 +69,7 @@ type alias Settings =
 
 
 default =
-    Settings Light None
+    Settings Light Default
 
 
 settingsDecoder =
@@ -106,7 +106,7 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         SetKeymap keymap ->
-            { model | keyMap = D.decodeValue keyMapDecoder (E.string keymap) |> Result.withDefault None }
+            { model | keyMap = D.decodeValue keyMapDecoder (E.string keymap) |> Result.withDefault Default }
 
         SetTheme theme ->
             { model | theme = D.decodeValue themeDecoder (E.string theme) |> Result.withDefault Light }
@@ -137,5 +137,5 @@ view model =
             [ p [] [ text "theme" ]
             , createSelect SetTheme (encodeTheme model.theme) themeDict
             ]
-        , p [] [ text "You'll need to reload the page for the changes to take effect." ]
+        , p [] [ text "You'll need to reload the page for full changes to take effect." ]
         ]

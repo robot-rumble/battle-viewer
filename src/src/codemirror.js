@@ -78,8 +78,8 @@ customElements.define(
         matchBrackets: true,
         autoRefresh: true,
         lineWrapping: true,
-        theme: settings.theme === 'Dark' ? 'material-palenight' : 'default',
-        keyMap: settings.keyMap ? settings.keyMap.toLowerCase() : 'default',
+        theme: settings.theme === 'Dark' ? 'material-ocean' : 'default',
+        keyMap: settings.keyMap.toLowerCase(),
         // value: initialValue,
         value: this.getAttribute('code'),
         extraKeys: {

@@ -1,6 +1,6 @@
 @import "../../battle-viewer/src/css/fantasque/stylesheet.css";
 @import "../../node_modules/codemirror/lib/codemirror.css";
-@import "../../node_modules/codemirror/theme/material-palenight.css";
+@import "../../node_modules/codemirror/theme/material-ocean.css";
 
 @import "../../battle-viewer/src/css/base";
 
@@ -76,17 +76,17 @@
         }
 
         .CodeMirror-gutters {
-          background: white;
+          background: var(--white);
           border-right: 0;
           width: 40px;
         }
 
         .CodeMirror-linenumber {
-          color: map_get($colors, "grey-2");
+          color: var(--grey-2);
         }
 
         .inline-error {
-          color: map_get($colors, "orange") !important;
+          color: var(--orange) !important;
           position: relative;
 
           &::after {
@@ -97,7 +97,7 @@
             right: 0;
             bottom: 0;
             position: absolute;
-            background: map_get($colors, "orange");
+            background: var(--orange);
           }
         }
       }

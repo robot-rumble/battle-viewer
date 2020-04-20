@@ -2,6 +2,7 @@ import { Elm } from './Main.elm'
 
 import sampleRobot from './robots/sample.raw.py'
 import './codemirror'
+import { applyTheme } from './themes'
 
 import Split from 'split.js'
 
@@ -16,10 +17,13 @@ function loadSettings () {
   } catch (e) {
     settings = null
   }
+  if (!settings) {
+    settings = { theme: 'Light', keyMap: 'Default' }
+  }
+  applyTheme(settings.theme)
   window.settings = settings
   return settings
 }
-
 
 if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
   import('./css/webapp.scss')
@@ -74,7 +78,7 @@ customElements.define('robot-arena', class extends HTMLElement {
         code,
         settings: loadSettings(),
       },
-      window.jsRoutes.controllers.Assets.at('dist/worker.js').url
+      window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
     )
   }
 })
@@ -125,6 +129,7 @@ function init (node, flags, workerUrl) {
 
   app.ports.saveSettings.subscribe(settings => {
     window.localStorage.setItem('settings', JSON.stringify(settings))
+    applyTheme(settings.theme)
   })
 
   window.savedCode = flags.code

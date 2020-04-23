@@ -65,7 +65,10 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
-    new webpack.EnvironmentPlugin(['NODE_ENV', 'HOT']),
+    new webpack.EnvironmentPlugin({
+      NODE_ENV: 'development',
+      HOT: 0,
+    }),
   ],
   devServer: {
     contentBase: dist,
@@ -75,4 +78,3 @@ module.exports = {
   },
   devtool: 'source-map',
 }
-

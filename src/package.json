@@ -2,6 +2,8 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
+    "dev": "npm run build && npm run build-worker",
+    "prod": "HOT=0 NODE_ENV=production webpack && NODE_ENV=production webpack --config webpack.config.worker.js",
     "build": "HOT=0 NODE_ENV=development webpack",
     "build-worker": "HOT=0 NODE_ENV=development webpack --config webpack.config.worker.js",
     "watch": "HOT=0 NODE_ENV=development webpack -w",

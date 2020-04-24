@@ -36,13 +36,7 @@ if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
     publishPath: '',
     assetPath: '/',
     settings: loadSettings(),
-    code: `
-def _robot(state, unit, debug):
-  if state.turn % 2 == 0:
-    return move(Direction.East)
-  else:
-    return attack(Direction.South)
-`,
+    code: sampleRobot,
   }, 'worker.js')
 }
 

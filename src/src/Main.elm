@@ -245,7 +245,7 @@ view model =
         [ div [ class "_ui" ] <|
             if model.viewingSettings then
                 [ Settings.view model.settings |> Html.map GotSettingsMsg
-                , button [ class "button", onClick CloseSettings ] [ text "done" ]
+                , button [ class "button align-self-center", onClick CloseSettings ] [ text "done" ]
                 ]
 
             else

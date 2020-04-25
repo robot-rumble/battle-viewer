@@ -128,14 +128,16 @@ createSelect msg selected options =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ div []
-            [ p [] [ text "keymap" ]
-            , createSelect SetKeymap (encodeKeyMap model.keyMap) keyMapDict
+    div [ class "m-3" ]
+        [ div [ class "d-flex" ]
+            [ div [ class "mr-3" ]
+                [ p [] [ text "keymap" ]
+                , createSelect SetKeymap (encodeKeyMap model.keyMap) keyMapDict
+                ]
+            , div []
+                [ p [] [ text "theme" ]
+                , createSelect SetTheme (encodeTheme model.theme) themeDict
+                ]
             ]
-        , div []
-            [ p [] [ text "theme" ]
-            , createSelect SetTheme (encodeTheme model.theme) themeDict
-            ]
-        , p [] [ text "You'll need to reload the page for full changes to take effect." ]
+        , p [ class "mt-3" ] [ text "You'll need to reload the page for full changes to take effect." ]
         ]

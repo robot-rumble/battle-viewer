@@ -218,7 +218,7 @@ viewSlider : Model -> Html Msg
 viewSlider model =
     input
         [ type_ "range"
-        , Html.Attributes.min "1"
+        , Html.Attributes.min "0"
         , Html.Attributes.max <| String.fromInt (model.turnNum - 1)
         , value <| String.fromInt model.currentTurn
         , onInput SliderChange

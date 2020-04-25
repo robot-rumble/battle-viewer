@@ -144,6 +144,10 @@ body {
         font-weight: bold;
         // stop wrapping and increasing control box height
         white-space: nowrap;
+
+        // add a constant size so that when the turn indicator grows (eg, goes from 9 to 10),
+        // the input boxes don't move and glitch out
+        min-width: 4rem;
       }
 
       .arrow-button {

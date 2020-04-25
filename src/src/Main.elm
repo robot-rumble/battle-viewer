@@ -77,7 +77,7 @@ init flags =
         flags.robotPath
         flags.publishPath
         flags.assetPath
-        (BattleViewer.init flags.totalTurns)
+        BattleViewer.init
         Initial
         Nothing
         settings
@@ -88,7 +88,6 @@ init flags =
 
 type alias Flags =
     { code : String
-    , totalTurns : Int
     , robot : String
     , updatePath : String
     , robotPath : String
@@ -102,7 +101,7 @@ type alias Flags =
 -- UPDATE
 
 
-port startEval : String -> Cmd msg
+port startEval : Encode.Value -> Cmd msg
 
 
 port reportDecodeError : String -> Cmd msg
@@ -173,8 +172,12 @@ update msg model =
             let
                 cmd =
                     case renderMsg of
-                        BattleViewer.Run ->
-                            startEval model.code
+                        BattleViewer.Run turn_num ->
+                            startEval <|
+                                Encode.object
+                                    [ ( "code", Encode.string model.code )
+                                    , ( "turnNum", Encode.int turn_num )
+                                    ]
 
                         _ ->
                             Cmd.none

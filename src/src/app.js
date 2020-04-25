@@ -6,7 +6,6 @@ import { applyTheme } from './themes'
 
 import Split from 'split.js'
 
-window.turnNum = 20
 window.language = 'python'
 window.runCount = 0
 
@@ -29,7 +28,6 @@ if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
   import('./css/webapp.scss')
 
   init(document.querySelector('#root'), {
-    totalTurns: window.turnNum,
     robot: 'asdf',
     robotPath: '',
     updatePath: '',
@@ -63,7 +61,6 @@ customElements.define('robot-arena', class extends HTMLElement {
     init(
       this,
       {
-        totalTurns: window.turnNum,
         robot,
         robotPath,
         updatePath,
@@ -92,11 +89,11 @@ function init (node, flags, workerUrl) {
   const matchWorker = new Worker(workerUrl)
 
   let workerRunning = false
-  app.ports.startEval.subscribe((code1) => {
+  app.ports.startEval.subscribe(({ code, turnNum }) => {
     window.runCount++
     if (!workerRunning) {
       workerRunning = true
-      matchWorker.postMessage({ code1, code2: code1, turnNum: 20 })
+      matchWorker.postMessage({ code1: code, code2: code, turnNum })
     }
   })
 

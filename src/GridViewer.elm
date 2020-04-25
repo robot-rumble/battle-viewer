@@ -17,15 +17,15 @@ import Tuple
 
 type alias Model =
     { turns : Array Data.ProgressData
-    , totalTurns : Int
+    , turnNum : Int
     , currentTurn : Int
     , selectedUnit : Maybe Data.Id
     }
 
 
 init : Data.ProgressData -> Int -> Model
-init firstTurn totalTurns =
-    Model (Array.fromList [ firstTurn ]) totalTurns 0 Nothing
+init firstTurn turnNum =
+    Model (Array.fromList [ firstTurn ]) turnNum 0 Nothing
 
 
 
@@ -219,7 +219,7 @@ viewSlider model =
     input
         [ type_ "range"
         , Html.Attributes.min "1"
-        , Html.Attributes.max <| String.fromInt (model.totalTurns - 1)
+        , Html.Attributes.max <| String.fromInt (model.turnNum - 1)
         , value <| String.fromInt model.currentTurn
         , onInput SliderChange
         ]

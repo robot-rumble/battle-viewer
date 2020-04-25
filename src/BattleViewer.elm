@@ -19,14 +19,13 @@ to_perc float =
 
 
 type alias Model =
-    { totalTurns : Int
-    , winner : Maybe (Maybe Data.Team)
+    { winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     }
 
 
 type RenderState
-    = Initializing
+    = Initializing Int
     | Render RenderStateVal
     | Error Data.OutcomeError
     | NoRender
@@ -36,12 +35,13 @@ type RenderState
 type alias RenderStateVal =
     { logs : List String
     , viewerState : GridViewer.Model
+    , turnNum : Int
     }
 
 
-init : Int -> Model
-init totalTurns =
-    Model totalTurns Nothing NoRender
+init : Model
+init =
+    Model Nothing NoRender
 
 
 
@@ -52,7 +52,7 @@ type Msg
     = GotOutput Data.OutcomeData
     | GotProgress Data.ProgressData
     | GotInternalError
-    | Run
+    | Run Int
     | GotRenderMsg GridViewer.Msg
 
 
@@ -108,20 +108,25 @@ update msg model =
                     case model.renderState of
                         Render renderState ->
                             Render
-                                { logs = List.append renderState.logs finalLogs
-                                , viewerState =
-                                    GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
+                                { renderState
+                                    | logs = List.append renderState.logs finalLogs
+                                    , viewerState =
+                                        GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
                                 }
 
-                        _ ->
+                        Initializing turnNum ->
                             Render
-                                { logs = finalLogs
-                                , viewerState = GridViewer.init progress model.totalTurns
+                                { turnNum = turnNum
+                                , logs = finalLogs
+                                , viewerState = GridViewer.init progress turnNum
                                 }
+
+                        other ->
+                            other
             }
 
-        Run ->
-            { model | renderState = Initializing }
+        Run turnNum ->
+            { model | renderState = Initializing turnNum }
 
         GotRenderMsg renderMsg ->
             case model.renderState of
@@ -187,18 +192,18 @@ viewLog model =
 viewBar : Model -> Html Msg
 viewBar model =
     let
-        viewButtons =
+        viewButtons () =
             div [ class "_battle" ]
                 [ p [] [ text "battle:" ]
                 , div [ class "_buttons" ]
                     ([ 5, 20, 100 ]
                         |> List.map
-                            (\turn_count ->
+                            (\turn_num ->
                                 button
-                                    [ onClick Run
+                                    [ onClick <| Run turn_num
                                     , class "button"
                                     ]
-                                    [ text <| String.fromInt turn_count ++ " Turns" ]
+                                    [ text <| String.fromInt turn_num ++ " Turns" ]
                             )
                     )
                 ]
@@ -212,17 +217,17 @@ viewBar model =
                         totalTurns =
                             Array.length render.viewerState.turns
                     in
-                    if totalTurns /= model.totalTurns then
-                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat model.totalTurns * 100) ] []
+                    if totalTurns /= render.turnNum then
+                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat render.turnNum * 100) ] []
 
                     else
-                        viewButtons
+                        viewButtons ()
 
-                Initializing ->
+                Initializing _ ->
                     p [ class "_text" ] [ text "Initializing..." ]
 
                 _ ->
-                    viewButtons
+                    viewButtons ()
             ]
         , div [ class "_winner-section" ]
             [ p [ class "mr-2" ] [ text "winner: " ]

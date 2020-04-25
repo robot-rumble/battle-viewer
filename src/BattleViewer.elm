@@ -20,6 +20,7 @@ to_perc float =
 
 type alias Model =
     { totalTurns : Int
+    , winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     }
 
@@ -40,7 +41,7 @@ type alias RenderStateVal =
 
 init : Int -> Model
 init totalTurns =
-    Model totalTurns NoRender
+    Model totalTurns Nothing NoRender
 
 
 
@@ -63,12 +64,16 @@ update msg model =
                 maybeError =
                     Dict.get "Red" output.errors
             in
-            case maybeError of
-                Just error ->
-                    { model | renderState = Error error }
+            { model
+                | renderState =
+                    case maybeError of
+                        Just error ->
+                            Error error
 
-                _ ->
-                    model
+                        _ ->
+                            model.renderState
+                , winner = Just output.winner
+            }
 
         GotProgress progress ->
             { model
@@ -139,7 +144,7 @@ view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ] [ p [] [ text "battle versus itself" ] ]
         , div [ class "_battle-viewer-root" ]
-            [ viewButton model
+            [ viewBar model
             , Html.map GotRenderMsg <|
                 case model.renderState of
                     Render state ->
@@ -179,66 +184,58 @@ viewLog model =
         ]
 
 
-isLoading : Model -> Bool
-isLoading model =
-    case model.renderState of
-        Render render ->
-            Array.length render.viewerState.turns /= model.totalTurns
-
-        Initializing ->
-            True
-
-        _ ->
-            False
-
-
-viewButton : Model -> Html Msg
-viewButton model =
+viewBar : Model -> Html Msg
+viewBar model =
     let
-        loading =
-            isLoading model
-
-        loadingBarPerc =
-            if isLoading model then
-                case model.renderState of
-                    Render render ->
-                        let
-                            totalTurns =
-                                Array.length render.viewerState.turns
-                        in
-                        Just (toFloat totalTurns / toFloat model.totalTurns * 100)
-
-                    _ ->
-                        Just 0
-
-            else
-                Nothing
+        viewButtons =
+            div [ class "_battle" ]
+                [ p [] [ text "battle:" ]
+                , div [ class "_buttons" ]
+                    ([ 5, 20, 100 ]
+                        |> List.map
+                            (\turn_count ->
+                                button
+                                    [ onClick Run
+                                    , class "button"
+                                    ]
+                                    [ text <| String.fromInt turn_count ++ " Turns" ]
+                            )
+                    )
+                ]
     in
     div [ class "_run-bar" ]
         [ div [ class "_progress-outline" ] []
-        , case loadingBarPerc of
-            Just perc ->
-                div [ class "_progress", style "width" <| to_perc perc ] []
+        , div [ class "_battle-section" ]
+            [ case model.renderState of
+                Render render ->
+                    let
+                        totalTurns =
+                            Array.length render.viewerState.turns
+                    in
+                    if totalTurns /= model.totalTurns then
+                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat model.totalTurns * 100) ] []
 
-            Nothing ->
-                div [] []
-        , button
-            [ onClick Run
-            , class "button"
+                    else
+                        viewButtons
 
-            -- hide button through CSS to preserve bar height
-            , style "visibility" <|
-                if loading then
-                    "hidden"
+                Initializing ->
+                    p [ class "_text" ] [ text "Initializing..." ]
 
-                else
-                    "visible"
+                _ ->
+                    viewButtons
             ]
-            [ text "battle!" ]
-        , case model.renderState of
-            Initializing ->
-                p [ class "_text" ] [ text "Initializing..." ]
+        , div [ class "_winner-section" ]
+            [ p [ class "mr-2" ] [ text "winner: " ]
+            , case model.winner of
+                Just winner ->
+                    case winner of
+                        Just team ->
+                            p [ class <| "team-" ++ team ] [ text team ]
 
-            _ ->
-                div [] []
+                        Nothing ->
+                            p [] [ text "Draw" ]
+
+                Nothing ->
+                    p [] [ text "?" ]
+            ]
         ]

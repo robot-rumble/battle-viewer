@@ -62,17 +62,45 @@ body {
     text-align: center;
     position: relative;
     margin-bottom: map_get($spacers, 3);
+    display: flex;
 
-    & > * {
-      margin: auto;
+    ._battle-section {
+      width: 75%;
+
+      ._battle {
+        display: flex;
+        margin-left: map_get($spacers, 3);
+        ._buttons {
+          display: flex;
+          margin: auto;
+          & > * {
+            margin: 0 map_get($spacers, 2);
+            white-space: nowrap;
+          }
+        }
+      }
+
+      ._progress {
+        background: var(--light-blue);
+        position: absolute;
+        height: 100%;
+        z-index: -1;
+      }
     }
-    
-    ._text {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 0;
-      right: 0;
+
+    ._winner-section {
+      border-left: $border-2;
+      width: 25%;
+      display: flex;
+      justify-content: center;
+
+      .team-Red {
+        color: var(--red);
+      }
+
+      .team-Blue {
+        color: var(--blue);
+      }
     }
 
     //noinspection CssReplaceWithShorthandSafely
@@ -84,13 +112,6 @@ body {
       border-left: 0;
       border-right: 0;
       z-index: -2;
-    }
-
-    ._progress {
-      background: var(--light-blue);
-      position: absolute;
-      height: 100%;
-      z-index: -1;
     }
   }
 

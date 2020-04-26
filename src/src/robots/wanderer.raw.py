@@ -1,4 +1,7 @@
-def robot(state, unit):
+from random import randrange
+
+
+def _robot(state, unit, debug):
     """Attacks at an enemy adjacent to it if there
     is one, or else moves in a random direction"""
     x, y = unit.coords

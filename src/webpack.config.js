@@ -65,7 +65,7 @@ module.exports = {
   },
   plugins: [
     new MiniCssExtractPlugin(),
-    new webpack.EnvironmentPlugin(['NODE_ENV', 'HOT']),
+    new webpack.EnvironmentPlugin(['NODE_ENV']),
   ],
   devServer: {
     contentBase: dist,

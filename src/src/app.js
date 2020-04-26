@@ -24,7 +24,7 @@ function loadSettings () {
   return settings
 }
 
-if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
+if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./css/webapp.scss')
 
   init(document.querySelector('#root'), {
@@ -36,6 +36,8 @@ if (process.env.NODE_ENV !== 'production' && process.env.HOT === '1') {
     settings: loadSettings(),
     code: sampleRobot,
   }, 'worker.js')
+
+  module.hot.addStatusHandler(initSplit)
 }
 
 customElements.define('robot-arena', class extends HTMLElement {
@@ -74,17 +76,21 @@ customElements.define('robot-arena', class extends HTMLElement {
   }
 })
 
-function init (node, flags, workerUrl) {
-  const app = Elm.Main.init({
-    node, flags,
-  })
-
+function initSplit () {
   Split(['._ui', '._viewer'], {
     sizes: [60, 40],
     minSize: [600, 400],
     gutterSize: 5,
     gutter: () => document.querySelector('.gutter'),
   })
+}
+
+function init (node, flags, workerUrl) {
+  const app = Elm.Main.init({
+    node, flags,
+  })
+
+  initSplit()
 
   const matchWorker = new Worker(workerUrl)
 

@@ -41,17 +41,23 @@ type
 
 
 type alias Model =
-    { code : String
+    { paths : Paths
+    , user : String
     , robot : String
-    , updatePath : String
-    , robotPath : String
-    , publishPath : String
-    , assetPath : String
+    , code : String
     , renderState : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
     , error : Maybe Data.OutcomeError
     , settings : Settings.Model
     , viewingSettings : Bool
+    }
+
+
+type alias Paths =
+    { robot : String
+    , update : String
+    , publish : String
+    , asset : String
     }
 
 
@@ -71,12 +77,11 @@ init flags =
                 Nothing ->
                     Settings.default
     in
-    ( Model flags.code
+    ( Model
+        flags.paths
+        flags.user
         flags.robot
-        flags.updatePath
-        flags.robotPath
-        flags.publishPath
-        flags.assetPath
+        flags.code
         BattleViewer.init
         Initial
         Nothing
@@ -87,12 +92,10 @@ init flags =
 
 
 type alias Flags =
-    { code : String
+    { paths : Paths
+    , user : String
+    , code : String
     , robot : String
-    , updatePath : String
-    , robotPath : String
-    , publishPath : String
-    , assetPath : String
     , settings : Maybe Encode.Value
     }
 
@@ -161,7 +164,7 @@ update msg model =
             let
                 codeUpdateCmd =
                     Http.post
-                        { url = model.updatePath
+                        { url = model.paths.update
                         , body = Http.jsonBody (Encode.object [ ( "code", Encode.string model.code ) ])
                         , expect = Http.expectWhatever Saved
                         }
@@ -263,7 +266,7 @@ viewBar : Model -> Html Msg
 viewBar model =
     div [ class "_bar d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
-            [ p [] [ text "The Garage -- editing ", a [ href model.robotPath ] [ text model.robot ] ]
+            [ p [] [ text "The Garage -- editing ", a [ href model.paths.robot ] [ text model.robot ] ]
             , button [ class "button ml-5 mr-3", onClick Save ] [ text "save" ]
             , p
                 [ class <|
@@ -287,9 +290,9 @@ viewBar model =
                             "visible"
                 ]
                 [ text "saved" ]
-            , a [ href model.publishPath ] [ text "ready to publish?" ]
+            , a [ href model.paths.publish ] [ text "ready to publish?" ]
             ]
-        , button [ onClick ViewSettings ] [ img [ src <| model.assetPath ++ "images/settings.svg" ] [] ]
+        , button [ onClick ViewSettings ] [ img [ src <| model.paths.asset ++ "images/settings.svg" ] [] ]
         ]
 
 

@@ -28,11 +28,14 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./css/webapp.scss')
 
   init(document.querySelector('#root'), {
+    user: 'asdf',
     robot: 'asdf',
-    robotPath: '',
-    updatePath: '',
-    publishPath: '',
-    assetPath: '/',
+    paths: {
+      robot: '',
+      update: '',
+      publish: '',
+      asset: '/',
+    },
     settings: loadSettings(),
     code: sampleRobot,
   }, 'worker.js')
@@ -52,22 +55,19 @@ customElements.define('robot-arena', class extends HTMLElement {
     if (!user || !robot) {
       throw new Error('No user/robot attribute found')
     }
-
-    const robotPath = window.jsRoutes.controllers.RobotController.view(user, robot).url
-    const updatePath = window.jsRoutes.controllers.RobotController.update(user, robot).url
-    const publishPath = window.jsRoutes.controllers.RobotController.publish(user, robot).url
-    const assetPath = window.jsRoutes.controllers.Assets.at('').url
-
+    const paths = {
+      robot: window.jsRoutes.controllers.RobotController.view(user, robot).url,
+      update: window.jsRoutes.controllers.RobotController.update(user, robot).url,
+      publish: window.jsRoutes.controllers.RobotController.publish(user, robot).url,
+      asset: window.jsRoutes.controllers.Assets.at('').url,
+    }
     const code = this.getAttribute('code') || sampleRobot
 
     init(
       this,
       {
         robot,
-        robotPath,
-        updatePath,
-        publishPath,
-        assetPath,
+        paths,
         code,
         settings: loadSettings(),
       },

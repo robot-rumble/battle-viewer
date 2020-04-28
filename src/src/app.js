@@ -38,7 +38,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
     },
     settings: loadSettings(),
     code: sampleRobot,
-  }, 'worker.js')
+  }, 'dist/worker.js')
 
   module.hot.addStatusHandler(initSplit)
 }

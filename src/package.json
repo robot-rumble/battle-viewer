@@ -2,11 +2,13 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
-    "build": "HOT=0 NODE_ENV=development webpack",
-    "build-worker": "HOT=0 NODE_ENV=development webpack --config webpack.config.worker.js",
-    "watch": "HOT=0 NODE_ENV=development webpack -w",
-    "watch-worker": "HOT=0 NODE_ENV=development webpack -w --config webpack.config.worker.js",
-    "serve": "HOT=1 NODE_ENV=development webpack-dev-server --hot"
+    "dev": "npm run build && npm run build-worker",
+    "prod": "NODE_ENV=production npm run build && NODE_ENV=production npm run build-worker",
+    "build": "webpack",
+    "build-worker": "webpack --config webpack.config.worker.js",
+    "watch": "webpack -w",
+    "watch-worker": "webpack -w --config webpack.config.worker.js",
+    "serve": "HOT=1 webpack-dev-server --hot"
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",

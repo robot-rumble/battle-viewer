@@ -70,7 +70,7 @@ module.exports = {
     }),
   ],
   devServer: {
-    contentBase: dist,
+    contentBase: '../public',
     historyApiFallback: true,
     stats: 'minimal',
     host: '0.0.0.0',

@@ -1,5 +1,6 @@
 module BattleViewer exposing (Model, Msg(..), init, update, view)
 
+import Api
 import Array exposing (Array)
 import Data
 import Dict
@@ -7,6 +8,7 @@ import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import OpponentSelect
 
 
 to_perc : Float -> String
@@ -21,6 +23,7 @@ to_perc float =
 type alias Model =
     { winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
+    , opponentSelectState : OpponentSelect.Model
     }
 
 
@@ -39,9 +42,13 @@ type alias RenderStateVal =
     }
 
 
-init : Model
-init =
-    Model Nothing NoRender
+init : Api.Context -> ( Model, Cmd Msg )
+init apiContext =
+    let
+        ( model, cmd ) =
+            OpponentSelect.init apiContext
+    in
+    ( Model Nothing NoRender model, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -54,90 +61,105 @@ type Msg
     | GotInternalError
     | Run Int
     | GotRenderMsg GridViewer.Msg
+    | GotOpponentSelectMsg OpponentSelect.Msg
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotOutput output ->
+        GotOpponentSelectMsg selectMsg ->
             let
-                maybeError =
-                    Dict.get "Red" output.errors
+                ( selectModel, selectCmd ) =
+                    OpponentSelect.update selectMsg model.opponentSelectState
             in
-            { model
-                | renderState =
-                    case maybeError of
-                        Just error ->
-                            Error error
+            ( { model | opponentSelectState = selectModel }, Cmd.map GotOpponentSelectMsg selectCmd )
+
+        other ->
+            ( case other of
+                GotOutput output ->
+                    let
+                        maybeError =
+                            Dict.get "Red" output.errors
+                    in
+                    { model
+                        | renderState =
+                            case maybeError of
+                                Just error ->
+                                    Error error
+
+                                _ ->
+                                    model.renderState
+                        , winner = Just output.winner
+                    }
+
+                GotProgress progress ->
+                    { model
+                        | renderState =
+                            let
+                                turnLogs =
+                                    Dict.get "Red" progress.logs
+                                        |> Maybe.andThen
+                                            (\logs ->
+                                                if List.isEmpty logs then
+                                                    Nothing
+
+                                                else
+                                                    Just logs
+                                            )
+
+                                addTurnHeading =
+                                    \logs ->
+                                        let
+                                            headingStart =
+                                                if progress.state.turn == 1 then
+                                                    "Turn "
+
+                                                else
+                                                    "\nTurn "
+                                        in
+                                        (headingStart ++ String.fromInt progress.state.turn ++ "\n") :: logs
+
+                                finalLogs =
+                                    Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
+                            in
+                            case model.renderState of
+                                Render renderState ->
+                                    Render
+                                        { renderState
+                                            | logs = List.append renderState.logs finalLogs
+                                            , viewerState =
+                                                GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
+                                        }
+
+                                Initializing turnNum ->
+                                    Render
+                                        { turnNum = turnNum
+                                        , logs = finalLogs
+                                        , viewerState = GridViewer.init progress turnNum
+                                        }
+
+                                other2 ->
+                                    other2
+                    }
+
+                Run turnNum ->
+                    { model | renderState = Initializing turnNum }
+
+                GotRenderMsg renderMsg ->
+                    case model.renderState of
+                        Render state ->
+                            { model | renderState = Render { state | viewerState = GridViewer.update renderMsg state.viewerState } }
 
                         _ ->
-                            model.renderState
-                , winner = Just output.winner
-            }
+                            model
 
-        GotProgress progress ->
-            { model
-                | renderState =
-                    let
-                        turnLogs =
-                            Dict.get "Red" progress.logs
-                                |> Maybe.andThen
-                                    (\logs ->
-                                        if List.isEmpty logs then
-                                            Nothing
-
-                                        else
-                                            Just logs
-                                    )
-
-                        addTurnHeading =
-                            \logs ->
-                                let
-                                    headingStart =
-                                        if progress.state.turn == 1 then
-                                            "Turn "
-
-                                        else
-                                            "\nTurn "
-                                in
-                                (headingStart ++ String.fromInt progress.state.turn ++ "\n") :: logs
-
-                        finalLogs =
-                            Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
-                    in
-                    case model.renderState of
-                        Render renderState ->
-                            Render
-                                { renderState
-                                    | logs = List.append renderState.logs finalLogs
-                                    , viewerState =
-                                        GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
-                                }
-
-                        Initializing turnNum ->
-                            Render
-                                { turnNum = turnNum
-                                , logs = finalLogs
-                                , viewerState = GridViewer.init progress turnNum
-                                }
-
-                        other ->
-                            other
-            }
-
-        Run turnNum ->
-            { model | renderState = Initializing turnNum }
-
-        GotRenderMsg renderMsg ->
-            case model.renderState of
-                Render state ->
-                    { model | renderState = Render { state | viewerState = GridViewer.update renderMsg state.viewerState } }
+                GotInternalError ->
+                    { model | renderState = InternalError }
 
                 _ ->
                     model
-
-        GotInternalError ->
-            { model | renderState = InternalError }
+            , Cmd.none
+            )
 
 
 
@@ -147,7 +169,19 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "_app-root" ]
-        [ div [ class "_bar" ] [ p [] [ text "battle versus itself" ] ]
+        [ div [ class "_bar" ]
+            [ p []
+                [ text <|
+                    "battle versus "
+                        ++ (case model.opponentSelectState.opponent of
+                                OpponentSelect.Robot ( robot, _ ) ->
+                                    robot.name
+
+                                OpponentSelect.Itself ->
+                                    "itself"
+                           )
+                ]
+            ]
         , div [ class "_battle-viewer-root" ]
             [ viewBar model
             , Html.map GotRenderMsg <|

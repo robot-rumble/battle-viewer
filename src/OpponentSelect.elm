@@ -1,7 +1,8 @@
-module OpponentSelect exposing (Model, Msg, Opponent(..), init, update, view)
+module OpponentSelect exposing (Model, Msg(..), Opponent(..), init, update, view)
 
 import Api
 import Html exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 
 
@@ -55,6 +56,10 @@ update msg model =
                     { model | userRobots = data }
 
                 Err _ ->
+                    let
+                        _ =
+                            Debug.log "err!" "as"
+                    in
                     model
             , Cmd.none
             )
@@ -84,16 +89,19 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "_opponent-select" ]
         [ button [ onClick <| SelectOpponent Itself ] [ text "Itself" ]
         , div []
             [ p [] [ text "Your robots" ]
-            , div []
-                (model.userRobots
-                    |> List.map
-                        (\robot ->
-                            button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
-                        )
-                )
+            , div [] <|
+                if List.isEmpty model.userRobots then
+                    [ p [ class "font-italic" ] [ text "nothing here" ] ]
+
+                else
+                    model.userRobots
+                        |> List.map
+                            (\robot ->
+                                button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
+                            )
             ]
         ]

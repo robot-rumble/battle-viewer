@@ -24,6 +24,8 @@ type alias Model =
     { winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
+    , viewingOpponentSelect : Bool
+    , assetPath : String
     }
 
 
@@ -42,13 +44,13 @@ type alias RenderStateVal =
     }
 
 
-init : Api.Context -> ( Model, Cmd Msg )
-init apiContext =
+init : Api.Context -> String -> ( Model, Cmd Msg )
+init apiContext asset =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
     in
-    ( Model Nothing NoRender model, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model Nothing NoRender model False asset, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -62,6 +64,7 @@ type Msg
     | Run Int
     | GotRenderMsg GridViewer.Msg
     | GotOpponentSelectMsg OpponentSelect.Msg
+    | ToggleOpponentSelect
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,7 +75,18 @@ update msg model =
                 ( selectModel, selectCmd ) =
                     OpponentSelect.update selectMsg model.opponentSelectState
             in
-            ( { model | opponentSelectState = selectModel }, Cmd.map GotOpponentSelectMsg selectCmd )
+            ( { model
+                | opponentSelectState = selectModel
+                , viewingOpponentSelect =
+                    case selectMsg of
+                        OpponentSelect.SelectOpponent _ ->
+                            False
+
+                        _ ->
+                            model.viewingOpponentSelect
+              }
+            , Cmd.map GotOpponentSelectMsg selectCmd
+            )
 
         other ->
             ( case other of
@@ -156,6 +170,9 @@ update msg model =
                 GotInternalError ->
                     { model | renderState = InternalError }
 
+                ToggleOpponentSelect ->
+                    { model | viewingOpponentSelect = not model.viewingOpponentSelect }
+
                 _ ->
                     model
             , Cmd.none
@@ -181,18 +198,38 @@ view model =
                                     "itself"
                            )
                 ]
-            ]
-        , div [ class "_battle-viewer-root" ]
-            [ viewBar model
-            , Html.map GotRenderMsg <|
-                case model.renderState of
-                    Render state ->
-                        GridViewer.view (Just state.viewerState)
+            , button [ onClick ToggleOpponentSelect, class "_select-button" ]
+                [ p [ class "mr-2" ] [ text "change opponent" ]
+                , img
+                    [ src <|
+                        model.assetPath
+                            ++ (if model.viewingOpponentSelect then
+                                    "images/close-panel.svg"
 
-                    _ ->
-                        GridViewer.view Nothing
+                                else
+                                    "images/open-panel.svg"
+                               )
+                    ]
+                    []
+                ]
             ]
-        , viewLog model
+        , if model.viewingOpponentSelect then
+            OpponentSelect.view model.opponentSelectState |> Html.map GotOpponentSelectMsg
+
+          else
+            div []
+                [ div [ class "_battle-viewer-root" ]
+                    [ viewBar model
+                    , Html.map GotRenderMsg <|
+                        case model.renderState of
+                            Render state ->
+                                GridViewer.view (Just state.viewerState)
+
+                            _ ->
+                                GridViewer.view Nothing
+                    ]
+                , viewLog model
+                ]
         ]
 
 

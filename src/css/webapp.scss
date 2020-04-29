@@ -22,12 +22,19 @@ body {
 
   ._bar {
     @include bar;
+    display: flex;
+    justify-content: space-between;
+
+    ._select-button {
+      display: flex;
+    }
   }
 
   .box {
     .header {
       font-weight: bold;
     }
+
     .info {
       font-style: italic;
     }
@@ -57,6 +64,14 @@ body {
     }
   }
 
+  ._opponent-select {
+    margin: map-get($spacers, 2) map-get($spacers, 3);
+
+    & > * {
+      margin-bottom: map-get($spacers, 3);
+    }
+  }
+
   ._run-bar {
     width: 100%;
     text-align: center;
@@ -70,9 +85,11 @@ body {
       ._battle {
         display: flex;
         margin-left: map_get($spacers, 3);
+
         ._buttons {
           display: flex;
           margin: auto;
+
           & > * {
             margin: 0 map_get($spacers, 2);
             white-space: nowrap;
@@ -136,6 +153,7 @@ body {
 
       border: $border-2;
       margin-bottom: -2px;
+
       & > * {
         margin: map_get($spacers, 1) map_get($spacers, 2);
       }

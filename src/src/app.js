@@ -36,6 +36,10 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       publish: '',
       asset: '/',
     },
+    apiPaths: {
+      getUserRobots: '',
+      getRobotCode: '',
+    },
     settings: loadSettings(),
     code: sampleRobot,
   }, 'dist/worker.js')
@@ -55,19 +59,23 @@ customElements.define('robot-arena', class extends HTMLElement {
     if (!user || !robot) {
       throw new Error('No user/robot attribute found')
     }
-    const paths = {
-      robot: window.jsRoutes.controllers.RobotController.view(user, robot).url,
-      update: window.jsRoutes.controllers.RobotController.update(user, robot).url,
-      publish: window.jsRoutes.controllers.RobotController.publish(user, robot).url,
-      asset: window.jsRoutes.controllers.Assets.at('').url,
-    }
     const code = this.getAttribute('code') || sampleRobot
 
     init(
       this,
       {
+        paths: {
+          robot: window.jsRoutes.controllers.RobotController.view(user, robot).url,
+          update: window.jsRoutes.controllers.RobotController.update(user, robot).url,
+          publish: window.jsRoutes.controllers.RobotController.publish(user, robot).url,
+          asset: window.jsRoutes.controllers.Assets.at('').url,
+        },
+        apiPaths: {
+          getUserRobots: window.jsRoutes.controllers.RobotController.getUserRobots('').url.slice(0, -1),
+          getRobotCode: window.jsRoutes.controllers.RobotController.getRobotCode('').url.slice(0, -1),
+        },
+        user,
         robot,
-        paths,
         code,
         settings: loadSettings(),
       },
@@ -95,11 +103,11 @@ function init (node, flags, workerUrl) {
   const matchWorker = new Worker(workerUrl)
 
   let workerRunning = false
-  app.ports.startEval.subscribe(({ code, turnNum }) => {
+  app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
     window.runCount++
     if (!workerRunning) {
       workerRunning = true
-      matchWorker.postMessage({ code1: code, code2: code, turnNum })
+      matchWorker.postMessage({ code1: code, code2: opponentCode, turnNum })
     }
   })
 

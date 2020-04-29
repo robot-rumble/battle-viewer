@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import Api
 import BattleViewer
 import Browser
 import Data
@@ -10,6 +11,7 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import OpponentSelect
 import Settings
 
 
@@ -42,7 +44,6 @@ type
 
 type alias Model =
     { paths : Paths
-    , user : String
     , robot : String
     , code : String
     , renderState : BattleViewer.Model
@@ -76,23 +77,26 @@ init flags =
 
                 Nothing ->
                     Settings.default
+
+        ( model, cmd ) =
+            BattleViewer.init (Api.Context flags.user flags.robot flags.apiPaths) flags.paths.asset
     in
     ( Model
         flags.paths
         flags.user
-        flags.robot
         flags.code
-        BattleViewer.init
+        model
         Initial
         Nothing
         settings
         False
-    , Cmd.none
+    , Cmd.map GotRenderMsg cmd
     )
 
 
 type alias Flags =
     { paths : Paths
+    , apiPaths : Api.Paths
     , user : String
     , code : String
     , robot : String
@@ -126,6 +130,7 @@ type Msg
     | Saved (Result Http.Error ())
     | ViewSettings
     | CloseSettings
+    | GotText (Result Http.Error String)
 
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
@@ -173,19 +178,37 @@ update msg model =
 
         GotRenderMsg renderMsg ->
             let
+                ( renderState, renderCmd ) =
+                    BattleViewer.update renderMsg model.renderState
+
                 cmd =
                     case renderMsg of
-                        BattleViewer.Run turn_num ->
-                            startEval <|
-                                Encode.object
-                                    [ ( "code", Encode.string model.code )
-                                    , ( "turnNum", Encode.int turn_num )
-                                    ]
+                        BattleViewer.Run turnNum ->
+                            let
+                                maybeOpponentCode =
+                                    case model.renderState.opponentSelectState.opponent of
+                                        OpponentSelect.Robot ( _, code ) ->
+                                            code
+
+                                        OpponentSelect.Itself ->
+                                            Just model.code
+                            in
+                            case maybeOpponentCode of
+                                Just opponentCode ->
+                                    startEval <|
+                                        Encode.object
+                                            [ ( "code", Encode.string model.code )
+                                            , ( "opponentCode", Encode.string opponentCode )
+                                            , ( "turnNum", Encode.int turnNum )
+                                            ]
+
+                                Nothing ->
+                                    Cmd.none
 
                         _ ->
-                            Cmd.none
+                            Cmd.map GotRenderMsg renderCmd
             in
-            ( { model | renderState = BattleViewer.update renderMsg model.renderState }, cmd )
+            ( { model | renderState = renderState }, cmd )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )
@@ -214,6 +237,9 @@ update msg model =
 
         GotSettingsMsg settingsMsg ->
             ( { model | settings = Settings.update settingsMsg model.settings }, Cmd.none )
+
+        _ ->
+            ( model, Cmd.none )
 
 
 

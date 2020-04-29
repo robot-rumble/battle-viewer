@@ -65,7 +65,7 @@ body {
   }
 
   ._opponent-select {
-    margin: map-get($spacers, 2) map-get($spacers, 3);
+    margin: map-get($spacers, 3) map-get($spacers, 3);
 
     & > * {
       margin-bottom: map-get($spacers, 3);

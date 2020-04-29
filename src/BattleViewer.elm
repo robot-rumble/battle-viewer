@@ -21,7 +21,8 @@ to_perc float =
 
 
 type alias Model =
-    { winner : Maybe (Maybe Data.Team)
+    { apiContext : Api.Context
+    , winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
@@ -50,7 +51,7 @@ init apiContext asset =
         ( model, cmd ) =
             OpponentSelect.init apiContext
     in
-    ( Model Nothing NoRender model False asset, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing NoRender model False asset, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -70,6 +71,18 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
+        ToggleOpponentSelect ->
+            ( { model | viewingOpponentSelect = not model.viewingOpponentSelect }
+              -- dirty fix for a problem where the very first `init` Cmd Http request simply does not go through
+              -- in addition to attempting to retrieve robots then, also retrieve them when the user opens
+              -- the robot selection menu
+            , if not model.viewingOpponentSelect then
+                Api.getUserRobots model.apiContext.paths model.apiContext.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
+
+              else
+                Cmd.none
+            )
+
         GotOpponentSelectMsg selectMsg ->
             let
                 ( selectModel, selectCmd ) =
@@ -169,9 +182,6 @@ update msg model =
 
                 GotInternalError ->
                     { model | renderState = InternalError }
-
-                ToggleOpponentSelect ->
-                    { model | viewingOpponentSelect = not model.viewingOpponentSelect }
 
                 _ ->
                     model

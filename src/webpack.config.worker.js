@@ -1,4 +1,5 @@
 const path = require('path')
+const CopyPlugin = require('copy-webpack-plugin')
 
 // NOTE: all NODE_ENV checks must be done in terms of 'production'
 
@@ -24,6 +25,11 @@ module.exports = {
           : path.join(__dirname, '../../logic/runners/webapp/pkg'),
     },
   },
+  plugins: [
+    new CopyPlugin([
+      { from: './runners', to: dist },
+    ]),
+  ],
   node: {
     fs: 'empty',
   },
@@ -38,6 +44,10 @@ module.exports = {
         test: /\.raw.*$/,
         use: 'raw-loader',
       },
+      {
+        test: /wasi\.worker\.js$/,
+        use: 'worker-loader',
+      }
     ],
   },
   devtool: 'source-map',

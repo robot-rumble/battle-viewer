@@ -9,9 +9,11 @@ const runnerCache = Object.create(null)
 const fetchRunner = (name) => {
   if (name in runnerCache) return runnerCache[name];
   const ret = runnerCache[name] = WebAssembly.compileStreaming(fetch(`/assets/dist/${name}.wasm`))
-    // .then(r => r.arrayBuffer())
-    // .then(lowerI64Imports)
-    // .then(WebAssembly.compileStreaming);
+  // once this is fixed on wasmer-js' side?
+  // const ret = runnerCache[name] = fetch(`/assets/dist/${name}.wasm`)
+  //   .then(r => r.arrayBuffer())
+  //   .then(lowerI64Imports)
+  //   .then(WebAssembly.compileStreaming);
   return ret
 }
 
@@ -30,10 +32,9 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum, lang } }) => 
       }[lang]);
       const makeRunner = async (code) => {
         const WasiRunner = Comlink.wrap(new RawWasiWorker());
-        const sourcePath = "/sourcecode";
-        const runner = await new WasiRunner()
-        await runner.setup(lang, { [sourcePath]: code })
-        await runner.init(new TextEncoder().encode(sourcePath));
+        const runner = await new WasiRunner(lang)
+        await runner.setup()
+        await runner.init(new TextEncoder().encode(code));
         return runner;
       }
 

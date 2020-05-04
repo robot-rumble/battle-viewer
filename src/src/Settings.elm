@@ -139,5 +139,5 @@ view model =
                 , createSelect SetTheme (encodeTheme model.theme) themeDict
                 ]
             ]
-        , p [ class "mt-3" ] [ text "You'll need to reload the page for full changes to take effect." ]
+        , p [ class "mt-3" ] [ text "You'll need to reload the page for the changes to take effect." ]
         ]

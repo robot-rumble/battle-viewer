@@ -146,7 +146,6 @@ function init (node, flags, workerUrl, lang) {
 
   app.ports.saveSettings.subscribe(settings => {
     window.localStorage.setItem('settings', JSON.stringify(settings))
-    applyTheme(settings.theme)
   })
 
   window.savedCode = flags.code

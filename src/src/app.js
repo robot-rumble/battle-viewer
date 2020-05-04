@@ -1,10 +1,17 @@
 import { Elm } from './Main.elm'
 
-import sampleRobot from './robots/sample.raw.py'
+import defaultJsRobot from './robots/default.raw.js'
+import defaultPyRobot from './robots/default.raw.py'
+
 import './codemirror'
 import { applyTheme } from './themes'
 
 import Split from 'split.js'
+
+const defaultRobots = {
+  JAVASCRIPT: defaultJsRobot,
+  PYTHON: defaultPyRobot,
+}
 
 window.language = 'python'
 window.runCount = 0
@@ -40,8 +47,8 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       getUserRobots: '',
       getRobotCode: '',
     },
+    code: '',
     settings: loadSettings(),
-    code: sampleRobot,
   }, 'dist/worker.js', 'PYTHON')
 
   module.hot.addStatusHandler(initSplit)
@@ -60,7 +67,7 @@ customElements.define('robot-arena', class extends HTMLElement {
     if (!user || !robot || !lang) {
       throw new Error('No user|robot|lang attribute found')
     }
-    const code = this.getAttribute('code') || sampleRobot
+    const code = this.getAttribute('code')
 
     init(
       this,
@@ -81,7 +88,7 @@ customElements.define('robot-arena', class extends HTMLElement {
         settings: loadSettings(),
       },
       window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
-      lang
+      lang,
     )
   }
 })
@@ -100,7 +107,7 @@ function init (node, flags, workerUrl, lang) {
   window.lang = lang
 
   const app = Elm.Main.init({
-    node, flags,
+    node, flags: { ...flags, code: flags.code || defaultRobots[lang] },
   })
 
   initSplit()

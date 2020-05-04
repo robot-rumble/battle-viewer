@@ -26,8 +26,6 @@ function loadSettings () {
   if (!settings) {
     settings = { theme: 'Light', keyMap: 'Default' }
   }
-  applyTheme(settings.theme)
-  window.settings = settings
   return settings
 }
 
@@ -48,7 +46,6 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       getRobotCode: '',
     },
     code: '',
-    settings: loadSettings(),
   }, 'dist/worker.js', 'PYTHON')
 
   module.hot.addStatusHandler(initSplit)
@@ -85,7 +82,6 @@ customElements.define('robot-arena', class extends HTMLElement {
         user,
         robot,
         code,
-        settings: loadSettings(),
       },
       window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
       lang,
@@ -103,11 +99,15 @@ function initSplit () {
 }
 
 function init (node, flags, workerUrl, lang) {
-  // do this first so CodeMirror has access to it on init
+  // set window vars first so CodeMirror has access to them on init
   window.lang = lang
 
+  const settings = loadSettings()
+  applyTheme(settings.theme)
+  window.settings = settings
+
   const app = Elm.Main.init({
-    node, flags: { ...flags, code: flags.code || defaultRobots[lang] },
+    node, flags: { ...flags, settings, code: flags.code || defaultRobots[lang] },
   })
 
   initSplit()

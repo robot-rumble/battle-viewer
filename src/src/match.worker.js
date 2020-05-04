@@ -32,7 +32,7 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum, lang } }) => 
       }[lang]);
       const makeRunner = async (code) => {
         const WasiRunner = Comlink.wrap(new RawWasiWorker());
-        const runner = await new WasiRunner(lang)
+        const runner = await new WasiRunner(langRunner)
         await runner.setup()
         await runner.init(new TextEncoder().encode(code));
         return runner;

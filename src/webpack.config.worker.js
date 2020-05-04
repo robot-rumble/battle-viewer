@@ -7,6 +7,11 @@ const dist = process.env.NODE_ENV === 'production'
   ? path.join(__dirname, './dist')
   : path.join(__dirname, '../public/dist')
 
+const logicDist = process.env.NODE_ENV === 'production'
+  ? null
+  : path.join(__dirname, '../../logic/webapp-dist/')
+
+
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
   stats: 'minimal',
@@ -22,12 +27,12 @@ module.exports = {
         process.env.NODE_ENV === 'production'
           // TODO determine S3 path
           ? path.join(__dirname, '')
-          : path.join(__dirname, '../../logic/runners/webapp/pkg'),
+          : logicDist + 'logic',
     },
   },
   plugins: [
     new CopyPlugin([
-      { from: './runners', to: dist },
+      { from: logicDist + 'runners', to: dist },
     ]),
   ],
   node: {

@@ -4,7 +4,7 @@ const logicPromise = import('logic')
 // it's not exactly like the main-thread Window, but it's close enough
 self.Window = self.constructor
 
-self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
+self.addEventListener('message', ({ data: { code1, code2, turnNum, lang } }) => {
   logicPromise
     .then((logic) => {
       const startTime = Date.now()
@@ -12,6 +12,8 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
       const turnCallback = (turnState) => {
         self.postMessage({ type: 'getProgress', data: turnState })
       }
+
+      // TODO: use `lang`
 
       const finalState = logic.run(code1, code2, turnCallback, turnNum)
 

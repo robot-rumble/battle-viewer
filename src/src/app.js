@@ -42,7 +42,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
     },
     settings: loadSettings(),
     code: sampleRobot,
-  }, 'dist/worker.js')
+  }, 'dist/worker.js', 'PYTHON')
 
   module.hot.addStatusHandler(initSplit)
 }
@@ -56,8 +56,9 @@ customElements.define('robot-arena', class extends HTMLElement {
 
     const user = this.getAttribute('user')
     const robot = this.getAttribute('robot')
-    if (!user || !robot) {
-      throw new Error('No user/robot attribute found')
+    const lang = this.getAttribute('lang')
+    if (!user || !robot || !lang) {
+      throw new Error('No user|robot|lang attribute found')
     }
     const code = this.getAttribute('code') || sampleRobot
 
@@ -80,6 +81,7 @@ customElements.define('robot-arena', class extends HTMLElement {
         settings: loadSettings(),
       },
       window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
+      lang
     )
   }
 })
@@ -93,7 +95,10 @@ function initSplit () {
   })
 }
 
-function init (node, flags, workerUrl) {
+function init (node, flags, workerUrl, lang) {
+  // do this first so CodeMirror has access to it on init
+  window.lang = lang
+
   const app = Elm.Main.init({
     node, flags,
   })
@@ -107,7 +112,7 @@ function init (node, flags, workerUrl) {
     window.runCount++
     if (!workerRunning) {
       workerRunning = true
-      matchWorker.postMessage({ code1: code, code2: opponentCode, turnNum })
+      matchWorker.postMessage({ code1: code, code2: opponentCode, turnNum, lang: flags.lang })
     }
   })
 

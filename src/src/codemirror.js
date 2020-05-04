@@ -5,11 +5,11 @@ import 'codemirror/keymap/vim.js'
 import 'codemirror/keymap/emacs.js'
 import 'codemirror/keymap/sublime.js'
 
-function getModeFromLanguage (language) {
-  switch (language) {
-    case 'javascript':
-      return 'text/javascript'
-    case 'python':
+function getModeFromLang (lang) {
+  switch (lang) {
+    case 'JAVASCRIPT':
+      return 'javascript'
+    case 'PYTHON':
       return 'python'
   }
 }
@@ -73,7 +73,7 @@ customElements.define(
 
       this._editor = CodeMirror(this, {
         tabSize: 2,
-        mode: getModeFromLanguage(window.language),
+        mode: getModeFromLang(window.lang),
         lineNumbers: true,
         matchBrackets: true,
         autoRefresh: true,

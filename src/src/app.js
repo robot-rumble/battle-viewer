@@ -16,7 +16,7 @@ const defaultRobots = {
 window.language = 'python'
 window.runCount = 0
 
-function loadSettings () {
+function loadSettings() {
   let settings
   try {
     settings = JSON.parse(localStorage.getItem('settings'))
@@ -32,64 +32,83 @@ function loadSettings () {
 if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./css/webapp.scss')
 
-  init(document.querySelector('#root'), {
-    user: 'asdf',
-    robot: 'asdf',
-    paths: {
-      robot: '',
-      update: '',
-      publish: '',
-      asset: '/',
+  init(
+    document.querySelector('#root'),
+    {
+      user: 'asdf',
+      robot: 'asdf',
+      paths: {
+        robot: '',
+        update: '',
+        publish: '',
+        asset: '/',
+      },
+      apiPaths: {
+        getUserRobots: '',
+        getRobotCode: '',
+      },
+      code: '',
     },
-    apiPaths: {
-      getUserRobots: '',
-      getRobotCode: '',
-    },
-    code: '',
-  }, 'dist/worker.js', 'PYTHON')
+    'dist/worker.js',
+    'PYTHON',
+  )
 
   module.hot.addStatusHandler(initSplit)
 }
 
-customElements.define('robot-arena', class extends HTMLElement {
-  connectedCallback () {
-    // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
-    if (!window.jsRoutes) {
-      throw new Error('No Play JS router found')
-    }
+customElements.define(
+  'robot-arena',
+  class extends HTMLElement {
+    connectedCallback() {
+      // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
+      if (!window.jsRoutes) {
+        throw new Error('No Play JS router found')
+      }
 
-    const user = this.getAttribute('user')
-    const robot = this.getAttribute('robot')
-    const lang = this.getAttribute('lang')
-    if (!user || !robot || !lang) {
-      throw new Error('No user|robot|lang attribute found')
-    }
-    const code = this.getAttribute('code')
+      const user = this.getAttribute('user')
+      const robot = this.getAttribute('robot')
+      const lang = this.getAttribute('lang')
+      if (!user || !robot || !lang) {
+        throw new Error('No user|robot|lang attribute found')
+      }
+      const code = this.getAttribute('code')
 
-    init(
-      this,
-      {
-        paths: {
-          robot: window.jsRoutes.controllers.RobotController.view(user, robot).url,
-          update: window.jsRoutes.controllers.RobotController.update(user, robot).url,
-          publish: window.jsRoutes.controllers.RobotController.publish(user, robot).url,
-          asset: window.jsRoutes.controllers.Assets.at('').url,
+      init(
+        this,
+        {
+          paths: {
+            robot: window.jsRoutes.controllers.RobotController.view(user, robot)
+              .url,
+            update: window.jsRoutes.controllers.RobotController.update(
+              user,
+              robot,
+            ).url,
+            publish: window.jsRoutes.controllers.RobotController.publish(
+              user,
+              robot,
+            ).url,
+            asset: window.jsRoutes.controllers.Assets.at('').url,
+          },
+          apiPaths: {
+            getUserRobots: window.jsRoutes.controllers.RobotController.getUserRobots(
+              '',
+            ).url.slice(0, -1),
+            getRobotCode: window.jsRoutes.controllers.RobotController.getRobotCode(
+              '',
+            ).url.slice(0, -1),
+          },
+          user,
+          robot,
+          code,
         },
-        apiPaths: {
-          getUserRobots: window.jsRoutes.controllers.RobotController.getUserRobots('').url.slice(0, -1),
-          getRobotCode: window.jsRoutes.controllers.RobotController.getRobotCode('').url.slice(0, -1),
-        },
-        user,
-        robot,
-        code,
-      },
-      window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
-      lang,
-    )
-  }
-})
+        window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
+        lang,
+      )
+    }
+  },
+)
 
-function initSplit () {
+function initSplit() {
   Split(['._ui', '._viewer'], {
     sizes: [60, 40],
     minSize: [600, 400],
@@ -98,7 +117,7 @@ function initSplit () {
   })
 }
 
-function init (node, flags, workerUrl, lang) {
+function init(node, flags, workerUrl, lang) {
   // set window vars first so CodeMirror has access to them on init
   window.lang = lang
 
@@ -107,7 +126,8 @@ function init (node, flags, workerUrl, lang) {
   window.settings = settings
 
   const app = Elm.Main.init({
-    node, flags: { ...flags, settings, code: flags.code || defaultRobots[lang] },
+    node,
+    flags: { ...flags, settings, lang, code: flags.code || defaultRobots[lang] },
   })
 
   initSplit()
@@ -119,7 +139,11 @@ function init (node, flags, workerUrl, lang) {
     window.runCount++
     if (!workerRunning) {
       workerRunning = true
-      matchWorker.postMessage({ code1: code, code2: opponentCode, turnNum, lang: flags.lang })
+      matchWorker.postMessage({
+        code1: code,
+        code2: opponentCode,
+        turnNum,
+      })
     }
   })
 
@@ -144,18 +168,18 @@ function init (node, flags, workerUrl, lang) {
     console.error(error)
   })
 
-  app.ports.saveSettings.subscribe(settings => {
+  app.ports.saveSettings.subscribe((settings) => {
     window.localStorage.setItem('settings', JSON.stringify(settings))
   })
 
   window.savedCode = flags.code
-  app.ports.savedCode.subscribe(code => {
+  app.ports.savedCode.subscribe((code) => {
     window.savedCode = code
   })
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return 'You\'ve made unsaved changes.'
+      return "You've made unsaved changes."
     }
   }
 }

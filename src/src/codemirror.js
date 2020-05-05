@@ -5,7 +5,7 @@ import 'codemirror/keymap/vim.js'
 import 'codemirror/keymap/emacs.js'
 import 'codemirror/keymap/sublime.js'
 
-function getModeFromLang (lang) {
+function getModeFromLang(lang) {
   switch (lang) {
     case 'JAVASCRIPT':
       return 'javascript'
@@ -17,26 +17,31 @@ function getModeFromLang (lang) {
 customElements.define(
   'code-editor',
   class extends HTMLElement {
-    constructor () {
+    constructor() {
       super()
       this.marks = []
       this.lastRunCount = 0
     }
 
-    clearMarks () {
+    clearMarks() {
       this.marks.forEach((mark) => mark.clear())
       this.marks = []
     }
 
-    set errorLoc (errorLoc) {
+    set errorLoc(errorLoc) {
       if (window.runCount !== this.lastRunCount) {
         this.lastRunCount = window.runCount
 
-        const from = { line: errorLoc.line - 1, ch: errorLoc.ch ? errorLoc.ch - 1 : 0 }
+        const from = {
+          line: errorLoc.line - 1,
+          ch: errorLoc.ch ? errorLoc.ch - 1 : 0,
+        }
         const to = {
           line: errorLoc.endline ? errorLoc.endline - 1 : from.line,
           // if the line is empty, set ch to 1 so that the error indicator is still shown
-          ch: errorLoc.endch ? errorLoc.endch - 1 : (this._editor.getLine(from.line).length || 1),
+          ch: errorLoc.endch
+            ? errorLoc.endch - 1
+            : this._editor.getLine(from.line).length || 1,
         }
 
         let mark = this._editor.markText(from, to, {
@@ -55,11 +60,11 @@ customElements.define(
       }
     }
 
-    get value () {
+    get value() {
       return this._editor.getValue()
     }
 
-    connectedCallback () {
+    connectedCallback() {
       // const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
       // const localCode = localSave ? localSave.code : ''
       // const localLastEdit = localSave ? localSave.lastEdit : 0

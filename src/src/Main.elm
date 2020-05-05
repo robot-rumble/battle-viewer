@@ -46,6 +46,7 @@ type alias Model =
     { paths : Paths
     , robot : String
     , code : String
+    , lang : String
     , renderState : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
     , error : Maybe Data.OutcomeError
@@ -85,6 +86,7 @@ init flags =
         flags.paths
         flags.user
         flags.code
+        flags.lang
         model
         Initial
         Nothing
@@ -100,6 +102,7 @@ type alias Flags =
     , user : String
     , code : String
     , robot : String
+    , lang : String
     , settings : Maybe Encode.Value
     }
 
@@ -185,20 +188,29 @@ update msg model =
                     case renderMsg of
                         BattleViewer.Run turnNum ->
                             let
+                                encodeCode (code, lang) =
+                                    Encode.object
+                                        [ ("code", Encode.string code)
+                                        , ("lang", Encode.string lang)
+                                        ]
+
+                                selfCode = (model.code, model.lang)
+
                                 maybeOpponentCode =
                                     case model.renderState.opponentSelectState.opponent of
-                                        OpponentSelect.Robot ( _, code ) ->
-                                            code
+                                        OpponentSelect.Robot ( robot, code ) ->
+                                            code |> Maybe.map (\c -> (c, robot.lang))
 
                                         OpponentSelect.Itself ->
-                                            Just model.code
+                                            Just selfCode
+
                             in
                             case maybeOpponentCode of
                                 Just opponentCode ->
                                     startEval <|
                                         Encode.object
-                                            [ ( "code", Encode.string model.code )
-                                            , ( "opponentCode", Encode.string opponentCode )
+                                            [ ( "code", encodeCode selfCode )
+                                            , ( "opponentCode", encodeCode opponentCode )
                                             , ( "turnNum", Encode.int turnNum )
                                             ]
 

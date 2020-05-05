@@ -25,18 +25,17 @@ self.Window = self.constructor
 
 self.addEventListener(
   'message',
-  ({ data: { code1, code2, turnNum, lang } }) => {
+  ({ data: { code1, code2, turnNum } }) => {
     logicPromise
       .then(async (logic) => {
         const startTime = Date.now()
 
-        const langRunner = await fetchRunner(
-          {
-            PYTHON: 'pyrunner',
-            JAVASCRIPT: 'jsrunner',
-          }[lang],
-        )
-        const makeRunner = async (code) => {
+        const runnerMap = {
+          PYTHON: 'pyrunner',
+          JAVASCRIPT: 'jsrunner',
+        }
+        const makeRunner = async ({code, lang}) => {
+          const langRunner = await fetchRunner(runnerMap[lang])
           const WasiRunner = Comlink.wrap(new RawWasiWorker())
           const runner = await new WasiRunner(langRunner)
           await runner.setup()

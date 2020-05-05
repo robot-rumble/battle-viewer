@@ -3,14 +3,15 @@ const CopyPlugin = require('copy-webpack-plugin')
 
 // NOTE: all NODE_ENV checks must be done in terms of 'production'
 
-const dist = process.env.NODE_ENV === 'production'
-  ? path.join(__dirname, './dist')
-  : path.join(__dirname, '../public/dist')
+const dist =
+  process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, './dist')
+    : path.join(__dirname, '../public/dist')
 
-const logicDist = process.env.NODE_ENV === 'production'
-  ? null
-  : path.join(__dirname, '../../logic/webapp-dist/')
-
+const logicDist =
+  process.env.NODE_ENV === 'production'
+    ? null
+    : path.join(__dirname, '../../logic/webapp-dist/')
 
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
@@ -25,16 +26,12 @@ module.exports = {
     alias: {
       logic:
         process.env.NODE_ENV === 'production'
-          // TODO determine S3 path
-          ? path.join(__dirname, '')
+          ? // TODO determine S3 path
+            path.join(__dirname, '')
           : logicDist + 'logic',
     },
   },
-  plugins: [
-    new CopyPlugin([
-      { from: logicDist + 'runners', to: dist },
-    ]),
-  ],
+  plugins: [new CopyPlugin([{ from: logicDist + 'runners', to: dist }])],
   node: {
     fs: 'empty',
   },
@@ -52,9 +49,8 @@ module.exports = {
       {
         test: /wasi\.worker\.js$/,
         use: 'worker-loader',
-      }
+      },
     ],
   },
   devtool: 'source-map',
 }
-

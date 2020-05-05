@@ -12,7 +12,7 @@ const darkTheme = {
   'grey-4': '#171717',
 }
 
-export function applyTheme (theme) {
+export function applyTheme(theme) {
   if (theme === 'Dark') {
     for (const [key, val] of Object.entries(darkTheme)) {
       document.documentElement.style.setProperty(`--${key}`, val)

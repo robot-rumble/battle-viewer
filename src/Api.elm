@@ -74,6 +74,7 @@ type alias Robot =
     { id : Id
     , name : String
     , rating : Int
+    , lang : String
     }
 
 
@@ -82,6 +83,7 @@ robotDecoder =
         |> required "id" int
         |> required "name" string
         |> required "rating" int
+        |> required "lang" string
 
 
 getUserRobots paths user =

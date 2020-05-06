@@ -127,7 +127,12 @@ function init(node, flags, workerUrl, lang) {
 
   const app = Elm.Main.init({
     node,
-    flags: { ...flags, settings, lang, code: flags.code || defaultRobots[lang] },
+    flags: {
+      ...flags,
+      settings,
+      lang,
+      code: flags.code || defaultRobots[lang],
+    },
   })
 
   initSplit()

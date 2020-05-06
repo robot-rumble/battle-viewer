@@ -132,7 +132,6 @@ body {
     }
   }
 
-
   ._grid-viewer {
     width: 95%;
     display: flex;
@@ -213,7 +212,8 @@ body {
 
       display: grid;
 
-      .grid-row, .grid-col {
+      .grid-row,
+      .grid-col {
         border: $border-3;
       }
 
@@ -255,8 +255,9 @@ body {
         }
       }
 
-      .obj.selected::after, .obj.errored::after {
-        content: "";
+      .obj.selected::after,
+      .obj.errored::after {
+        content: '';
         position: absolute;
         height: 50%;
         width: 50%;
@@ -267,7 +268,8 @@ body {
         margin: auto;
       }
 
-      .obj.selected::after, .obj.selected.errored::after {
+      .obj.selected::after,
+      .obj.selected.errored::after {
         background: white;
         opacity: 0.8;
         border-radius: 100%;
@@ -278,5 +280,4 @@ body {
       }
     }
   }
-
 }

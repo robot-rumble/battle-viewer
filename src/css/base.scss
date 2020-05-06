@@ -1,22 +1,21 @@
 $spacers: (
-        6: 5rem,
-        7: 10rem,
+  6: 5rem,
+  7: 10rem,
 );
 $font-size-base: 1.2rem;
 //$line-height-base: 1.2;
 $code-font: Fantasque;
 $font-family-base: $code-font;
 
-
 :root {
   --white: white;
   --black: black;
-  --red: #F392B1;
+  --red: #f392b1;
   --blue: #578eb3;
-  --orange: #EF8509;
-  --dark-blue: #39ACFF;
-  --light-red: #FCDEE7;
-  --light-blue: #CAE9FF;
+  --orange: #ef8509;
+  --dark-blue: #39acff;
+  --light-red: #fcdee7;
+  --light-blue: #cae9ff;
   --grey-1: #636363;
   --grey-2: #c7c7c7;
   --grey-3: #f0f0f0;
@@ -27,9 +26,9 @@ $border-1: 2px solid var(--grey-2);
 $border-2: 2px solid var(--grey-3);
 $border-3: 1px solid var(--grey-3);
 
-@import "../../node_modules/bootstrap/scss/bootstrap-reboot";
-@import "../../node_modules/bootstrap/scss/utilities/flex";
-@import "../../node_modules/bootstrap/scss/utilities/spacing";
+@import '../../node_modules/bootstrap/scss/bootstrap-reboot';
+@import '../../node_modules/bootstrap/scss/utilities/flex';
+@import '../../node_modules/bootstrap/scss/utilities/spacing';
 
 .d-flex {
   display: flex;
@@ -49,7 +48,7 @@ $border-3: 1px solid var(--grey-3);
   font-weight: bold;
 }
 
-@import "./fixes";
+@import './fixes';
 
 @each $color, $value in $colors {
   .text-#{$color} {
@@ -64,7 +63,12 @@ body {
   color: var(--black);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   text-align: left;
   font-weight: normal !important;
 }
@@ -73,7 +77,8 @@ h1 {
   margin-bottom: map_get($spacers, 5);
 }
 
-input, select {
+input,
+select {
   border: $border-1;
 }
 

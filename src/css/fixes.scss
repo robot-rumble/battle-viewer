@@ -12,7 +12,8 @@ textarea {
   outline: 0 !important;
 }
 
-*::-moz-focus-inner, *::-moz-focus-outer {
+*::-moz-focus-inner,
+*::-moz-focus-outer {
   outline: 0 !important;
   border: 0 !important;
 }
@@ -27,7 +28,12 @@ ul {
   padding-left: 0;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: bold !important;
   text-align: center;
 }
@@ -49,6 +55,7 @@ pre {
   margin-bottom: 0;
 }
 
-body, html {
+body,
+html {
   height: 100%;
 }

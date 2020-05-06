@@ -1,10 +1,11 @@
-@import "../../battle-viewer/src/css/fantasque/stylesheet.css";
-@import "../../battle-viewer/src/css/base";
+@import '../../battle-viewer/src/css/fantasque/stylesheet.css';
+@import '../../battle-viewer/src/css/base';
 
 //// main.html
 
 // https://css-tricks.com/couple-takes-sticky-footer/#article-header-id-3
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -56,7 +57,7 @@ body {
     position: absolute;
     height: 50%;
     border-right: $border-1;
-    content: "";
+    content: '';
     top: 0;
     bottom: 0;
     margin: auto;
@@ -95,4 +96,3 @@ body {
     }
   }
 }
-

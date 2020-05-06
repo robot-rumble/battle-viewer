@@ -8,7 +8,8 @@
     "build-worker": "webpack --config webpack.config.worker.js",
     "watch": "webpack -w",
     "watch-worker": "webpack -w --config webpack.config.worker.js",
-    "serve": "HOT=1 webpack-dev-server --hot"
+    "serve": "HOT=1 webpack-dev-server --hot",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
@@ -43,6 +44,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "mini-css-extract-plugin": "^0.8.0",
     "node-sass": "^4.10.0",
+    "prettier": "^2.0.5",
     "raw-loader": "^4.0.0",
     "sass-loader": "^8.0.0",
     "url-loader": "^3.0.0",

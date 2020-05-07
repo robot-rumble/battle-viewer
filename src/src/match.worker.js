@@ -1,27 +1,38 @@
 import RawWasiWorker from './wasi.worker.js'
-import { lowerI64Imports } from '@wasmer/wasm-transformer'
 import * as Comlink from 'comlink'
+import { bigInt } from 'wasm-feature-detect'
 
 const logicPromise = import('logic')
 
+const lowerPromise = (async () => {
+  if (await bigInt()) {
+    const mod = await import('@wasmer/wasm-transformer/lib/wasm-pack/bundler')
+    return mod.lowerI64Imports
+  } else {
+    return null
+  }
+})()
+
 const runnerCache = Object.create(null)
 
-const fetchRunner = (name) => {
+const fetchRunner = async (name) => {
   if (name in runnerCache) return runnerCache[name]
-  const ret = (runnerCache[name] = WebAssembly.compileStreaming(
-    fetch(`/assets/dist/${name}.wasm`),
-  ))
-  // once this is fixed on wasmer-js' side?
-  // const ret = runnerCache[name] = fetch(`/assets/dist/${name}.wasm`)
-  //   .then(r => r.arrayBuffer())
-  //   .then(lowerI64Imports)
-  //   .then(WebAssembly.compileStreaming);
-  return ret
+  const prom = (async () => {
+    const res = await fetch(`/assets/dist/${name}.wasm`)
+    let wasm = await res.arrayBuffer()
+    const lowerI64Imports = await lowerPromise
+    if (lowerI64Imports) {
+      wasm = lowerI64Imports(new Uint8Array(wasm))
+    }
+    return WebAssembly.compile(wasm)
+  })()
+  runnerCache[name] = prom
+  return prom
 }
 
 // to fix some weird bug, set the `Window` global to the worker global scope class
 // it's not exactly like the main-thread Window, but it's close enough
-self.Window = self.constructor
+// self.Window = self.constructor
 
 self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
   logicPromise

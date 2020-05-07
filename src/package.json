@@ -21,7 +21,8 @@
     "line-by-line": "^0.1.6",
     "lodash": "^4.17.11",
     "readable-stream": "^3.6.0",
-    "split.js": "^1.5.11"
+    "split.js": "^1.5.11",
+    "wasm-feature-detect": "^1.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",

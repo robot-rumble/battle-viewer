@@ -9,6 +9,8 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../public/dist')
 
+const battleViewer = path.join(__dirname, '../../battle-viewer')
+
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
   stats: 'minimal',
@@ -65,6 +67,11 @@ module.exports = {
         use: 'raw-loader',
       },
     ],
+  },
+  resolve: {
+    alias: {
+      'battle-viewer': battleViewer,
+    },
   },
   plugins: [
     new MiniCssExtractPlugin(),

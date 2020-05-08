@@ -1,8 +1,8 @@
-@import '../../battle-viewer/src/css/fantasque/stylesheet.css';
-@import '../../node_modules/codemirror/lib/codemirror.css';
-@import '../../node_modules/codemirror/theme/material-ocean.css';
+@import '~battle-viewer/src/css/fantasque/stylesheet.css';
+@import '~codemirror/lib/codemirror.css';
+@import '~codemirror/theme/material-ocean.css';
 
-@import '../../battle-viewer/src/css/base';
+@import '~battle-viewer/src/css/base';
 
 .disappearing-one,
 .disappearing-two {
@@ -41,7 +41,7 @@
   height: 100%;
 
   ._root-app-root {
-    @import '../../battle-viewer/src/css/webapp';
+    @import '~battle-viewer/src/css/webapp';
 
     width: 100%;
     height: 100%;

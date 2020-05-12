@@ -122,3 +122,6 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 
+## IDEA
+# module files
+*.iml

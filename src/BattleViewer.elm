@@ -77,7 +77,7 @@ update msg model =
               -- in addition to attempting to retrieve robots then, also retrieve them when the user opens
               -- the robot selection menu
             , if not model.viewingOpponentSelect then
-                Api.getUserRobots model.apiContext.paths model.apiContext.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
+                Api.getUserRobots model.apiContext model.apiContext.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
 
               else
                 Cmd.none

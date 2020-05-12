@@ -1,6 +1,6 @@
-module Api exposing (Context, Id, Paths, Result, Robot, getRobotCode, getUserRobots, makeRequest)
+module Api exposing (Context, Id, Paths, Result, Robot, getRobotCode, getUserRobots, makeRequest, updateRobotCode)
 
-import Http
+import Http exposing (Part, stringPart)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (required)
 import Json.Encode as Encode
@@ -14,6 +14,7 @@ import Url.Builder exposing (crossOrigin)
 type alias Context =
     { user : String
     , robot : String
+    , robotId : Int
     , paths : Paths
     }
 
@@ -37,12 +38,13 @@ type alias Endpoint val =
 type alias Paths =
     { getUserRobots : String
     , getRobotCode : String
+    , updateRobotCode : String
     }
 
 
 type Request val
     = Get (Endpoint val)
-    | Post (Endpoint val) Encode.Value
+    | Post (Endpoint val) (List Part)
 
 
 makeRequest : (Result val -> msg) -> Request val -> Cmd msg
@@ -54,11 +56,11 @@ makeRequest msg request =
                 , expect = Http.expectJson msg decoder
                 }
 
-        Post ( basePath, pathSegments, decoder ) body ->
+        Post ( basePath, pathSegments, decoder ) parts ->
             Http.post
                 { url = crossOrigin basePath pathSegments []
                 , expect = Http.expectJson msg decoder
-                , body = Http.jsonBody body
+                , body = Http.multipartBody parts
                 }
 
 
@@ -86,9 +88,14 @@ robotDecoder =
         |> required "lang" string
 
 
-getUserRobots paths user =
-    Get ( paths.getUserRobots, [ user ], list robotDecoder )
+getUserRobots context user =
+    Get ( context.paths.getUserRobots, [ user ], list robotDecoder )
 
 
-getRobotCode paths robot =
-    Get ( paths.getRobotCode, [ String.fromInt robot ], string )
+getRobotCode context robot =
+    Get ( context.paths.getRobotCode, [ String.fromInt robot ], string )
+
+
+updateRobotCode context code =
+    Post ( context.paths.updateRobotCode, [ String.fromInt context.robotId ], succeed () )
+        [ stringPart "code" code ]

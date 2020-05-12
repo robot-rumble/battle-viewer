@@ -24,7 +24,7 @@ type Opponent
 
 init : Api.Context -> ( Model, Cmd Msg )
 init apiContext =
-    ( Model apiContext Itself [], Api.getUserRobots apiContext.paths apiContext.user |> Api.makeRequest GotUserRobots )
+    ( Model apiContext Itself [], Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots )
 
 
 
@@ -44,7 +44,7 @@ update msg model =
             ( { model | opponent = opponent }
             , case opponent of
                 Robot ( robot, _ ) ->
-                    Api.getRobotCode model.apiContext.paths robot.id |> Api.makeRequest GotCode
+                    Api.getRobotCode model.apiContext robot.id |> Api.makeRequest GotCode
 
                 _ ->
                     Cmd.none

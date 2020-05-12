@@ -44,7 +44,7 @@ type
 
 type alias Model =
     { paths : Paths
-    , robot : String
+    , apiContext : Api.Context
     , code : String
     , lang : String
     , renderState : BattleViewer.Model
@@ -57,7 +57,6 @@ type alias Model =
 
 type alias Paths =
     { robot : String
-    , update : String
     , publish : String
     , asset : String
     }
@@ -79,12 +78,15 @@ init flags =
                 Nothing ->
                     Settings.default
 
+        apiContext =
+            Api.Context flags.user flags.robot flags.robotId flags.apiPaths
+
         ( model, cmd ) =
-            BattleViewer.init (Api.Context flags.user flags.robot flags.apiPaths) flags.paths.asset
+            BattleViewer.init apiContext flags.paths.asset
     in
     ( Model
         flags.paths
-        flags.user
+        apiContext
         flags.code
         flags.lang
         model
@@ -102,6 +104,7 @@ type alias Flags =
     , user : String
     , code : String
     , robot : String
+    , robotId : Int
     , lang : String
     , settings : Maybe Encode.Value
     }
@@ -133,7 +136,6 @@ type Msg
     | Saved (Result Http.Error ())
     | ViewSettings
     | CloseSettings
-    | GotText (Result Http.Error String)
 
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
@@ -171,11 +173,8 @@ update msg model =
         Save ->
             let
                 codeUpdateCmd =
-                    Http.post
-                        { url = model.paths.update
-                        , body = Http.jsonBody (Encode.object [ ( "code", Encode.string model.code ) ])
-                        , expect = Http.expectWhatever Saved
-                        }
+                    Api.updateRobotCode model.apiContext model.code
+                        |> Api.makeRequest Saved
             in
             ( model, Cmd.batch [ codeUpdateCmd, savedCode model.code ] )
 
@@ -188,22 +187,22 @@ update msg model =
                     case renderMsg of
                         BattleViewer.Run turnNum ->
                             let
-                                encodeCode (code, lang) =
+                                encodeCode ( code, lang ) =
                                     Encode.object
-                                        [ ("code", Encode.string code)
-                                        , ("lang", Encode.string lang)
+                                        [ ( "code", Encode.string code )
+                                        , ( "lang", Encode.string lang )
                                         ]
 
-                                selfCode = (model.code, model.lang)
+                                selfCode =
+                                    ( model.code, model.lang )
 
                                 maybeOpponentCode =
                                     case model.renderState.opponentSelectState.opponent of
                                         OpponentSelect.Robot ( robot, code ) ->
-                                            code |> Maybe.map (\c -> (c, robot.lang))
+                                            code |> Maybe.map (\c -> ( c, robot.lang ))
 
                                         OpponentSelect.Itself ->
                                             Just selfCode
-
                             in
                             case maybeOpponentCode of
                                 Just opponentCode ->
@@ -249,9 +248,6 @@ update msg model =
 
         GotSettingsMsg settingsMsg ->
             ( { model | settings = Settings.update settingsMsg model.settings }, Cmd.none )
-
-        _ ->
-            ( model, Cmd.none )
 
 
 
@@ -304,7 +300,7 @@ viewBar : Model -> Html Msg
 viewBar model =
     div [ class "_bar d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
-            [ p [] [ text "The Garage -- editing ", a [ href model.paths.robot ] [ text model.robot ] ]
+            [ p [] [ text "The Garage -- editing ", a [ href model.paths.robot ] [ text model.apiContext.robot ] ]
             , button [ class "button ml-5 mr-3", onClick Save ] [ text "save" ]
             , p
                 [ class <|

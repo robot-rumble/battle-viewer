@@ -67,9 +67,10 @@ customElements.define(
 
       const user = this.getAttribute('user')
       const robot = this.getAttribute('robot')
+      const robotId = parseInt(this.getAttribute('robotId'))
       const lang = this.getAttribute('lang')
-      if (!user || !robot || !lang) {
-        throw new Error('No user|robot|lang attribute found')
+      if (!user || !robot || !robotId || !lang) {
+        throw new Error('No user|robot|robotId|lang attribute found')
       }
       const code = this.getAttribute('code')
 
@@ -79,10 +80,6 @@ customElements.define(
           paths: {
             robot: window.jsRoutes.controllers.RobotController.view(user, robot)
               .url,
-            update: window.jsRoutes.controllers.RobotController.update(
-              user,
-              robot,
-            ).url,
             publish: window.jsRoutes.controllers.RobotController.publish(
               user,
               robot,
@@ -90,15 +87,19 @@ customElements.define(
             asset: window.jsRoutes.controllers.Assets.at('').url,
           },
           apiPaths: {
-            getUserRobots: window.jsRoutes.controllers.RobotController.getUserRobots(
+            getUserRobots: window.jsRoutes.controllers.RobotController.apiGetUserRobots(
               '',
             ).url.slice(0, -1),
-            getRobotCode: window.jsRoutes.controllers.RobotController.getRobotCode(
+            getRobotCode: window.jsRoutes.controllers.RobotController.apiGetRobotCode(
+              '',
+            ).url.slice(0, -1),
+            updateRobotCode: window.jsRoutes.controllers.RobotController.apiUpdate(
               '',
             ).url.slice(0, -1),
           },
           user,
           robot,
+          robotId,
           code,
         },
         window.jsRoutes.controllers.Assets.at('dist/worker.js').url,

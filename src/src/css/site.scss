@@ -39,28 +39,21 @@ body {
   border-top: $border-2;
 }
 
-//// tags
+//// tables
 
-.panel {
-  display: inline-flex;
-  align-items: center;
-  position: relative;
-  border: $border-1;
-  border-radius: 5px;
-  padding: map-get($spacers, 1);
-
-  li {
-    margin: 0 map-get($spacers, 2);
-  }
-
-  .separator::after {
-    position: absolute;
-    height: 50%;
-    border-right: $border-1;
-    content: '';
-    top: 0;
-    bottom: 0;
-    margin: auto;
+tbody {
+  max-height: 50vh;
+  display: block;
+  overflow-y: auto;
+  width: 110%;
+  tr {
+    border: $border-2;
+    td {
+      padding: map_get($spacers, 1) map_get($spacers, 3);
+    }
+    td:last-child {
+      border-right: 0;
+    }
   }
 }
 

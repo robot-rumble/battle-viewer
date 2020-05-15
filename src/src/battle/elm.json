@@ -1,7 +1,7 @@
 {
     "type": "application",
     "source-directories": [
-        "src", "../../battle-viewer/src"
+        ".", "../../../../battle-viewer/src"
     ],
     "elm-version": "0.19.1",
     "dependencies": {

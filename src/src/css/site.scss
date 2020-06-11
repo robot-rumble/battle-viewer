@@ -16,7 +16,6 @@ body {
 
 .content {
   flex: 1 0 auto;
-  height: 100%;
 }
 
 .footer {
@@ -24,7 +23,7 @@ body {
 }
 
 .header {
-  padding: map-get($spacers, 5);
+  margin: map-get($spacers, 5);
 
   .links {
     & > * {
@@ -34,6 +33,7 @@ body {
 }
 
 .footer {
+  margin-top: map-get($spacers, 5);
   padding: map-get($spacers, 3);
   color: var(--grey-1);
   border-top: $border-2;
@@ -42,10 +42,6 @@ body {
 //// tables
 
 tbody {
-  max-height: 50vh;
-  display: block;
-  overflow-y: auto;
-  width: 110%;
   tr {
     border: $border-2;
     td {

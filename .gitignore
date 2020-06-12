@@ -122,6 +122,6 @@ elm-stuff
 # elm-repl generated files
 repl-temp-*
 
-## IDEA
-# module files
+### JetBrains template
+.idea
 *.iml

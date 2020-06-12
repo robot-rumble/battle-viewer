@@ -94,12 +94,26 @@ const battleConfig = {
   stats: 'minimal',
   entry: {
     battle_js: ['@babel/polyfill', './src/battle/app.js'],
+    battle_css: './src/css/battle.scss',
   },
   output: {
     path: dist,
   },
   module: {
     rules: [
+      {
+        test: /\.(sa|sc|c)ss$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              hmr: process.env.HOT === '1',
+            },
+          },
+          'css-loader',
+          'sass-loader',
+        ],
+      },
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -118,6 +132,12 @@ const battleConfig = {
       },
     ],
   },
+  resolve: {
+    alias: {
+      'battle-viewer': battleViewer,
+    },
+  },
+  plugins: [new MiniCssExtractPlugin()],
   devtool: 'source-map',
 }
 

@@ -3,6 +3,8 @@ module Main exposing (..)
 import Browser
 import Data
 import GridViewer
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Json.Decode as Decode
 
 
@@ -85,5 +87,5 @@ subscriptions _ =
 -- VIEW
 
 
-view =
-    GridViewer.view
+view model =
+    div [ class "_app-root" ] [ GridViewer.view model ]

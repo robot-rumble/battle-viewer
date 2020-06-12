@@ -1,0 +1,32 @@
+@font-face {
+  font-family: Fantasque;
+  src: url('FantasqueSansMono-Italic.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
+       url('FantasqueSansMono-Italic.ttf') format('truetype'); /* Safari, Android, iOS */
+
+  font-weight: 400;
+  font-style: italic;
+}
+@font-face {
+  font-family: Fantasque;
+  src: url('FantasqueSansMono-Regular.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
+       url('FantasqueSansMono-Regular.ttf') format('truetype'); /* Safari, Android, iOS */
+
+  font-weight: 400;
+  font-style: normal;
+}
+@font-face {
+  font-family: Fantasque;
+  src: url('FantasqueSansMono-BoldItalic.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
+       url('FantasqueSansMono-BoldItalic.ttf') format('truetype'); /* Safari, Android, iOS */
+
+  font-weight: 700;
+  font-style: italic;
+}
+@font-face {
+  font-family: Fantasque;
+  src: url('FantasqueSansMono-Bold.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
+       url('FantasqueSansMono-Bold.ttf') format('truetype'); /* Safari, Android, iOS */
+
+  font-weight: 700;
+  font-style: normal;
+}

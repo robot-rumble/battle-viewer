@@ -16,7 +16,7 @@ const mainConfig = {
   stats: 'minimal',
   entry: {
     garage_js: ['@babel/polyfill', './src/garage/app.js'],
-    garage_css: './src/css/webapp.scss',
+    garage_css: './src/garage/main.scss',
     site_css: './src/css/site.scss',
   },
   output: {
@@ -94,7 +94,7 @@ const battleConfig = {
   stats: 'minimal',
   entry: {
     battle_js: ['@babel/polyfill', './src/battle/app.js'],
-    battle_css: './src/css/battle.scss',
+    battle_css: './src/battle/main.scss',
   },
   output: {
     path: dist,

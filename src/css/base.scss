@@ -48,6 +48,10 @@ $border-3: 1px solid var(--grey-3);
   font-weight: bold;
 }
 
+.text-center {
+  text-align: center;
+}
+
 @import './fixes';
 
 @each $color, $value in $colors {

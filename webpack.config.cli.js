@@ -11,7 +11,7 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../cli/dist')
 
-module.exports = createConfigBase({
+module.exports = createConfigBase(dist, {
   entry: './src/cli/app.js',
   module: {
     rules: [
@@ -32,7 +32,4 @@ module.exports = createConfigBase({
       },
     ]),
   ],
-  output: {
-    path: dist,
-  },
 })

@@ -8,7 +8,7 @@ const logicDist =
     ? null
     : path.join(__dirname, '../logic/webapp-dist/')
 
-module.exports = createConfigBase({
+module.exports = createConfigBase(dist, {
   entry: {
     worker: ['@babel/polyfill', './src/garage/match.worker.js']
   },

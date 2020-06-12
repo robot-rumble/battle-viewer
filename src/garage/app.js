@@ -30,13 +30,14 @@ function loadSettings() {
 }
 
 if (process.env.NODE_ENV !== 'production' && module.hot) {
-  import('../css/webapp.scss')
+  import('./main.scss')
 
   init(
     document.querySelector('#root'),
     {
       user: 'asdf',
       robot: 'asdf',
+      robotId: 0,
       paths: {
         robot: '',
         update: '',
@@ -46,6 +47,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       apiPaths: {
         getUserRobots: '',
         getRobotCode: '',
+        updateRobotCode: '',
       },
       code: '',
     },

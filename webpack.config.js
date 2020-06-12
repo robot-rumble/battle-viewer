@@ -1,10 +1,12 @@
+const path = require('path')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const { createConfigBase, loaders } = require('./webpack.common.js')
+const { createConfigBase, createDevServerConfig, loaders, dist } = require('./webpack.common.js')
 
 function createConfig (module) {
-  return createConfigBase({
+  return createConfigBase(dist, {
+    name: module,
     entry: {
       [`${module}_js`]: ['@babel/polyfill', `./src/${module}/app.js`],
       [`${module}_css`]: `./src/${module}/main.scss`,
@@ -24,10 +26,11 @@ function createConfig (module) {
         NODE_ENV: 'development',
       }),
     ],
+    devServer: createDevServerConfig(path.join(__dirname, '../backend/public')),
   })
 }
 
-const siteConfig = createConfigBase({
+const siteConfig = createConfigBase(dist, {
   entry: {
     site_css: './src/site/main.scss',
   },

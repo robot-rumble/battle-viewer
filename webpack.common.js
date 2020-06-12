@@ -52,22 +52,25 @@ const loaders = {
   },
 }
 
-function createConfigBase (additional) {
+function createConfigBase (dist, additional) {
   return {
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
     output: {
       path: dist,
     },
-    devServer: {
-      contentBase: '../backend/public',
-      historyApiFallback: true,
-      stats: 'minimal',
-      host: '0.0.0.0',
-    },
     devtool: 'source-map',
     ...additional,
   }
 }
 
-module.exports = { dist, loaders, createConfigBase }
+function createDevServerConfig (base) {
+  return {
+    contentBase: base,
+    historyApiFallback: true,
+    stats: 'minimal',
+    host: '0.0.0.0',
+  }
+}
+
+module.exports = { dist, loaders, createConfigBase, createDevServerConfig }

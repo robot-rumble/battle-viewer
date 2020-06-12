@@ -1,5 +1,3 @@
-//noinspection SassScssResolvedByNameOnly
-
 @mixin bar {
   padding: map-get($spacers, 2) map-get($spacers, 3);
   border-bottom: $border-2;

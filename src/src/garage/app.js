@@ -1,7 +1,7 @@
 import { Elm } from './Main.elm'
 
-import defaultJsRobot from './robots/default.raw.js'
-import defaultPyRobot from './robots/default.raw.py'
+import defaultJsRobot from '../robots/default.raw.js'
+import defaultPyRobot from '../robots/default.raw.py'
 
 import './codemirror'
 import { applyTheme } from './themes'
@@ -30,7 +30,7 @@ function loadSettings() {
 }
 
 if (process.env.NODE_ENV !== 'production' && module.hot) {
-  import('./css/webapp.scss')
+  import('../css/webapp.scss')
 
   init(
     document.querySelector('#root'),
@@ -57,7 +57,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
 }
 
 customElements.define(
-  'robot-arena',
+  'garage-el',
   class extends HTMLElement {
     connectedCallback() {
       // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing

@@ -16,7 +16,7 @@ const logicDist =
 module.exports = {
   mode: process.env.NODE_ENV || 'development',
   stats: 'minimal',
-  entry: ['@babel/polyfill', './src/match.worker.js'],
+  entry: ['@babel/polyfill', './src/garage/match.worker.js'],
   target: 'webworker',
   output: {
     path: dist,

@@ -88,4 +88,4 @@ subscriptions _ =
 
 
 view model =
-    div [ class "_app-root" ] [ GridViewer.view model ]
+    div [ class "_app-root align-items-center" ] [ GridViewer.view model ]

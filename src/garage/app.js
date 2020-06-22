@@ -20,6 +20,21 @@ function loadSettings () {
   return settings
 }
 
+function createRoutes(user, robot, robotId) {
+  return {
+    paths: {
+      robot: `/p/${user}/${robot}`,
+      publish: `/publish/${robotId}`,
+      asset: `/assets`,
+    },
+    apiPaths: {
+      getUserRobots: `/api/get-user-robots`,
+      getRobotCode: `/api/get-robot-code`,
+      updateRobotCode: `/api/update-robot-code`,
+    },
+  }
+}
+
 if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./main.scss')
 
@@ -29,17 +44,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       user: 'asdf',
       robot: 'asdf',
       robotId: 0,
-      paths: {
-        robot: '',
-        update: '',
-        publish: '',
-        asset: '/',
-      },
-      apiPaths: {
-        getUserRobots: '',
-        getRobotCode: '',
-        updateRobotCode: '',
-      },
+      ...createRoutes('asdf', 'asdf', 0),
       code: '',
     },
     'dist/worker.js',
@@ -52,12 +57,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
 customElements.define(
   'garage-el',
   class extends HTMLElement {
-    connectedCallback () {
-      // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
-      if (!window.jsRoutes) {
-        throw new Error('No Play JS router found')
-      }
-
+    connectedCallback() {
       const user = this.getAttribute('user')
       const robot = this.getAttribute('robot')
       const robotId = parseInt(this.getAttribute('robotId'))
@@ -66,36 +66,18 @@ customElements.define(
       if (!user || !robot || !robotId || !lang || !code) {
         throw new Error('No user|robot|robotId|lang|code attribute found')
       }
+      const routes = createRoutes(user, robot, robotId)
 
       init(
         this,
         {
-          paths: {
-            robot: window.jsRoutes.controllers.RobotController.view(user, robot)
-              .url,
-            publish: window.jsRoutes.controllers.RobotController.publish(
-              user,
-              robot,
-            ).url,
-            asset: window.jsRoutes.controllers.Assets.at('').url,
-          },
-          apiPaths: {
-            getUserRobots: window.jsRoutes.controllers.RobotController.apiGetUserRobots(
-              '',
-            ).url.slice(0, -1),
-            getRobotCode: window.jsRoutes.controllers.RobotController.apiGetRobotCode(
-              '',
-            ).url.slice(0, -1),
-            updateRobotCode: window.jsRoutes.controllers.RobotController.apiUpdate(
-              '',
-            ).url.slice(0, -1),
-          },
           user,
           robot,
           robotId,
+          ...routes,
           code,
         },
-        window.jsRoutes.controllers.Assets.at('dist/worker.js').url,
+        routes.paths.asset + ('dist/worker.js').url,
         lang,
       )
     }

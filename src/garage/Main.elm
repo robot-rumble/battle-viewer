@@ -326,7 +326,7 @@ viewBar model =
                 [ text "saved" ]
             , a [ href model.paths.publish ] [ text "ready to publish?" ]
             ]
-        , button [ onClick ViewSettings ] [ img [ src <| model.paths.asset ++ "images/settings.svg" ] [] ]
+        , button [ onClick ViewSettings ] [ img [ src <| model.paths.asset ++ "/images/settings.svg" ] [] ]
         ]
 
 

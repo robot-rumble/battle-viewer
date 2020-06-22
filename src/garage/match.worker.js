@@ -40,8 +40,8 @@ self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
       const startTime = Date.now()
 
       const runnerMap = {
-        PYTHON: 'pyrunner',
-        JAVASCRIPT: 'jsrunner',
+        Python: 'pyrunner',
+        Javascript: 'jsrunner',
       }
       const makeRunner = async ({ code, lang }) => {
         const langRunner = await fetchRunner(runnerMap[lang])

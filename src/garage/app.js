@@ -8,15 +8,9 @@ import { applyTheme } from './themes'
 
 import Split from 'split.js'
 
-const defaultRobots = {
-  JAVASCRIPT: defaultJsRobot,
-  PYTHON: defaultPyRobot,
-}
-
-window.language = 'python'
 window.runCount = 0
 
-function loadSettings() {
+function loadSettings () {
   let settings
   try {
     settings = JSON.parse(localStorage.getItem('settings'))
@@ -52,7 +46,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       code: '',
     },
     'dist/worker.js',
-    'PYTHON',
+    'Python',
   )
 
   module.hot.addStatusHandler(initSplit)
@@ -61,7 +55,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
 customElements.define(
   'garage-el',
   class extends HTMLElement {
-    connectedCallback() {
+    connectedCallback () {
       // https://www.playframework.com/documentation/2.5.x/ScalaJavascriptRouting#Javascript-Routing
       if (!window.jsRoutes) {
         throw new Error('No Play JS router found')

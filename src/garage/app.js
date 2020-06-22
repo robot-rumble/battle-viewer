@@ -1,8 +1,5 @@
 import { Elm } from './Main.elm'
 
-import defaultJsRobot from '../robots/default.raw.js'
-import defaultPyRobot from '../robots/default.raw.py'
-
 import './codemirror'
 import { applyTheme } from './themes'
 
@@ -65,10 +62,10 @@ customElements.define(
       const robot = this.getAttribute('robot')
       const robotId = parseInt(this.getAttribute('robotId'))
       const lang = this.getAttribute('lang')
-      if (!user || !robot || !robotId || !lang) {
-        throw new Error('No user|robot|robotId|lang attribute found')
-      }
       const code = this.getAttribute('code')
+      if (!user || !robot || !robotId || !lang || !code) {
+        throw new Error('No user|robot|robotId|lang|code attribute found')
+      }
 
       init(
         this,
@@ -128,7 +125,7 @@ function init(node, flags, workerUrl, lang) {
       ...flags,
       settings,
       lang,
-      code: flags.code || defaultRobots[lang],
+      code: flags.code,
     },
   })
 

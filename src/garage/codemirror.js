@@ -5,7 +5,7 @@ import 'codemirror/keymap/vim.js'
 import 'codemirror/keymap/emacs.js'
 import 'codemirror/keymap/sublime.js'
 
-function getModeFromLang (lang) {
+function getModeFromLang(lang) {
   switch (lang) {
     case 'Javascript':
       return 'javascript'
@@ -64,7 +64,7 @@ customElements.define(
       return this._editor.getValue()
     }
 
-    connectedCallback () {
+    connectedCallback() {
       // const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
       // const localCode = localSave ? localSave.code : ''
       // const localLastEdit = localSave ? localSave.lastEdit : 0

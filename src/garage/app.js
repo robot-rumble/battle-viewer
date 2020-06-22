@@ -7,7 +7,7 @@ import Split from 'split.js'
 
 window.runCount = 0
 
-function loadSettings () {
+function loadSettings() {
   let settings
   try {
     settings = JSON.parse(localStorage.getItem('settings'))
@@ -160,7 +160,7 @@ function init(node, flags, workerUrl, lang) {
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return "You've made unsaved changes."
+      return 'You\'ve made unsaved changes.'
     }
   }
 }

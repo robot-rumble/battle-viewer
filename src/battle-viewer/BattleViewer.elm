@@ -26,7 +26,7 @@ type alias Model =
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
-    , assetPath : String
+    , assetsPath : String
     }
 
 
@@ -46,12 +46,12 @@ type alias RenderStateVal =
 
 
 init : Api.Context -> String -> ( Model, Cmd Msg )
-init apiContext asset =
+init apiContext assetsPath =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
     in
-    ( Model apiContext Nothing NoRender model False asset, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing NoRender model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -212,7 +212,7 @@ view model =
                 [ p [ class "mr-2" ] [ text "change opponent" ]
                 , img
                     [ src <|
-                        model.assetPath
+                        model.assetsPath
                             ++ (if model.viewingOpponentSelect then
                                     "images/close-panel.svg"
 

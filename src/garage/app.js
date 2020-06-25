@@ -25,7 +25,7 @@ function createRoutes(user, robot, robotId) {
     paths: {
       robot: `/p/${user}/${robot}`,
       publish: `/publish/${robotId}`,
-      asset: `/assets`,
+      assets: `/assets`,
     },
     apiPaths: {
       getUserRobots: `/api/get-user-robots`,
@@ -77,7 +77,7 @@ customElements.define(
           ...routes,
           code,
         },
-        routes.paths.asset + ('dist/worker.js').url,
+        routes.paths.assets + '/dist/worker.js',
         lang,
       )
     }

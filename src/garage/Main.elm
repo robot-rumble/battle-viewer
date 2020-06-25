@@ -58,7 +58,7 @@ type alias Model =
 type alias Paths =
     { robot : String
     , publish : String
-    , asset : String
+    , assets : String
     }
 
 
@@ -82,7 +82,7 @@ init flags =
             Api.Context flags.user flags.robot flags.robotId flags.apiPaths
 
         ( model, cmd ) =
-            BattleViewer.init apiContext flags.paths.asset
+            BattleViewer.init apiContext flags.paths.assets
     in
     ( Model
         flags.paths
@@ -326,7 +326,7 @@ viewBar model =
                 [ text "saved" ]
             , a [ href model.paths.publish ] [ text "ready to publish?" ]
             ]
-        , button [ onClick ViewSettings ] [ img [ src <| model.paths.asset ++ "/images/settings.svg" ] [] ]
+        , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
         ]
 
 

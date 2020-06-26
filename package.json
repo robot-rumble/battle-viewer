@@ -13,17 +13,10 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
-    "@wasmer/wasi": "^0.10.2",
-    "@wasmer/wasm-transformer": "^0.10.2",
-    "@wasmer/wasmfs": "^0.10.2",
     "bootstrap": "^4.5.0",
     "codemirror": "^5.46.0",
-    "comlink": "^4.3.0",
-    "line-by-line": "^0.1.6",
     "lodash": "^4.17.11",
-    "readable-stream": "^3.6.0",
     "split.js": "^1.5.11",
-    "wasm-feature-detect": "^1.2.3"
   },
   "devDependencies": {
     "@babel/core": "^7.7.5",

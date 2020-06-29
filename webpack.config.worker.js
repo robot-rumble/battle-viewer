@@ -3,10 +3,10 @@ const CopyPlugin = require('copy-webpack-plugin')
 
 const { dist, createConfigBase, loaders } = require('./webpack.common.js')
 
-const logicDist =
+const logicWasmDist =
   process.env.NODE_ENV === 'production'
     ? null
-    : path.join(__dirname, '../logic/webapp-dist/')
+    : path.join(__dirname, '../logic/wasm-dist/')
 
 module.exports = createConfigBase(dist, {
   entry: {
@@ -21,8 +21,8 @@ module.exports = createConfigBase(dist, {
   },
   resolve: {
     alias: {
-      logic: logicDist + 'logic',
+      logic: logicWasmDist + 'logic',
     },
   },
-  plugins: [new CopyPlugin([{ from: logicDist + 'runners', to: dist }])],
+  plugins: [new CopyPlugin([{ from: logicWasmDist + 'runners', to: dist }])],
 })

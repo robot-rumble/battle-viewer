@@ -21,8 +21,8 @@ module.exports = createConfigBase(dist, {
   },
   resolve: {
     alias: {
-      logic: logicWasmDist + 'logic',
+      logic: logicWasmDist + 'browser-runner',
     },
   },
-  plugins: [new CopyPlugin([{ from: logicWasmDist + 'runners', to: dist }])],
+  plugins: [new CopyPlugin([{ from: logicWasmDist + 'lang-runners', to: dist }])],
 })

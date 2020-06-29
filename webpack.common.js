@@ -52,7 +52,7 @@ const loaders = {
   },
 }
 
-function createConfigBase (dist, additional) {
+function createConfigBase(dist, additional) {
   return {
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
@@ -64,7 +64,7 @@ function createConfigBase (dist, additional) {
   }
 }
 
-function createDevServerConfig (base) {
+function createDevServerConfig(base) {
   return {
     contentBase: base,
     historyApiFallback: true,

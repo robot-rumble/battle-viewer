@@ -2,9 +2,14 @@ const path = require('path')
 const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
-const { createConfigBase, createDevServerConfig, loaders, dist } = require('./webpack.common.js')
+const {
+  createConfigBase,
+  createDevServerConfig,
+  loaders,
+  dist,
+} = require('./webpack.common.js')
 
-function createConfig (module) {
+function createConfig(module) {
   return createConfigBase(dist, {
     name: module,
     entry: {
@@ -35,10 +40,7 @@ const siteConfig = createConfigBase(dist, {
     site_css: './src/site/main.scss',
   },
   module: {
-    rules: [
-      loaders.css,
-      loaders.url,
-    ],
+    rules: [loaders.css, loaders.url],
   },
   plugins: [new MiniCssExtractPlugin()],
 })

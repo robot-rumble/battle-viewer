@@ -10,18 +10,14 @@ const logicDist =
 
 module.exports = createConfigBase(dist, {
   entry: {
-    worker: ['@babel/polyfill', './src/garage/match.worker.js']
+    worker: ['@babel/polyfill', './src/garage/match.worker.js'],
   },
   target: 'webworker',
   node: {
     fs: 'empty',
   },
   module: {
-    rules: [
-      loaders.js,
-      loaders.raw,
-      loaders.worker
-    ],
+    rules: [loaders.js, loaders.raw, loaders.worker],
   },
   resolve: {
     alias: {

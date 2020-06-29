@@ -6,10 +6,10 @@ const logicPromise = import('logic')
 
 const lowerPromise = (async () => {
   if (await bigInt()) {
+    return null
+  } else {
     const mod = await import('@wasmer/wasm-transformer/lib/wasm-pack/bundler')
     return mod.lowerI64Imports
-  } else {
-    return null
   }
 })()
 

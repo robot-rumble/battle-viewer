@@ -3,12 +3,12 @@ import { Elm } from './Main.elm'
 import './main.scss'
 
 fetch('/getflags')
-  .then((r) => r.json())
+  .then(r => r.json())
   .then(init)
 
 function init(flags) {
   const app = Elm.Main.init({
-    node: document.getElementById('app-root'),
+    node: document.getElementById('root'),
     flags,
   })
 
@@ -23,3 +23,4 @@ function init(flags) {
     })
   })
 }
+

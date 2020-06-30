@@ -27,8 +27,10 @@ module.exports = createConfigBase(dist, {
     new HtmlWebpackPlugin({ template: 'src/cli/index.html' }),
     new CopyWebpackPlugin([
       {
-        from: path.resolve(__dirname, '../backend/public/images'),
-        to: 'images',
+        from: process.env.NODE_ENV === 'production'
+          ? path.join(__dirname, './images')
+          : path.join(__dirname, '../backend/public/images'),
+        to: path.join(dist, 'images'),
       },
     ]),
   ],

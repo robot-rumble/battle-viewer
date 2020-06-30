@@ -56,10 +56,6 @@ update msg model =
                     { model | userRobots = data |> List.filter (\robot -> robot.name /= model.apiContext.robot) }
 
                 Err _ ->
-                    let
-                        _ =
-                            Debug.log "err!" "as"
-                    in
                     model
             , Cmd.none
             )

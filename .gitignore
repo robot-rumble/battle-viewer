@@ -125,3 +125,8 @@ repl-temp-*
 ### JetBrains template
 .idea
 *.iml
+
+### Other
+dist
+wasm-dist
+cli-dist

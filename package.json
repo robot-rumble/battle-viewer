@@ -3,12 +3,16 @@
   "license": "MIT",
   "scripts": {
     "dev": "npm run build && npm run build-worker",
+    "dev-cli": "npm run build-cli",
     "prod": "NODE_ENV=production npm run build && NODE_ENV=production npm run build-worker",
+    "prod-cli": "NODE_ENV=production npm run build-cli",
     "build": "webpack",
     "build-worker": "webpack --config webpack.config.worker.js",
+    "build-cli": "webpack --config webpack.config.cli.js",
     "watch": "webpack -w",
     "watch-worker": "webpack -w --config webpack.config.worker.js",
-    "serve": "HOT=1 webpack-dev-server --hot",
+    "watch-cli": "webpack -w --config webpack.config.cli.js",
+    "serve": "HOT=1 webpack-dev-server --hot --config-name $MODULE",
     "format": "prettier --write ."
   },
   "dependencies": {

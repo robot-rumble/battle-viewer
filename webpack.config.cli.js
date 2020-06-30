@@ -8,7 +8,7 @@ const { createConfigBase, loaders } = require('./webpack.common.js')
 
 const dist =
   process.env.NODE_ENV === 'production'
-    ? path.join(__dirname, './dist')
+    ? path.join(__dirname, './cli-dist')
     : path.join(__dirname, '../cli/dist')
 
 module.exports = createConfigBase(dist, {

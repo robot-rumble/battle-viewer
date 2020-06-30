@@ -5,7 +5,7 @@ const { dist, createConfigBase, loaders } = require('./webpack.common.js')
 
 const logicWasmDist =
   process.env.NODE_ENV === 'production'
-    ? null
+    ? path.join(__dirname, './wasm-dist')
     : path.join(__dirname, '../logic/wasm-dist/')
 
 module.exports = createConfigBase(dist, {
@@ -21,8 +21,10 @@ module.exports = createConfigBase(dist, {
   },
   resolve: {
     alias: {
-      logic: logicWasmDist + 'browser-runner',
+      logic: path.join(logicWasmDist, 'browser-runner'),
     },
   },
-  plugins: [new CopyPlugin([{ from: logicWasmDist + 'lang-runners', to: dist }])],
+  plugins: process.env.NODE_ENV !== 'production'
+    ? [new CopyPlugin([{ from: path.join(logicWasmDist, 'lang-runners'), to: dist }])]
+    : [],
 })

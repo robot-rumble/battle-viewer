@@ -22,7 +22,7 @@ jobs:
       - run: yarn
       - run: aws s3 sync s3://${{ secrets.S3_BUCKET }}/browser-runner wasm-dist/browser-runner
       - run: yarn prod
-      - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET }}/webapp-assets/dist
+      - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET }}/web-assets/dist
 
       # https://stackoverflow.com/a/18194523
       - run: svn checkout https://github.com/robot-rumble/backend/trunk/public/images

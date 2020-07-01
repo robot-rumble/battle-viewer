@@ -26,7 +26,6 @@ function createConfig(module) {
       ],
     },
     plugins: [
-      new MiniCssExtractPlugin(),
       new webpack.EnvironmentPlugin({
         NODE_ENV: 'development',
       }),
@@ -36,13 +35,13 @@ function createConfig(module) {
 }
 
 const siteConfig = createConfigBase(dist, {
+  name: 'site',
   entry: {
     site_css: './src/site/main.scss',
   },
   module: {
     rules: [loaders.css, loaders.url],
   },
-  plugins: [new MiniCssExtractPlugin()],
 })
 
 module.exports = [siteConfig, createConfig('garage'), createConfig('battle')]

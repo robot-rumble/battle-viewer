@@ -1,4 +1,6 @@
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const _ = require('lodash')
+
 const path = require('path')
 
 const dist =
@@ -39,8 +41,8 @@ const loaders = {
     ]),
   }),
   url: {
-    test: /\.(woff|ttf)$/,
-    use: 'url-loader',
+    test: /\.(woff|woff2|ttf)$/,
+    use: 'file-loader',
   },
   raw: {
     test: /\.raw.*$/,
@@ -52,16 +54,24 @@ const loaders = {
   },
 }
 
+function mergeCustomizer(objValue, srcValue) {
+  if (_.isArray(objValue)) {
+    return objValue.concat(srcValue)
+  }
+}
+
 function createConfigBase(dist, additional) {
-  return {
+  return _.mergeWith({
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
     output: {
       path: dist,
     },
     devtool: 'source-map',
-    ...additional,
-  }
+    plugins: [
+      new MiniCssExtractPlugin(),
+    ],
+  }, additional, mergeCustomizer)
 }
 
 function createDevServerConfig(base) {

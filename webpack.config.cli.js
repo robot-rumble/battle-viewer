@@ -23,7 +23,6 @@ module.exports = createConfigBase(dist, {
     ],
   },
   plugins: [
-    new MiniCssExtractPlugin(),
     new HtmlWebpackPlugin({ template: 'src/cli/index.html' }),
     new CopyWebpackPlugin([
       {

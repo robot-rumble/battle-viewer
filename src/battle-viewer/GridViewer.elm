@@ -249,8 +249,7 @@ viewRobotInspector model unitId =
                                         Dict.toList robotOutput.debugTable
                                   in
                                   if List.isEmpty debugPairs then
-                                    -- TODO link for robot debugging information
-                                    p [ class "info" ] [ text "no watch data. ", a [ href "" ] [ text "learn more" ] ]
+                                    p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot" ] [ text "learn more" ] ]
 
                                   else
                                     div [ class "_table" ] <|

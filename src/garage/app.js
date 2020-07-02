@@ -25,7 +25,7 @@ function createRoutes(user, robot, robotId) {
     paths: {
       robot: `/p/${user}/${robot}`,
       publish: `/publish/${robotId}`,
-      assets: `/assets`,
+      assets: `/assets/`,
     },
     apiPaths: {
       getUserRobots: `/api/get-user-robots`,

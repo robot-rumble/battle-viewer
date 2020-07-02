@@ -21,12 +21,12 @@ jobs:
 
       - run: yarn
       - run: yarn prod
-      - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET }}/web-assets/dist
+      - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_PUBLIC }}/dist
 
-      - run: aws s3 sync s3://${{ secrets.S3_BUCKET }}/browser-runner wasm-dist/browser-runner
+      - run: aws s3 sync s3://${{ secrets.S3_BUCKET_BUILD }}/browser-runner wasm-dist/browser-runner
       - run: yarn prod-worker
-      - run: aws s3 sync worker-dist s3://${{ secrets.S3_BUCKET }}/worker-assets
+      - run: aws s3 sync worker-dist s3://${{ secrets.S3_BUCKET_PUBLIC }}/worker-assets
 
-      - run: aws s3 sync s3://${{ secrets.S3_BUCKET }}/web-assets/images images
+      - run: aws s3 sync s3://${{ secrets.S3_BUCKET_PUBLIC }}/images images
       - run: yarn prod-cli
-      - run: aws s3 sync cli-dist s3://${{ secrets.S3_BUCKET }}/cli-assets
+      - run: aws s3 sync cli-dist s3://${{ secrets.S3_BUCKET_BUILD }}/cli-assets

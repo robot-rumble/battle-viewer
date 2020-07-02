@@ -2,7 +2,8 @@
   "repository": {},
   "license": "MIT",
   "scripts": {
-    "dev": "npm run build && npm run build-worker",
+    "dev": "npm run build",
+    "dev-worker": "npm run build-worker",
     "dev-cli": "npm run build-cli",
     "prod": "NODE_ENV=production npm run build",
     "prod-worker": "NODE_ENV=production npm run build-worker",

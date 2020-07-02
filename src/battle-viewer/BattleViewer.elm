@@ -214,10 +214,10 @@ view model =
                     [ src <|
                         model.assetsPath
                             ++ (if model.viewingOpponentSelect then
-                                    "images/close-panel.svg"
+                                    "/images/close-panel.svg"
 
                                 else
-                                    "images/open-panel.svg"
+                                    "/images/open-panel.svg"
                                )
                     ]
                     []

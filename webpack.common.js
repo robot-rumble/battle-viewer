@@ -1,3 +1,4 @@
+const webpack = require('webpack')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 const _ = require('lodash')
 
@@ -70,6 +71,9 @@ function createConfigBase(dist, additional) {
     devtool: 'source-map',
     plugins: [
       new MiniCssExtractPlugin(),
+      new webpack.EnvironmentPlugin({
+        NODE_ENV: 'development',
+      }),
     ],
   }, additional, mergeCustomizer)
 }

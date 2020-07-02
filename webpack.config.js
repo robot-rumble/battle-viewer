@@ -1,6 +1,4 @@
 const path = require('path')
-const webpack = require('webpack')
-const MiniCssExtractPlugin = require('mini-css-extract-plugin')
 
 const {
   createConfigBase,
@@ -25,11 +23,6 @@ function createConfig(module) {
         loaders.url,
       ],
     },
-    plugins: [
-      new webpack.EnvironmentPlugin({
-        NODE_ENV: 'development',
-      }),
-    ],
     devServer: createDevServerConfig(path.join(__dirname, '../backend/public')),
   })
 }

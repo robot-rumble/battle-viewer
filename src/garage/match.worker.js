@@ -15,10 +15,18 @@ const lowerPromise = (async () => {
 
 const runnerCache = Object.create(null)
 
-const fetchRunner = async (name) => {
+const runnerMap = {
+  Python: 'pyrunner',
+  Javascript: 'jsrunner',
+}
+const fetchRunner = async (assetsPath, lang) => {
+  const name = runnerMap[lang]
   if (name in runnerCache) return runnerCache[name]
   const prom = (async () => {
-    const res = await fetch(`/assets/dist/${name}.wasm`)
+    const path = process.env.NODE_ENV === 'production'
+        ? assetsPath + `/lang-runners/${name}.wasm`
+        : assetsPath + `/dist/${name}.wasm`
+    const res = await fetch(path)
     let wasm = await res.arrayBuffer()
     const lowerI64Imports = await lowerPromise
     if (lowerI64Imports) {
@@ -34,17 +42,13 @@ const fetchRunner = async (name) => {
 // it's not exactly like the main-thread Window, but it's close enough
 // self.Window = self.constructor
 
-self.addEventListener('message', ({ data: { code1, code2, turnNum } }) => {
+self.addEventListener('message', ({ data: { assetsPath, code1, code2, turnNum } }) => {
   logicPromise
     .then(async (logic) => {
       const startTime = Date.now()
 
-      const runnerMap = {
-        Python: 'pyrunner',
-        Javascript: 'jsrunner',
-      }
       const makeRunner = async ({ code, lang }) => {
-        const langRunner = await fetchRunner(runnerMap[lang])
+        const langRunner = await fetchRunner(assetsPath, lang)
         const rawWorker = new RawWasiWorker()
         const WasiRunner = Comlink.wrap(rawWorker)
         const runner = await new WasiRunner(langRunner)

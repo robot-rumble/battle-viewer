@@ -20,12 +20,12 @@ function loadSettings() {
   return settings
 }
 
-function createRoutes(user, robot, robotId) {
+function createRoutes(user, robot, robotId, assetsPath) {
   return {
     paths: {
       robot: `/p/${user}/${robot}`,
       publish: `/publish/${robotId}`,
-      assets: `/assets/`,
+      assets: assetsPath,
     },
     apiPaths: {
       getUserRobots: `/api/get-user-robots`,
@@ -63,10 +63,11 @@ customElements.define(
       const robotId = parseInt(this.getAttribute('robotId'))
       const lang = this.getAttribute('lang')
       const code = this.getAttribute('code')
+      const assetsPath = this.getAttribute('assetsPath')
       if (!user || !robot || !robotId || !lang || !code) {
         throw new Error('No user|robot|robotId|lang|code attribute found')
       }
-      const routes = createRoutes(user, robot, robotId)
+      const routes = createRoutes(user, robot, robotId, assetsPath)
 
       init(
         this,
@@ -121,6 +122,7 @@ function init(node, flags, workerUrl, lang) {
     if (!workerRunning) {
       workerRunning = true
       matchWorker.postMessage({
+        assetsPath: flags.paths.assets,
         code1: code,
         code2: opponentCode,
         turnNum,

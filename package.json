@@ -4,7 +4,8 @@
   "scripts": {
     "dev": "npm run build && npm run build-worker",
     "dev-cli": "npm run build-cli",
-    "prod": "NODE_ENV=production npm run build && NODE_ENV=production npm run build-worker",
+    "prod": "NODE_ENV=production npm run build",
+    "prod-worker": "NODE_ENV=production npm run build-worker",
     "prod-cli": "NODE_ENV=production npm run build-cli",
     "build": "webpack",
     "build-worker": "webpack --config webpack.config.worker.js",

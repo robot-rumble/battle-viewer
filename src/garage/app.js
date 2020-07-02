@@ -78,7 +78,12 @@ customElements.define(
           ...createRoutes(user, robot, robotId, assetsPath),
           code,
         },
-        '/assets/worker-dist/worker.js',
+        // get around the same-origin rule for loading workers through a cloudflare proxy worker
+        // that rewrites robotrumble.org/assets to cloudfront
+        // this is not necessary anywhere else because normal assets don't have this security rule
+        process.env.NODE_ENV === 'production'
+          ? 'https://robotrumble.org/assets/worker-assets/worker.js'
+          : assetsPath + '/dist/worker.js',
         lang,
         assetsPath,
       )

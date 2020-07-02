@@ -6,7 +6,7 @@ const { createConfigBase, loaders } = require('./webpack.common.js')
 const dist =
   process.env.NODE_ENV === 'production'
     ? path.join(__dirname, './worker-dist')
-    : path.join(__dirname, '../backend/public/worker-dist')
+    : path.join(__dirname, '../backend/public/dist')
 
 const logicWasmDist =
   process.env.NODE_ENV === 'production'

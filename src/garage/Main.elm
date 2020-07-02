@@ -262,6 +262,8 @@ port getProgress : (Decode.Value -> msg) -> Sub msg
 
 port getInternalError : (() -> msg) -> Sub msg
 
+port finishedLoading : (() -> msg) -> Sub msg
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
@@ -269,6 +271,7 @@ subscriptions _ =
         [ getOutput GotOutput
         , getProgress GotProgress
         , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
+        , finishedLoading (always <| GotRenderMsg BattleViewer.FinishedLoadingRunner)
         ]
 
 

@@ -31,10 +31,11 @@ type alias Model =
 
 
 type RenderState
-    = Initializing Int
+    = LoadingRunner
+    | NoRender
+    | Initializing Int
     | Render RenderStateVal
     | Error Data.OutcomeError
-    | NoRender
     | InternalError
 
 
@@ -51,7 +52,7 @@ init apiContext assetsPath =
         ( model, cmd ) =
             OpponentSelect.init apiContext
     in
-    ( Model apiContext Nothing NoRender model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing LoadingRunner model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -59,7 +60,8 @@ init apiContext assetsPath =
 
 
 type Msg
-    = GotOutput Data.OutcomeData
+    = FinishedLoadingRunner
+    | GotOutput Data.OutcomeData
     | GotProgress Data.ProgressData
     | GotInternalError
     | Run Int
@@ -103,6 +105,9 @@ update msg model =
 
         other ->
             ( case other of
+                FinishedLoadingRunner ->
+                    { model | renderState = NoRender }
+
                 GotOutput output ->
                     let
                         maybeError =
@@ -306,6 +311,9 @@ viewBar model =
 
                 Initializing _ ->
                     p [ class "_text" ] [ text "Initializing..." ]
+
+                LoadingRunner ->
+                    p [ class "_text" ] [ text "Preparing runner..." ]
 
                 _ ->
                     viewButtons ()

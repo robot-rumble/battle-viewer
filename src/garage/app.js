@@ -2,6 +2,7 @@ import { Elm } from './Main.elm'
 
 import './codemirror'
 import { applyTheme } from './themes'
+import * as Comlink from 'comlink'
 
 import Split from 'split.js'
 
@@ -44,11 +45,12 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       user: 'asdf',
       robot: 'asdf',
       robotId: 0,
-      ...createRoutes('asdf', 'asdf', 0),
+      ...createRoutes('asdf', 'asdf', 0, ''),
       code: '',
     },
     'dist/worker.js',
     'Python',
+    '',
   )
 
   module.hot.addStatusHandler(initSplit)
@@ -67,34 +69,24 @@ customElements.define(
       if (!user || !robot || !robotId || !lang || !code) {
         throw new Error('No user|robot|robotId|lang|code attribute found')
       }
-      const routes = createRoutes(user, robot, robotId, assetsPath)
-
       init(
         this,
         {
           user,
           robot,
           robotId,
-          ...routes,
+          ...createRoutes(user, robot, robotId, assetsPath),
           code,
         },
         '/assets/worker-dist/worker.js',
         lang,
+        assetsPath,
       )
     }
   },
 )
 
-function initSplit() {
-  Split(['._ui', '._viewer'], {
-    sizes: [60, 40],
-    minSize: [600, 400],
-    gutterSize: 5,
-    gutter: () => document.querySelector('.gutter'),
-  })
-}
-
-function init(node, flags, workerUrl, lang) {
+function init(node, flags, workerUrl, lang, assetsPath) {
   // set window vars first so CodeMirror has access to them on init
   window.lang = lang
 
@@ -113,24 +105,54 @@ function init(node, flags, workerUrl, lang) {
   })
 
   initSplit()
+  initWorker(workerUrl, app, assetsPath, lang)
 
-  const matchWorker = new Worker(workerUrl)
+  app.ports.saveSettings.subscribe((settings) => {
+    window.localStorage.setItem('settings', JSON.stringify(settings))
+  })
+
+  window.savedCode = flags.code
+  app.ports.savedCode.subscribe((code) => {
+    window.savedCode = code
+  })
+
+  window.onbeforeunload = () => {
+    if (window.code && window.code !== window.savedCode) {
+      return 'You\'ve made unsaved changes.'
+    }
+  }
+}
+
+function initSplit() {
+  Split(['._ui', '._viewer'], {
+    sizes: [60, 40],
+    minSize: [600, 400],
+    gutterSize: 5,
+    gutter: () => document.querySelector('.gutter'),
+  })
+}
+
+async function initWorker(workerUrl, app, assetsPath, lang) {
+  const MatchWorker = Comlink.wrap(new Worker(workerUrl))
+  const worker = await new MatchWorker()
+  await worker.init(assetsPath, lang)
+  app.ports.finishedLoading.send(null)
 
   let workerRunning = false
   app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
     window.runCount++
     if (!workerRunning) {
       workerRunning = true
-      matchWorker.postMessage({
-        assetsPath: flags.paths.assets,
+      worker.run({
+        assetsPath,
         code1: code,
         code2: opponentCode,
         turnNum,
-      })
+      }, Comlink.proxy(runCallback))
     }
   })
 
-  matchWorker.onmessage = ({ data }) => {
+  const runCallback = (data) => {
     if (data.type === 'error') {
       console.log('Worker Error!')
       console.error(data.data)
@@ -150,19 +172,5 @@ function init(node, flags, workerUrl, lang) {
     console.log('Decode Error!')
     console.error(error)
   })
-
-  app.ports.saveSettings.subscribe((settings) => {
-    window.localStorage.setItem('settings', JSON.stringify(settings))
-  })
-
-  window.savedCode = flags.code
-  app.ports.savedCode.subscribe((code) => {
-    window.savedCode = code
-  })
-
-  window.onbeforeunload = () => {
-    if (window.code && window.code !== window.savedCode) {
-      return "You've made unsaved changes."
-    }
-  }
 }
+

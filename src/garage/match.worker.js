@@ -6,8 +6,8 @@ import fetchRunner from './fetchRunner'
 const logicPromise = import('logic')
 
 class MatchWorker {
-  async init(assetsPath, lang) {
-    return fetchRunner(assetsPath, lang)
+  async init(assetsPath, lang, finishDownloadCb) {
+    return fetchRunner(assetsPath, lang, finishDownloadCb)
   }
 
   async run({ assetsPath, code1, code2, turnNum }, cb) {
@@ -16,7 +16,7 @@ class MatchWorker {
       const startTime = Date.now()
 
       const makeRunner = async ({ code, lang }) => {
-        const langRunner = await fetchRunner(assetsPath, lang)
+        const langRunner = await fetchRunner(assetsPath, lang, () => {})
         const rawWorker = new RawWasiWorker()
         const WasiWorker = Comlink.wrap(rawWorker)
         const runner = await new WasiWorker(langRunner)

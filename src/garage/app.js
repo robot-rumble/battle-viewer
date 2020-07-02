@@ -140,7 +140,9 @@ function initSplit() {
 async function initWorker(workerUrl, app, assetsPath, lang) {
   const MatchWorker = Comlink.wrap(new Worker(workerUrl))
   const worker = await new MatchWorker()
-  await worker.init(assetsPath, lang)
+  await worker.init(assetsPath, lang, Comlink.proxy(() => {
+    app.ports.finishedDownloading.send(null)
+  }))
   app.ports.finishedLoading.send(null)
 
   let workerRunning = false

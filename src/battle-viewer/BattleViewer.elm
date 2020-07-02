@@ -31,7 +31,8 @@ type alias Model =
 
 
 type RenderState
-    = LoadingRunner
+    = DownloadingRunner
+    | LoadingRunner
     | NoRender
     | Initializing Int
     | Render RenderStateVal
@@ -52,7 +53,7 @@ init apiContext assetsPath =
         ( model, cmd ) =
             OpponentSelect.init apiContext
     in
-    ( Model apiContext Nothing LoadingRunner model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing DownloadingRunner model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -60,7 +61,8 @@ init apiContext assetsPath =
 
 
 type Msg
-    = FinishedLoadingRunner
+    = FinishedDownloadingRunner
+    | FinishedLoadingRunner
     | GotOutput Data.OutcomeData
     | GotProgress Data.ProgressData
     | GotInternalError
@@ -105,6 +107,9 @@ update msg model =
 
         other ->
             ( case other of
+                FinishedDownloadingRunner ->
+                    { model | renderState = LoadingRunner }
+
                 FinishedLoadingRunner ->
                     { model | renderState = NoRender }
 
@@ -312,8 +317,11 @@ viewBar model =
                 Initializing _ ->
                     p [ class "_text" ] [ text "Initializing..." ]
 
+                DownloadingRunner ->
+                    p [ class "_text" ] [ text "Downloading runner..." ]
+
                 LoadingRunner ->
-                    p [ class "_text" ] [ text "Preparing runner..." ]
+                    p [ class "_text" ] [ text "Compiling runner..." ]
 
                 _ ->
                     viewButtons ()

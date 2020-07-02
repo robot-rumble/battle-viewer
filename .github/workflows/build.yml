@@ -24,8 +24,6 @@ jobs:
       - run: yarn prod
       - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET }}/web-assets/dist
 
-      # https://stackoverflow.com/a/18194523
-      - run: svn checkout https://github.com/robot-rumble/backend/trunk/public/images
-
+      - run: aws s3 sync s3://${{ secrets.S3_BUCKET }}/web-assets/images images
       - run: yarn prod-cli
       - run: aws s3 sync cli-dist s3://${{ secrets.S3_BUCKET }}/cli-assets

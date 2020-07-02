@@ -78,7 +78,7 @@ customElements.define(
           ...routes,
           code,
         },
-        routes.paths.assets + '/dist/worker.js',
+        '/assets/dist/worker.js',
         lang,
       )
     }

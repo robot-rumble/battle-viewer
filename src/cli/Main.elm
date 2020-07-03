@@ -29,7 +29,7 @@ paths =
 main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \{user, robot} -> init (Api.Context user robot 0 paths) "/"
+        { init = \{user, robot} -> init (Api.Context user robot 0 paths) "/" False
         , view = view
         , update = \msg old ->
             let

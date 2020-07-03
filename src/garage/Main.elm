@@ -82,7 +82,7 @@ init flags =
             Api.Context flags.user flags.robot flags.robotId flags.apiPaths
 
         ( model, cmd ) =
-            BattleViewer.init apiContext flags.paths.assets
+            BattleViewer.init apiContext flags.paths.assets True
     in
     ( Model
         flags.paths

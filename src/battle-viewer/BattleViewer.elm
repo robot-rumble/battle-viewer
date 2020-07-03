@@ -47,14 +47,14 @@ type alias RenderStateVal =
     }
 
 
-init : Api.Context -> String -> ( Model, Cmd Msg )
-init apiContext assetsPath =
+init : Api.Context -> String -> Bool -> ( Model, Cmd Msg )
+init apiContext assetsPath isRunnerLoading =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
+        renderState = if isRunnerLoading then DownloadingRunner else NoRender
     in
-    ( Model apiContext Nothing DownloadingRunner model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
-
+    ( Model apiContext Nothing renderState model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 -- UPDATE

@@ -15,11 +15,11 @@ function init(flags) {
   app.ports.startEval.subscribe((params) => {
     const url = new URL('/run', document.location)
     for (const key in params) url.searchParams.set(key, params[key])
-    const evsrc = new EventSource(url.href)
-    evsrc.addEventListener('message', ({ data }) => {
-      const ev = JSON.parse(data)
-      if (ev.type == 'getOutput') evsrc.close()
-      app.ports[ev.type].send(ev.data)
+    const eventSource = new EventSource(url.href)
+    eventSource.addEventListener('message', ({ data }) => {
+      const event = JSON.parse(data)
+      if (event.type === 'getOutput') eventSource.close()
+      app.ports[event.type].send(event.data)
     })
   })
 }

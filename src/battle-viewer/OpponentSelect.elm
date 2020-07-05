@@ -88,7 +88,7 @@ view model =
     div [ class "_opponent-select" ]
         [ button [ onClick <| SelectOpponent Itself ] [ text "Itself" ]
         , div []
-            [ p [] [ text "Your robots" ]
+            [ p [] [ text "Your published robots" ]
             , div [] <|
                 if List.isEmpty model.userRobots then
                     [ p [ class "font-italic" ] [ text "nothing here" ] ]

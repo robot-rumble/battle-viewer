@@ -77,6 +77,7 @@ type alias Robot =
     , name : String
     , rating : Int
     , lang : String
+    , published : Bool
     }
 
 
@@ -86,6 +87,7 @@ robotDecoder =
         |> required "name" string
         |> required "rating" int
         |> required "lang" string
+        |> required "published" bool
 
 
 getUserRobots context user =

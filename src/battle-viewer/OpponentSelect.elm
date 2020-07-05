@@ -53,7 +53,7 @@ update msg model =
         GotUserRobots result ->
             ( case result of
                 Ok data ->
-                    { model | userRobots = data |> List.filter (\robot -> robot.name /= model.apiContext.robot) }
+                    { model | userRobots = data |> List.filter (\robot -> robot.published && robot.name /= model.apiContext.robot) }
 
                 Err _ ->
                     model

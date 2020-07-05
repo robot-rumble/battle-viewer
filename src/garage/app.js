@@ -152,8 +152,8 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
       workerRunning = true
       worker.run({
         assetsPath,
-        code1: code,
-        code2: opponentCode,
+        code1: opponentCode,
+        code2: code,
         turnNum,
       }, Comlink.proxy(runCallback))
     }

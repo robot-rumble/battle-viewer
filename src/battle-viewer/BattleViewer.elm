@@ -27,6 +27,7 @@ type alias Model =
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
     , assetsPath : String
+    , robot : String
     }
 
 
@@ -47,14 +48,21 @@ type alias RenderStateVal =
     }
 
 
-init : Api.Context -> String -> Bool -> ( Model, Cmd Msg )
-init apiContext assetsPath isRunnerLoading =
+init : Api.Context -> String -> Bool -> String -> ( Model, Cmd Msg )
+init apiContext assetsPath isRunnerLoading robot =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
-        renderState = if isRunnerLoading then DownloadingRunner else NoRender
+
+        renderState =
+            if isRunnerLoading then
+                DownloadingRunner
+
+            else
+                NoRender
     in
-    ( Model apiContext Nothing renderState model False assetsPath, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing renderState model False assetsPath robot, cmd |> Cmd.map GotOpponentSelectMsg )
+
 
 
 -- UPDATE
@@ -208,15 +216,18 @@ view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ]
             [ p []
-                [ text <|
-                    "battle versus "
-                        ++ (case model.opponentSelectState.opponent of
-                                OpponentSelect.Robot ( robot, _ ) ->
-                                    robot.name
+                [ span [ class "text-blue" ] [ text model.robot ]
+                , text " versus "
+                , span
+                    [ class "text-red" ]
+                    [ text <|
+                        case model.opponentSelectState.opponent of
+                            OpponentSelect.Robot ( robot, _ ) ->
+                                robot.name
 
-                                OpponentSelect.Itself ->
-                                    "itself"
-                           )
+                            OpponentSelect.Itself ->
+                                "itself"
+                    ]
                 ]
             , button [ onClick ToggleOpponentSelect, class "_select-button" ]
                 [ p [ class "mr-2" ] [ text "change opponent" ]

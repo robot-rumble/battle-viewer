@@ -8,7 +8,6 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
-import Tuple
 
 
 
@@ -233,13 +232,17 @@ viewRobotInspector model unitId =
         , case Array.get model.currentTurn model.turns of
             Just data ->
                 div []
-                    [ case Dict.get unitId data.robotOutputs of
-                        Just robotOutput ->
+                    [ case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
+                        ( Just ( basicObj, _ ), Just robotOutput ) ->
                             div []
                                 [ div [ class "mb-3" ]
                                     [ case robotOutput.action of
                                         Ok action ->
-                                            p [] [ text <| "Action: " ++ Data.actionToString action ]
+                                            div []
+                                                [ p [] [ text <| "Id: " ++ basicObj.id ]
+                                                , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
+                                                , p [] [ text <| "Action: " ++ Data.actionToString action ]
+                                                ]
 
                                         Err error ->
                                             p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
@@ -260,7 +263,7 @@ viewRobotInspector model unitId =
                                             debugPairs
                                 ]
 
-                        Nothing ->
+                        ( _, _ ) ->
                             p [] []
                     ]
 

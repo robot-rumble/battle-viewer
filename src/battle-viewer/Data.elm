@@ -62,6 +62,9 @@ type alias Id =
 type alias Coords =
     ( Int, Int )
 
+coordsToString : Coords -> String
+coordsToString (x, y) =
+    "(" ++ (String.fromInt x) ++ ", " ++ (String.fromInt y) ++ ")"
 
 type alias Team =
     String

@@ -62,9 +62,11 @@ type alias Id =
 type alias Coords =
     ( Int, Int )
 
+
 coordsToString : Coords -> String
-coordsToString (x, y) =
-    "(" ++ (String.fromInt x) ++ ", " ++ (String.fromInt y) ++ ")"
+coordsToString ( x, y ) =
+    "(" ++ String.fromInt x ++ ", " ++ String.fromInt y ++ ")"
+
 
 type alias Team =
     String
@@ -121,6 +123,7 @@ type OutcomeError
     | NoInitError
     | DataError String
     | IOError String
+    | Timeout
 
 
 outcomeErrorToString : OutcomeError -> String
@@ -136,9 +139,28 @@ outcomeErrorToString outcomeError =
 outcomeErrorDecoder : Decoder OutcomeError
 outcomeErrorDecoder =
     oneOf
-        [ field "InitError" errorDecoder |> map InitError
+        [ string
+            |> andThen
+                (\str ->
+                    case str of
+                        "InternalError" ->
+                            succeed InternalError
+
+                        "NoInitError" ->
+                            succeed NoInitError
+
+                        "NoData" ->
+                            succeed NoData
+
+                        "Timeout" ->
+                            succeed Timeout
+
+                        _ ->
+                            succeed InternalError
+                )
+        , field "InitError" errorDecoder |> map InitError
         , field "DataError" string |> map DataError
-        , field "IOError" string |> map IOError
+        , field "IO" string |> map IOError
         ]
 
 

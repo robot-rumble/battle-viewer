@@ -26,7 +26,7 @@
     "codemirror": "^5.46.0",
     "comlink": "^4.3.0",
     "line-by-line": "^0.1.6",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.19",
     "readable-stream": "^3.6.0",
     "split.js": "^1.5.11",
     "wasm-feature-detect": "^1.2.3"

@@ -37,7 +37,7 @@ customElements.define(
     }
 
     set errorLoc(errorLoc) {
-      if (window.runCount !== this.lastRunCount) {
+      if (errorLoc && window.runCount !== this.lastRunCount) {
         this.lastRunCount = window.runCount
 
         const from = {
@@ -59,6 +59,7 @@ customElements.define(
         // error is in area that doesn't have a character, eg no colon in python function definition
         if (!mark.lines.length) {
           this._editor.replaceRange(' ', from, to)
+          to.ch += 1
           mark = this._editor.markText(from, to, {
             className: 'inline-error',
           })
@@ -100,7 +101,7 @@ customElements.define(
         },
       })
 
-      this._editor.on('changes', () => {
+      this._editor.on('change', () => {
         this.clearMarks()
         localStorage.setItem(
           'code_' + this.name,

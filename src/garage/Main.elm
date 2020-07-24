@@ -219,7 +219,7 @@ update msg model =
                         _ ->
                             Cmd.map GotRenderMsg renderCmd
             in
-            ( { model | renderState = renderState }, cmd )
+            ( { model | renderState = renderState, error = Nothing }, cmd )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )

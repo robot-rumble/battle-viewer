@@ -104,6 +104,7 @@ function init(node, flags, workerUrl, lang, assetsPath) {
       settings,
       lang,
       code: flags.code,
+      team: 'Blue',
     },
   })
 

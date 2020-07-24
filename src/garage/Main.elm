@@ -52,11 +52,13 @@ type alias Model =
     , battleViewerModel : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
     , error : Maybe Data.Error
+
     -- increased every time `error` is set to a new value, used to check when to re-draw the error editor marks
     -- a manual check is necessary because `errorLoc` is set many times as Elm updates
     , errorCounter : Int
     , settings : Settings.Model
     , viewingSettings : Bool
+    , team : Maybe Data.Team
     }
 
 
@@ -65,13 +67,17 @@ errorFromRenderState renderState =
         BattleViewer.Render val ->
             val.viewerState.selectedUnit
                 |> Maybe.andThen
-                    (\( _, robotOutput ) ->
+                    (\( isOurTeam, _, robotOutput ) ->
                         case robotOutput.action of
                             Ok _ ->
                                 Nothing
 
                             Err err ->
-                                Just (Data.RobotErrorType err)
+                                if isOurTeam then
+                                    Just (Data.RobotErrorType err)
+
+                                else
+                                    Nothing
                     )
 
         _ ->
@@ -105,7 +111,7 @@ init flags =
             Api.Context flags.user flags.robot flags.robotId flags.apiPaths
 
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext flags.paths.assets True flags.robot
+            BattleViewer.init apiContext flags.paths.assets True flags.robot flags.team
     in
     ( Model
         flags.paths
@@ -118,6 +124,7 @@ init flags =
         1
         settings
         False
+        flags.team
     , Cmd.map GotRenderMsg battleViewerCmd
     )
 
@@ -131,6 +138,7 @@ type alias Flags =
     , robotId : Int
     , lang : String
     , settings : Maybe Encode.Value
+    , team : Maybe Data.Team
     }
 
 
@@ -181,7 +189,7 @@ update msg model =
                         ( newModel, _ ) =
                             update (GotRenderMsg (BattleViewer.GotOutput data)) model
                     in
-                    ( { newModel | error = data.errors |> Dict.get "Red" |> Maybe.map Data.OutcomeErrorType, errorCounter = model.errorCounter + 1 }, Cmd.none )
+                    ( { newModel | error = model.team |> Maybe.andThen (\team -> data.errors |> Dict.get team |> Maybe.map Data.OutcomeErrorType), errorCounter = model.errorCounter + 1 }, Cmd.none )
 
                 Err error ->
                     handleDecodeError model error
@@ -252,7 +260,7 @@ update msg model =
 
                         -- an error can also be set as the battle loads. concretely, if the first turn has an error,
                         -- the robot with that error is automatically selected
-                        BattleViewer.GotProgress (_) ->
+                        BattleViewer.GotProgress _ ->
                             { model
                                 | battleViewerModel = newBattleViewerModel
                                 , error = errorFromRenderState newBattleViewerModel.renderState
@@ -408,7 +416,7 @@ viewEditor model =
          , Html.Attributes.attribute "code" model.code
          , class "_editor"
          ]
-            ++ [ property "errorCounter" (Encode.int model.errorCounter)]
+            ++ [ property "errorCounter" (Encode.int model.errorCounter) ]
             ++ (case model.error of
                     Just (Data.OutcomeErrorType (Data.InitError errorDetails)) ->
                         errorAttribute errorDetails

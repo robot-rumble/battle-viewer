@@ -10,6 +10,7 @@ import Data
 type alias Flags =
     { user : String
     , robot : String
+    , team : Maybe Data.Team
     }
 
 decodeOrInternalErr decodeF msg =
@@ -29,7 +30,7 @@ paths =
 main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \{user, robot} -> init (Api.Context user robot 0 paths) "/" False robot
+        { init = \{user, robot, team} -> init (Api.Context user robot 0 paths) "/" False robot team
         , view = view
         , update = \msg old ->
             let

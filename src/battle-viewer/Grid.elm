@@ -32,7 +32,7 @@ type Msg
 -- VIEW
 
 
-view : Maybe ( Data.ProgressData, Maybe Data.Id ) -> Html Msg
+view : Maybe ( Data.ProgressData, Maybe Data.Id, Maybe Data.Team ) -> Html Msg
 view maybeData =
     let
         gridTemplateRows =
@@ -50,8 +50,8 @@ view maybeData =
           <|
             List.append gameGrid
                 (case maybeData of
-                    Just ( data, selectedId ) ->
-                        gameObjs data selectedId
+                    Just ( data, selectedId, maybeTeam ) ->
+                        gameObjs data selectedId maybeTeam
 
                     Nothing ->
                         []
@@ -76,8 +76,8 @@ gameGrid =
         )
 
 
-gameObjs : Data.ProgressData -> Maybe Data.Id -> List (Html Msg)
-gameObjs data selectedUnit =
+gameObjs : Data.ProgressData -> Maybe Data.Id -> Maybe Data.Team -> List (Html Msg)
+gameObjs data selectedUnit maybeTeam =
     Dict.values data.state.objs
         |> List.map
             (\( basic, details ) ->
@@ -110,7 +110,16 @@ gameObjs data selectedUnit =
                                     , class <|
                                         case Dict.get basic.id data.robotOutputs |> Maybe.map (\output -> output.action) of
                                             Just (Err _) ->
-                                                "errored"
+                                                case maybeTeam of
+                                                    Just team ->
+                                                        if team == unit.team then
+                                                            "errored"
+
+                                                        else
+                                                            ""
+
+                                                    Nothing ->
+                                                        ""
 
                                             _ ->
                                                 ""

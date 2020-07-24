@@ -46,7 +46,7 @@ init flags =
                 firstTurn :: otherTurns ->
                     let
                         gridViewerModel =
-                            GridViewer.init firstTurn turnNum
+                            GridViewer.init firstTurn turnNum Nothing
                     in
                     Just <| List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel otherTurns
 

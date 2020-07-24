@@ -9,7 +9,10 @@ fetch('/getflags')
 function init(flags) {
   const app = Elm.Main.init({
     node: document.getElementById('root'),
-    flags,
+    flags: {
+      ...flags,
+      team: 'Blue',
+    },
   })
 
   app.ports.startEval.subscribe((params) => {

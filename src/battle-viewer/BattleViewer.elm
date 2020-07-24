@@ -28,6 +28,7 @@ type alias Model =
     , viewingOpponentSelect : Bool
     , assetsPath : String
     , robot : String
+    , team : Maybe Data.Team
     }
 
 
@@ -48,8 +49,8 @@ type alias RenderStateVal =
     }
 
 
-init : Api.Context -> String -> Bool -> String -> ( Model, Cmd Msg )
-init apiContext assetsPath isRunnerLoading robot =
+init : Api.Context -> String -> Bool -> String -> Maybe Data.Team -> ( Model, Cmd Msg )
+init apiContext assetsPath  isRunnerLoading robot team =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
@@ -61,7 +62,7 @@ init apiContext assetsPath isRunnerLoading robot =
             else
                 NoRender
     in
-    ( Model apiContext Nothing renderState model False assetsPath robot, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing renderState model False assetsPath robot team, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -124,7 +125,7 @@ update msg model =
                 GotOutput output ->
                     let
                         maybeError =
-                            Dict.get "Red" output.errors
+                             model.team |> Maybe.andThen(\team -> Dict.get team output.errors)
                     in
                     { model
                         | renderState =
@@ -142,15 +143,18 @@ update msg model =
                         | renderState =
                             let
                                 turnLogs =
-                                    Dict.get "Red" progress.logs
-                                        |> Maybe.andThen
-                                            (\logs ->
-                                                if List.isEmpty logs then
-                                                    Nothing
+                                    model.team
+                                    |> Maybe.andThen(\team ->
+                                        Dict.get team progress.logs
+                                            |> Maybe.andThen
+                                                (\logs ->
+                                                    if List.isEmpty logs then
+                                                        Nothing
 
-                                                else
-                                                    Just logs
-                                            )
+                                                    else
+                                                        Just logs
+                                                )
+                                        )
 
                                 addTurnHeading =
                                     \logs ->
@@ -180,7 +184,7 @@ update msg model =
                                     Render
                                         { turnNum = turnNum
                                         , logs = finalLogs
-                                        , viewerState = GridViewer.init progress turnNum
+                                        , viewerState = GridViewer.init progress turnNum model.team
                                         }
 
                                 other2 ->

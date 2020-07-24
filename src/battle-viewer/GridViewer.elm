@@ -15,7 +15,7 @@ import Json.Decode as Decode
 
 
 type alias Unit =
-    ( Data.Obj, Data.RobotOutput )
+    ( Bool, Data.Obj, Data.RobotOutput )
 
 
 type alias Model =
@@ -23,11 +23,12 @@ type alias Model =
     , turnNum : Int
     , currentTurn : Int
     , selectedUnit : Maybe Unit
+    , team : Maybe Data.Team
     }
 
 
-init : Data.ProgressData -> Int -> Model
-init firstTurn turnNum =
+init : Data.ProgressData -> Int -> Maybe Data.Team -> Model
+init firstTurn turnNum maybeTeam =
     -- if any units have a runtime error, select that unit
     let
         selectedUnit =
@@ -50,11 +51,15 @@ init firstTurn turnNum =
                                 (\(( basic, details ) as obj) ->
                                     case details of
                                         Data.UnitDetails unit ->
-                                            if unit.team == "Red" then
-                                                Just ( obj, robotOutput )
+                                            maybeTeam
+                                                |> Maybe.andThen
+                                                    (\team ->
+                                                        if unit.team == team then
+                                                            Just ( True, obj, robotOutput )
 
-                                            else
-                                                Nothing
+                                                        else
+                                                            Nothing
+                                                    )
 
                                         Data.TerrainDetails _ ->
                                             Nothing
@@ -62,7 +67,7 @@ init firstTurn turnNum =
                     )
                 |> List.head
     in
-    Model (Array.fromList [ firstTurn ]) turnNum 0 selectedUnit
+    Model (Array.fromList [ firstTurn ]) turnNum 0 selectedUnit maybeTeam
 
 
 
@@ -121,8 +126,22 @@ update msg model =
                             case Array.get model.currentTurn model.turns of
                                 Just data ->
                                     case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
-                                        ( Just obj, Just robotOutput ) ->
-                                            Just ( obj, robotOutput )
+                                        ( Just (( basic, details ) as obj), Just robotOutput ) ->
+                                            case details of
+                                                Data.UnitDetails unit ->
+                                                    let
+                                                        isOurTeam =
+                                                            case model.team of
+                                                                Just team ->
+                                                                    unit.team == team
+
+                                                                Nothing ->
+                                                                    False
+                                                    in
+                                                    Just ( isOurTeam, obj, robotOutput )
+
+                                                _ ->
+                                                    Nothing
 
                                         _ ->
                                             Nothing
@@ -181,7 +200,7 @@ view maybeModel =
                                 Array.get model.currentTurn model.turns
                                     |> Maybe.map
                                         (\state ->
-                                            ( state, model.selectedUnit |> Maybe.map (\( ( basic, _ ), _ ) -> basic.id) )
+                                            ( state, model.selectedUnit |> Maybe.map (\( _, ( basic, _ ), _ ) -> basic.id), model.team )
                                         )
                             )
                     )
@@ -193,7 +212,7 @@ view maybeModel =
                     [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
                     , class "_inspector"
                     ]
-                    [ viewRobotInspector model unit
+                    [ viewRobotInspector unit
                     ]
 
             Nothing ->
@@ -245,22 +264,26 @@ viewSlider model =
         []
 
 
-viewRobotInspector : Model -> Unit -> Html Msg
-viewRobotInspector model ( ( basicObj, _ ), robotOutput ) =
+viewRobotInspector : Unit -> Html Msg
+viewRobotInspector ( isOurTeam, ( basicObj, _ ), robotOutput ) =
     div [ class "box" ]
         [ p [ class "header" ] [ text "Robot Data" ]
         , div []
             [ div [ class "mb-3" ]
-                [ case robotOutput.action of
+                [ div []
+                    [ p [] [ text <| "Id: " ++ basicObj.id ]
+                    , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
+                    ]
+                , case robotOutput.action of
                     Ok action ->
-                        div []
-                            [ p [] [ text <| "Id: " ++ basicObj.id ]
-                            , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
-                            , p [] [ text <| "Action: " ++ Data.actionToString action ]
-                            ]
+                        p [] [ text <| "Action: " ++ Data.actionToString action ]
 
                     Err error ->
-                        p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                        if isOurTeam then
+                            p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+
+                        else
+                            p [ class "error" ] [ text "Errored" ]
                 ]
             , let
                 debugPairs =

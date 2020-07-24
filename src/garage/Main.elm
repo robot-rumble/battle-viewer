@@ -49,7 +49,7 @@ type alias Model =
     , apiContext : Api.Context
     , code : String
     , lang : String
-    , renderState : BattleViewer.Model
+    , battleViewerModel : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
     , error : Maybe Data.Error
     -- increased every time `error` is set to a new value, used to check when to re-draw the error editor marks
@@ -58,6 +58,24 @@ type alias Model =
     , settings : Settings.Model
     , viewingSettings : Bool
     }
+
+
+errorFromRenderState renderState =
+    case renderState of
+        BattleViewer.Render val ->
+            val.viewerState.selectedUnit
+                |> Maybe.andThen
+                    (\( _, robotOutput ) ->
+                        case robotOutput.action of
+                            Ok _ ->
+                                Nothing
+
+                            Err err ->
+                                Just (Data.RobotErrorType err)
+                    )
+
+        _ ->
+            Nothing
 
 
 type alias Paths =
@@ -86,7 +104,7 @@ init flags =
         apiContext =
             Api.Context flags.user flags.robot flags.robotId flags.apiPaths
 
-        ( model, cmd ) =
+        ( battleViewerModel, battleViewerCmd ) =
             BattleViewer.init apiContext flags.paths.assets True flags.robot
     in
     ( Model
@@ -94,13 +112,13 @@ init flags =
         apiContext
         flags.code
         flags.lang
-        model
+        battleViewerModel
         Initial
-        Nothing
-        0
+        (errorFromRenderState battleViewerModel.renderState)
+        1
         settings
         False
-    , Cmd.map GotRenderMsg cmd
+    , Cmd.map GotRenderMsg battleViewerCmd
     )
 
 
@@ -186,8 +204,8 @@ update msg model =
 
         GotRenderMsg renderMsg ->
             let
-                ( renderState, renderCmd ) =
-                    BattleViewer.update renderMsg model.renderState
+                ( newBattleViewerModel, renderCmd ) =
+                    BattleViewer.update renderMsg model.battleViewerModel
             in
             case renderMsg of
                 BattleViewer.Run turnNum ->
@@ -202,7 +220,7 @@ update msg model =
                             ( model.code, model.lang )
 
                         maybeOpponentCode =
-                            case model.renderState.opponentSelectState.opponent of
+                            case model.battleViewerModel.opponentSelectState.opponent of
                                 OpponentSelect.Robot ( robot, code ) ->
                                     code |> Maybe.map (\c -> ( c, robot.lang ))
 
@@ -211,7 +229,7 @@ update msg model =
                     in
                     case maybeOpponentCode of
                         Just opponentCode ->
-                            ( { model | renderState = renderState, error = Nothing }
+                            ( { model | battleViewerModel = newBattleViewerModel, error = Nothing }
                             , startEval <|
                                 Encode.object
                                     [ ( "code", encodeCode selfCode )
@@ -221,40 +239,34 @@ update msg model =
                             )
 
                         Nothing ->
-                            ( { model | renderState = renderState }, Cmd.none )
+                            ( { model | battleViewerModel = newBattleViewerModel }, Cmd.none )
 
                 other ->
                     ( case other of
                         BattleViewer.GotRenderMsg (GridViewer.GotGridMsg (Grid.UnitSelected _)) ->
                             { model
-                                | renderState = renderState
-                                , error =
-                                    case renderState.renderState of
-                                        BattleViewer.Render val ->
-                                            val.viewerState.selectedUnit
-                                                |> Maybe.andThen
-                                                    (\( _, robotOutput ) ->
-                                                        case robotOutput.action of
-                                                            Ok _ ->
-                                                                Nothing
+                                | battleViewerModel = newBattleViewerModel
+                                , error = errorFromRenderState newBattleViewerModel.renderState
+                                , errorCounter = model.errorCounter + 1
+                            }
 
-                                                            Err err ->
-                                                                Just (Data.RobotErrorType err)
-                                                    )
-
-                                        _ ->
-                                            Nothing
+                        -- an error can also be set as the battle loads. concretely, if the first turn has an error,
+                        -- the robot with that error is automatically selected
+                        BattleViewer.GotProgress (_) ->
+                            { model
+                                | battleViewerModel = newBattleViewerModel
+                                , error = errorFromRenderState newBattleViewerModel.renderState
                                 , errorCounter = model.errorCounter + 1
                             }
 
                         BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
                             { model
-                                | renderState = renderState
+                                | battleViewerModel = newBattleViewerModel
                                 , error = Nothing
                             }
 
                         _ ->
-                            { model | renderState = renderState }
+                            { model | battleViewerModel = newBattleViewerModel }
                     , Cmd.map GotRenderMsg renderCmd
                     )
 
@@ -336,7 +348,7 @@ view model =
                 ]
         , div [ class "gutter" ] []
         , div [ class "_viewer" ]
-            [ Html.map GotRenderMsg <| BattleViewer.view model.renderState
+            [ Html.map GotRenderMsg <| BattleViewer.view model.battleViewerModel
             ]
         ]
 

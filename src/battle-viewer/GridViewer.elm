@@ -13,7 +13,10 @@ import Json.Decode as Decode
 
 -- MODEL
 
-type alias Unit = (Data.Obj, Data.RobotOutput)
+
+type alias Unit =
+    ( Data.Obj, Data.RobotOutput )
+
 
 type alias Model =
     { turns : Array Data.ProgressData
@@ -25,7 +28,41 @@ type alias Model =
 
 init : Data.ProgressData -> Int -> Model
 init firstTurn turnNum =
-    Model (Array.fromList [ firstTurn ]) turnNum 0 Nothing
+    -- if any units have a runtime error, select that unit
+    let
+        selectedUnit =
+            firstTurn.robotOutputs
+                |> Dict.toList
+                |> List.filter
+                    (\( id, robotOutput ) ->
+                        case robotOutput.action of
+                            Ok _ ->
+                                False
+
+                            Err _ ->
+                                True
+                    )
+                |> List.filterMap
+                    (\( id, robotOutput ) ->
+                        firstTurn.state.objs
+                            |> Dict.get id
+                            |> Maybe.andThen
+                                (\(( basic, details ) as obj) ->
+                                    case details of
+                                        Data.UnitDetails unit ->
+                                            if unit.team == "Red" then
+                                                Just ( obj, robotOutput )
+
+                                            else
+                                                Nothing
+
+                                        Data.TerrainDetails _ ->
+                                            Nothing
+                                )
+                    )
+                |> List.head
+    in
+    Model (Array.fromList [ firstTurn ]) turnNum 0 selectedUnit
 
 
 
@@ -50,41 +87,7 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotTurn turn ->
-            { model
-                | turns = Array.push turn model.turns
-                , selectedUnit =
-                    case model.selectedUnit of
-                        Just unit ->
-                            Just unit
-
-                        Nothing ->
-                            turn.robotOutputs
-                                |> Dict.toList
-                                |> List.filterMap
-                                    (\( id, robotOutput ) ->
-                                        turn.state.objs |> Dict.get id |> Maybe.andThen (\((basic, details) as obj) ->
-                                            case details of
-                                                Data.UnitDetails unit ->
-                                                    if unit.team == "Red" then
-                                                        Just(obj, robotOutput)
-                                                    else
-                                                        Nothing
-
-                                                Data.TerrainDetails _ ->
-                                                    Nothing
-                                            )
-                                    )
-                                |> List.filter
-                                    (\( obj, robotOutput ) ->
-                                        case robotOutput.action of
-                                            Ok _ ->
-                                                False
-
-                                            Err _ ->
-                                                True
-                                    )
-                                |> List.head
-            }
+            { model | turns = Array.push turn model.turns }
 
         ChangeTurn dir ->
             { model
@@ -113,15 +116,19 @@ update msg model =
         GotGridMsg gridMsg ->
             case gridMsg of
                 Grid.UnitSelected unitId ->
-                    { model | selectedUnit =
+                    { model
+                        | selectedUnit =
                             case Array.get model.currentTurn model.turns of
-                                    Just data ->
-                                            case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
-                                                    ( Just obj, Just robotOutput ) ->
-                                                        Just (obj, robotOutput)
-                                                    _ ->
-                                                        Nothing
-                                    Nothing -> Nothing
+                                Just data ->
+                                    case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
+                                        ( Just obj, Just robotOutput ) ->
+                                            Just ( obj, robotOutput )
+
+                                        _ ->
+                                            Nothing
+
+                                Nothing ->
+                                    Nothing
                     }
 
         ResetSelectedUnit ->
@@ -172,9 +179,10 @@ view maybeModel =
                         |> Maybe.andThen
                             (\model ->
                                 Array.get model.currentTurn model.turns
-                                    |> Maybe.map (\state ->
-                                        ( state, model.selectedUnit |> Maybe.map (\((basic, _), _) -> basic.id ))
-                                    )
+                                    |> Maybe.map
+                                        (\state ->
+                                            ( state, model.selectedUnit |> Maybe.map (\( ( basic, _ ), _ ) -> basic.id) )
+                                        )
                             )
                     )
                 )
@@ -238,36 +246,35 @@ viewSlider model =
 
 
 viewRobotInspector : Model -> Unit -> Html Msg
-viewRobotInspector model ((basicObj, _), robotOutput) =
+viewRobotInspector model ( ( basicObj, _ ), robotOutput ) =
     div [ class "box" ]
         [ p [ class "header" ] [ text "Robot Data" ]
-        ,
-                            div []
-                                [ div [ class "mb-3" ]
-                                    [ case robotOutput.action of
-                                        Ok action ->
-                                            div []
-                                                [ p [] [ text <| "Id: " ++ basicObj.id ]
-                                                , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
-                                                , p [] [ text <| "Action: " ++ Data.actionToString action ]
-                                                ]
+        , div []
+            [ div [ class "mb-3" ]
+                [ case robotOutput.action of
+                    Ok action ->
+                        div []
+                            [ p [] [ text <| "Id: " ++ basicObj.id ]
+                            , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
+                            , p [] [ text <| "Action: " ++ Data.actionToString action ]
+                            ]
 
-                                        Err error ->
-                                            p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
-                                    ]
-                                , let
-                                    debugPairs =
-                                        Dict.toList robotOutput.debugTable
-                                  in
-                                  if List.isEmpty debugPairs then
-                                    p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+                    Err error ->
+                        p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                ]
+            , let
+                debugPairs =
+                    Dict.toList robotOutput.debugTable
+              in
+              if List.isEmpty debugPairs then
+                p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
 
-                                  else
-                                    div [ class "_table" ] <|
-                                        List.map
-                                            (\( key, val ) ->
-                                                p [] [ text <| key ++ ": " ++ val ]
-                                            )
-                                            debugPairs
-                                ]
+              else
+                div [ class "_table" ] <|
+                    List.map
+                        (\( key, val ) ->
+                            p [] [ text <| key ++ ": " ++ val ]
+                        )
+                        debugPairs
+            ]
         ]

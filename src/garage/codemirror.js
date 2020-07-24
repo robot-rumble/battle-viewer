@@ -28,7 +28,8 @@ customElements.define(
     constructor() {
       super()
       this.marks = []
-      this.lastRunCount = 0
+      this.errorCounter = 0
+      this.previousErrorCount = 0
     }
 
     clearMarks() {
@@ -37,35 +38,39 @@ customElements.define(
     }
 
     set errorLoc(errorLoc) {
-      if (errorLoc && window.runCount !== this.lastRunCount) {
-        this.lastRunCount = window.runCount
+      if (errorLoc) {
+        if (this.errorCounter !== this.previousErrorCount) {
+          this.previousErrorCount = this.errorCounter
 
-        const from = {
-          line: errorLoc.line - 1,
-          ch: errorLoc.ch ? errorLoc.ch - 1 : 0,
-        }
-        const to = {
-          line: errorLoc.endline ? errorLoc.endline - 1 : from.line,
-          // if the line is empty, set ch to 1 so that the error indicator is still shown
-          ch: errorLoc.endch
-            ? errorLoc.endch - 1
-            : this._editor.getLine(from.line).length || 1,
-        }
+          const from = {
+            line: errorLoc.line - 1,
+            ch: errorLoc.ch ? errorLoc.ch - 1 : 0,
+          }
+          const to = {
+            line: errorLoc.endline ? errorLoc.endline - 1 : from.line,
+            // if the line is empty, set ch to 1 so that the error indicator is still shown
+            ch: errorLoc.endch
+              ? errorLoc.endch - 1
+              : this._editor.getLine(from.line).length || 1,
+          }
 
-        let mark = this._editor.markText(from, to, {
-          className: 'inline-error',
-        })
-
-        // error is in area that doesn't have a character, eg no colon in python function definition
-        if (!mark.lines.length) {
-          this._editor.replaceRange(' ', from, to)
-          to.ch += 1
-          mark = this._editor.markText(from, to, {
+          let mark = this._editor.markText(from, to, {
             className: 'inline-error',
           })
-        }
 
-        this.marks.push(mark)
+          // error is in area that doesn't have a character, eg no colon in python function definition
+          if (!mark.lines.length) {
+            this._editor.replaceRange(' ', from, to)
+            to.ch += 1
+            mark = this._editor.markText(from, to, {
+              className: 'inline-error',
+            })
+          }
+
+          this.marks.push(mark)
+        }
+      } else {
+        this.clearMarks()
       }
     }
 

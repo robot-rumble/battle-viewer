@@ -1,4 +1,4 @@
-module BattleViewer exposing (Model, Msg(..), init, update, view)
+module BattleViewer exposing (Model, RenderState(..), Msg(..), init, update, view)
 
 import Api
 import Array exposing (Array)

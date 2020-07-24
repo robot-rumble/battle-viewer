@@ -116,10 +116,15 @@ fullOutcomeDataDecoder =
         |> required "turns" (list progressDataDecoder)
 
 
+type Error
+    = OutcomeErrorType OutcomeError
+    | RobotErrorType RobotError
+
+
 type OutcomeError
     = InternalError
     | NoData
-    | InitError Error
+    | InitError ErrorDetails
     | NoInitError
     | DataError String
     | IOError String
@@ -164,15 +169,15 @@ outcomeErrorDecoder =
         ]
 
 
-type alias Error =
+type alias ErrorDetails =
     { message : String
     , loc : Maybe ErrorLoc
     }
 
 
-errorDecoder : Decoder Error
+errorDecoder : Decoder ErrorDetails
 errorDecoder =
-    succeed Error
+    succeed ErrorDetails
         |> required "message" string
         |> required "loc" (nullable errorLocDecoder)
 
@@ -254,7 +259,7 @@ robotOutputDecoder =
 
 
 type RobotError
-    = RuntimeError Error
+    = RuntimeError ErrorDetails
     | InvalidAction String
 
 

@@ -5,6 +5,8 @@ import BattleViewer
 import Browser
 import Data
 import Dict
+import Grid
+import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
@@ -49,7 +51,10 @@ type alias Model =
     , lang : String
     , renderState : BattleViewer.Model
     , saveAnimationPhase : SaveAnimationPhase
-    , error : Maybe Data.OutcomeError
+    , error : Maybe Data.Error
+    -- increased every time `error` is set to a new value, used to check when to re-draw the error editor marks
+    -- a manual check is necessary because `errorLoc` is set many times as Elm updates
+    , errorCounter : Int
     , settings : Settings.Model
     , viewingSettings : Bool
     }
@@ -92,6 +97,7 @@ init flags =
         model
         Initial
         Nothing
+        0
         settings
         False
     , Cmd.map GotRenderMsg cmd
@@ -157,7 +163,7 @@ update msg model =
                         ( newModel, _ ) =
                             update (GotRenderMsg (BattleViewer.GotOutput data)) model
                     in
-                    ( { newModel | error = data.errors |> Dict.get "Red" }, Cmd.none )
+                    ( { newModel | error = data.errors |> Dict.get "Red" |> Maybe.map Data.OutcomeErrorType, errorCounter = model.errorCounter + 1 }, Cmd.none )
 
                 Err error ->
                     handleDecodeError model error
@@ -182,44 +188,75 @@ update msg model =
             let
                 ( renderState, renderCmd ) =
                     BattleViewer.update renderMsg model.renderState
+            in
+            case renderMsg of
+                BattleViewer.Run turnNum ->
+                    let
+                        encodeCode ( code, lang ) =
+                            Encode.object
+                                [ ( "code", Encode.string code )
+                                , ( "lang", Encode.string lang )
+                                ]
 
-                cmd =
-                    case renderMsg of
-                        BattleViewer.Run turnNum ->
-                            let
-                                encodeCode ( code, lang ) =
-                                    Encode.object
-                                        [ ( "code", Encode.string code )
-                                        , ( "lang", Encode.string lang )
-                                        ]
+                        selfCode =
+                            ( model.code, model.lang )
 
-                                selfCode =
-                                    ( model.code, model.lang )
+                        maybeOpponentCode =
+                            case model.renderState.opponentSelectState.opponent of
+                                OpponentSelect.Robot ( robot, code ) ->
+                                    code |> Maybe.map (\c -> ( c, robot.lang ))
 
-                                maybeOpponentCode =
-                                    case model.renderState.opponentSelectState.opponent of
-                                        OpponentSelect.Robot ( robot, code ) ->
-                                            code |> Maybe.map (\c -> ( c, robot.lang ))
+                                OpponentSelect.Itself ->
+                                    Just selfCode
+                    in
+                    case maybeOpponentCode of
+                        Just opponentCode ->
+                            ( { model | renderState = renderState, error = Nothing }
+                            , startEval <|
+                                Encode.object
+                                    [ ( "code", encodeCode selfCode )
+                                    , ( "opponentCode", encodeCode opponentCode )
+                                    , ( "turnNum", Encode.int turnNum )
+                                    ]
+                            )
 
-                                        OpponentSelect.Itself ->
-                                            Just selfCode
-                            in
-                            case maybeOpponentCode of
-                                Just opponentCode ->
-                                    startEval <|
-                                        Encode.object
-                                            [ ( "code", encodeCode selfCode )
-                                            , ( "opponentCode", encodeCode opponentCode )
-                                            , ( "turnNum", Encode.int turnNum )
-                                            ]
+                        Nothing ->
+                            ( { model | renderState = renderState }, Cmd.none )
 
-                                Nothing ->
-                                    Cmd.none
+                other ->
+                    ( case other of
+                        BattleViewer.GotRenderMsg (GridViewer.GotGridMsg (Grid.UnitSelected _)) ->
+                            { model
+                                | renderState = renderState
+                                , error =
+                                    case renderState.renderState of
+                                        BattleViewer.Render val ->
+                                            val.viewerState.selectedUnit
+                                                |> Maybe.andThen
+                                                    (\( _, robotOutput ) ->
+                                                        case robotOutput.action of
+                                                            Ok _ ->
+                                                                Nothing
+
+                                                            Err err ->
+                                                                Just (Data.RobotErrorType err)
+                                                    )
+
+                                        _ ->
+                                            Nothing
+                                , errorCounter = model.errorCounter + 1
+                            }
+
+                        BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
+                            { model
+                                | renderState = renderState
+                                , error = Nothing
+                            }
 
                         _ ->
-                            Cmd.map GotRenderMsg renderCmd
-            in
-            ( { model | renderState = renderState, error = Nothing }, cmd )
+                            { model | renderState = renderState }
+                    , Cmd.map GotRenderMsg renderCmd
+                    )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )
@@ -262,7 +299,9 @@ port getProgress : (Decode.Value -> msg) -> Sub msg
 
 port getInternalError : (() -> msg) -> Sub msg
 
+
 port finishedDownloading : (() -> msg) -> Sub msg
+
 
 port finishedLoading : (() -> msg) -> Sub msg
 
@@ -338,6 +377,17 @@ viewBar model =
 
 viewEditor : Model -> Html Msg
 viewEditor model =
+    let
+        errorAttribute errorDetails =
+            case errorDetails.loc of
+                Just loc ->
+                    [ property "errorLoc" <|
+                        Data.errorLocEncoder loc
+                    ]
+
+                Nothing ->
+                    []
+    in
     Html.node "code-editor"
         ([ Html.Events.on "editorChanged" <|
             Decode.map CodeChanged <|
@@ -346,16 +396,13 @@ viewEditor model =
          , Html.Attributes.attribute "code" model.code
          , class "_editor"
          ]
+            ++ [ property "errorCounter" (Encode.int model.errorCounter)]
             ++ (case model.error of
-                    Just (Data.InitError error) ->
-                        case error.loc of
-                            Just loc ->
-                                [ property "errorLoc" <|
-                                    Data.errorLocEncoder loc
-                                ]
+                    Just (Data.OutcomeErrorType (Data.InitError errorDetails)) ->
+                        errorAttribute errorDetails
 
-                            Nothing ->
-                                []
+                    Just (Data.RobotErrorType (Data.RuntimeError errorDetails)) ->
+                        errorAttribute errorDetails
 
                     _ ->
                         []

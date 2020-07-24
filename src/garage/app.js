@@ -6,8 +6,6 @@ import * as Comlink from 'comlink'
 
 import Split from 'split.js'
 
-window.runCount = 0
-
 function loadSettings() {
   let settings
   try {
@@ -147,7 +145,6 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   let workerRunning = false
   app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
-    window.runCount++
     if (!workerRunning) {
       workerRunning = true
       worker.run({

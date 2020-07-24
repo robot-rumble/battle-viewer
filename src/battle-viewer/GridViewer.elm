@@ -13,12 +13,13 @@ import Json.Decode as Decode
 
 -- MODEL
 
+type alias Unit = (Data.Obj, Data.RobotOutput)
 
 type alias Model =
     { turns : Array Data.ProgressData
     , turnNum : Int
     , currentTurn : Int
-    , selectedUnit : Maybe Data.Id
+    , selectedUnit : Maybe Unit
     }
 
 
@@ -59,28 +60,28 @@ update msg model =
                         Nothing ->
                             turn.robotOutputs
                                 |> Dict.toList
-                                |> List.filter
-                                    (\( id, _ ) ->
-                                        case turn.state.objs |> Dict.get id of
-                                            Just ( basic, details ) ->
-                                                case details of
-                                                    Data.UnitDetails unit ->
-                                                        unit.team == "Red"
-
-                                                    Data.TerrainDetails _ ->
-                                                        False
-
-                                            Nothing ->
-                                                False
-                                    )
                                 |> List.filterMap
-                                    (\( id, output ) ->
-                                        case output.action of
+                                    (\( id, robotOutput ) ->
+                                        turn.state.objs |> Dict.get id |> Maybe.andThen (\((basic, details) as obj) ->
+                                            case details of
+                                                Data.UnitDetails unit ->
+                                                    if unit.team == "Red" then
+                                                        Just(obj, robotOutput)
+                                                    else
+                                                        Nothing
+
+                                                Data.TerrainDetails _ ->
+                                                    Nothing
+                                            )
+                                    )
+                                |> List.filter
+                                    (\( obj, robotOutput ) ->
+                                        case robotOutput.action of
                                             Ok _ ->
-                                                Nothing
+                                                False
 
                                             Err _ ->
-                                                Just id
+                                                True
                                     )
                                 |> List.head
             }
@@ -112,7 +113,16 @@ update msg model =
         GotGridMsg gridMsg ->
             case gridMsg of
                 Grid.UnitSelected unitId ->
-                    { model | selectedUnit = Just unitId }
+                    { model | selectedUnit =
+                            case Array.get model.currentTurn model.turns of
+                                    Just data ->
+                                            case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
+                                                    ( Just obj, Just robotOutput ) ->
+                                                        Just (obj, robotOutput)
+                                                    _ ->
+                                                        Nothing
+                                    Nothing -> Nothing
+                    }
 
         ResetSelectedUnit ->
             { model | selectedUnit = Nothing }
@@ -162,18 +172,20 @@ view maybeModel =
                         |> Maybe.andThen
                             (\model ->
                                 Array.get model.currentTurn model.turns
-                                    |> Maybe.map (\state -> ( state, model.selectedUnit ))
+                                    |> Maybe.map (\state ->
+                                        ( state, model.selectedUnit |> Maybe.map (\((basic, _), _) -> basic.id ))
+                                    )
                             )
                     )
                 )
             ]
         , case selectedUnit of
-            Just ( model, unitId ) ->
+            Just ( model, unit ) ->
                 div
                     [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
                     , class "_inspector"
                     ]
-                    [ viewRobotInspector model unitId
+                    [ viewRobotInspector model unit
                     ]
 
             Nothing ->
@@ -225,15 +237,11 @@ viewSlider model =
         []
 
 
-viewRobotInspector : Model -> Data.Id -> Html Msg
-viewRobotInspector model unitId =
+viewRobotInspector : Model -> Unit -> Html Msg
+viewRobotInspector model ((basicObj, _), robotOutput) =
     div [ class "box" ]
         [ p [ class "header" ] [ text "Robot Data" ]
-        , case Array.get model.currentTurn model.turns of
-            Just data ->
-                div []
-                    [ case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
-                        ( Just ( basicObj, _ ), Just robotOutput ) ->
+        ,
                             div []
                                 [ div [ class "mb-3" ]
                                     [ case robotOutput.action of
@@ -262,11 +270,4 @@ viewRobotInspector model unitId =
                                             )
                                             debugPairs
                                 ]
-
-                        ( _, _ ) ->
-                            p [] []
-                    ]
-
-            Nothing ->
-                div [] []
         ]

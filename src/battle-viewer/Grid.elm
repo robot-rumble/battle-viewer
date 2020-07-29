@@ -108,7 +108,7 @@ gameObjs data selectedUnit maybeTeam =
                                             Nothing ->
                                                 ""
                                     , class <|
-                                        case Dict.get basic.id data.robotOutputs |> Maybe.map (\output -> output.action) of
+                                        case Dict.get basic.id data.robotActions of
                                             Just (Err _) ->
                                                 case maybeTeam of
                                                     Just team ->

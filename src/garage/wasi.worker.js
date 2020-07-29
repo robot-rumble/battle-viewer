@@ -78,7 +78,7 @@ class WasiRunner {
       console.error(fs.readFileSync('/dev/stderr', 'utf8'))
       return {
         output: new TextEncoder().encode(
-          '{"robot_outputs":{"Err":{"InternalError":null}}}',
+          '{"Err":{"InternalError":null}}',
         ),
         logs,
       }

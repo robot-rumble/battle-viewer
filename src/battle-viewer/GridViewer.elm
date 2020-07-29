@@ -8,6 +8,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Decode
+import Tuple exposing (..)
 
 
 
@@ -15,7 +16,7 @@ import Json.Decode as Decode
 
 
 type alias Unit =
-    ( Bool, Data.Obj, Data.RobotOutput )
+    { isOurTeam : Bool, obj : Data.Obj, action : Data.ActionResult, debugTable : Maybe Data.DebugTable }
 
 
 type alias Model =
@@ -32,11 +33,11 @@ init firstTurn turnNum maybeTeam =
     -- if any units have a runtime error, select that unit
     let
         selectedUnit =
-            firstTurn.robotOutputs
+            firstTurn.robotActions
                 |> Dict.toList
                 |> List.filter
-                    (\( id, robotOutput ) ->
-                        case robotOutput.action of
+                    (\( id, action ) ->
+                        case action of
                             Ok _ ->
                                 False
 
@@ -44,26 +45,26 @@ init firstTurn turnNum maybeTeam =
                                 True
                     )
                 |> List.filterMap
-                    (\( id, robotOutput ) ->
-                        firstTurn.state.objs
-                            |> Dict.get id
-                            |> Maybe.andThen
-                                (\(( basic, details ) as obj) ->
-                                    case details of
-                                        Data.UnitDetails unit ->
-                                            maybeTeam
-                                                |> Maybe.andThen
-                                                    (\team ->
-                                                        if unit.team == team then
-                                                            Just ( True, obj, robotOutput )
+                    (\( id, action ) ->
+                        case ( Dict.get id firstTurn.state.objs, Dict.get id firstTurn.debugTables ) of
+                            ( Just (( basic, details ) as obj), debugTable ) ->
+                                case details of
+                                    Data.UnitDetails unit ->
+                                        maybeTeam
+                                            |> Maybe.andThen
+                                                (\team ->
+                                                    if unit.team == team then
+                                                        Just <| Unit True obj action debugTable
 
-                                                        else
-                                                            Nothing
-                                                    )
+                                                    else
+                                                        Nothing
+                                                )
 
-                                        Data.TerrainDetails _ ->
-                                            Nothing
-                                )
+                                    Data.TerrainDetails _ ->
+                                        Nothing
+
+                            _ ->
+                                Nothing
                     )
                 |> List.head
     in
@@ -125,8 +126,8 @@ update msg model =
                         | selectedUnit =
                             case Array.get model.currentTurn model.turns of
                                 Just data ->
-                                    case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotOutputs ) of
-                                        ( Just (( basic, details ) as obj), Just robotOutput ) ->
+                                    case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotActions, Dict.get unitId data.debugTables ) of
+                                        ( Just (( basic, details ) as obj), Just action, debugTable ) ->
                                             case details of
                                                 Data.UnitDetails unit ->
                                                     let
@@ -138,7 +139,7 @@ update msg model =
                                                                 Nothing ->
                                                                     False
                                                     in
-                                                    Just ( isOurTeam, obj, robotOutput )
+                                                    Just <| Unit isOurTeam obj action debugTable
 
                                                 _ ->
                                                     Nothing
@@ -192,19 +193,18 @@ view maybeModel =
             , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
             ]
             [ viewGameBar maybeModel
-            , Html.map GotGridMsg
-                (Grid.view
-                    (maybeModel
-                        |> Maybe.andThen
-                            (\model ->
-                                Array.get model.currentTurn model.turns
-                                    |> Maybe.map
-                                        (\state ->
-                                            ( state, model.selectedUnit |> Maybe.map (\( _, ( basic, _ ), _ ) -> basic.id), model.team )
-                                        )
-                            )
-                    )
+            , Grid.view
+                (maybeModel
+                    |> Maybe.andThen
+                        (\model ->
+                            Array.get model.currentTurn model.turns
+                                |> Maybe.map
+                                    (\state ->
+                                        ( state, model.selectedUnit |> Maybe.map (\unit -> (first unit.obj).id), model.team )
+                                    )
+                        )
                 )
+                |> Html.map GotGridMsg
             ]
         , case selectedUnit of
             Just ( model, unit ) ->
@@ -265,21 +265,21 @@ viewSlider model =
 
 
 viewRobotInspector : Unit -> Html Msg
-viewRobotInspector ( isOurTeam, ( basicObj, _ ), robotOutput ) =
+viewRobotInspector unit =
     div [ class "box" ]
         [ p [ class "header" ] [ text "Robot Data" ]
         , div []
             [ div [ class "mb-3" ]
                 [ div []
-                    [ p [] [ text <| "Id: " ++ basicObj.id ]
-                    , p [] [ text <| "Coords: " ++ Data.coordsToString basicObj.coords ]
+                    [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
+                    , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
                     ]
-                , case robotOutput.action of
+                , case unit.action of
                     Ok action ->
                         p [] [ text <| "Action: " ++ Data.actionToString action ]
 
                     Err error ->
-                        if isOurTeam then
+                        if unit.isOurTeam then
                             p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
 
                         else
@@ -287,7 +287,12 @@ viewRobotInspector ( isOurTeam, ( basicObj, _ ), robotOutput ) =
                 ]
             , let
                 debugPairs =
-                    Dict.toList robotOutput.debugTable
+                    case unit.debugTable of
+                        Just debugTable ->
+                            Dict.toList debugTable
+
+                        Nothing ->
+                            []
               in
               if List.isEmpty debugPairs then
                 p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]

@@ -67,13 +67,13 @@ errorFromRenderState renderState =
         BattleViewer.Render val ->
             val.viewerState.selectedUnit
                 |> Maybe.andThen
-                    (\( isOurTeam, _, robotOutput ) ->
-                        case robotOutput.action of
+                    (\unit ->
+                        case unit.action of
                             Ok _ ->
                                 Nothing
 
                             Err err ->
-                                if isOurTeam then
+                                if unit.isOurTeam then
                                     Just (Data.RobotErrorType err)
 
                                 else

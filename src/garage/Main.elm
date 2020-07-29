@@ -188,8 +188,26 @@ update msg model =
                     let
                         ( newModel, _ ) =
                             update (GotRenderMsg (BattleViewer.GotOutput data)) model
+
+                        maybeOutcomeError =
+                            model.team |> Maybe.andThen (\team -> data.errors |> Dict.get team |> Maybe.map Data.OutcomeErrorType)
                     in
-                    ( { newModel | error = model.team |> Maybe.andThen (\team -> data.errors |> Dict.get team |> Maybe.map Data.OutcomeErrorType), errorCounter = model.errorCounter + 1 }, Cmd.none )
+                    let
+                        error =
+                            case model.error of
+                                -- if there is already a runtime error being displayed, don't overwrite it
+                                Just oldError ->
+                                    Just oldError
+
+                                Nothing ->
+                                    maybeOutcomeError
+                    in
+                    ( { newModel
+                        | error = error
+                        , errorCounter = model.errorCounter + 1
+                      }
+                    , Cmd.none
+                    )
 
                 Err error ->
                     handleDecodeError model error

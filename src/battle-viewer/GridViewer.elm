@@ -285,24 +285,28 @@ viewRobotInspector unit =
                         else
                             p [ class "error" ] [ text "Errored" ]
                 ]
-            , let
-                debugPairs =
-                    case unit.debugTable of
-                        Just debugTable ->
-                            Dict.toList debugTable
+            , if unit.isOurTeam then
+                let
+                    debugPairs =
+                        case unit.debugTable of
+                            Just debugTable ->
+                                Dict.toList debugTable
 
-                        Nothing ->
-                            []
-              in
-              if List.isEmpty debugPairs then
-                p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+                            Nothing ->
+                                []
+                in
+                if List.isEmpty debugPairs then
+                    p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+
+                else
+                    div [ class "_table" ] <|
+                        List.map
+                            (\( key, val ) ->
+                                p [] [ text <| key ++ ": " ++ val ]
+                            )
+                            debugPairs
 
               else
-                div [ class "_table" ] <|
-                    List.map
-                        (\( key, val ) ->
-                            p [] [ text <| key ++ ": " ++ val ]
-                        )
-                        debugPairs
+                div [] []
             ]
         ]

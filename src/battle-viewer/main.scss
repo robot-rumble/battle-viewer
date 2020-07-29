@@ -251,7 +251,8 @@
       }
 
       .obj.selected::after,
-      .obj.errored::after {
+      .obj.errored::after,
+      .obj.inspected::after {
         content: '';
         position: absolute;
         height: 50%;
@@ -263,15 +264,26 @@
         margin: auto;
       }
 
-      .obj.selected::after,
-      .obj.selected.errored::after {
-        background: white;
-        opacity: 0.8;
-        border-radius: 100%;
-      }
 
       .obj.errored::after {
         background: black;
+      }
+
+      .obj.inspected::after,
+      .obj.inspected.errored {
+        background: white;
+        border-radius: 50%;
+        opacity: 0.8;
+      }
+
+      .obj.selected::after,
+      .obj.selected.errored::after,
+      .obj.selected.inspected.errored::after {
+        background: white;
+        border-radius: 0;
+        opacity: 0.5;
+        height: 100%;
+        width: 100%;
       }
     }
   }

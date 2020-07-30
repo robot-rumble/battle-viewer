@@ -135,6 +135,24 @@ unitWithRuntimeError maybeTeam turn =
         |> List.head
 
 
+changeTurn : Model -> Int -> Model
+changeTurn model newTurn =
+    { model
+        | currentTurn = newTurn
+        , selectedUnit =
+            Array.get newTurn model.turns
+                |> Maybe.andThen
+                    (\turn ->
+                        case model.selectedUnit of
+                            Just unit ->
+                                selectUnit (first unit.obj).id model.team turn
+
+                            Nothing ->
+                                unitWithRuntimeError model.team turn
+                    )
+    }
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
@@ -161,7 +179,7 @@ update msg model =
 
         ChangeTurn dir ->
             let
-                currentTurn =
+                newTurn =
                     model.currentTurn
                         + (case dir of
                             Next ->
@@ -179,23 +197,15 @@ update msg model =
                                     -1
                           )
             in
-            { model
-                | currentTurn = currentTurn
-                , selectedUnit =
-                    Array.get currentTurn model.turns
-                        |> Maybe.andThen
-                            (\turn ->
-                                case model.selectedUnit of
-                                    Just unit ->
-                                        selectUnit (first unit.obj).id model.team turn
-
-                                    Nothing ->
-                                        unitWithRuntimeError model.team turn
-                            )
-            }
+            changeTurn model newTurn
 
         SliderChange change ->
-            { model | currentTurn = Maybe.withDefault 0 (String.toInt change) }
+            -- don't select units on slider change because the inspection popup causes the slider to move to the left
+            -- which messes up the currently selected slider location
+            { model
+                | currentTurn = Maybe.withDefault 0 (String.toInt change)
+                , selectedUnit = Nothing
+            }
 
         GotGridMsg gridMsg ->
             case gridMsg of

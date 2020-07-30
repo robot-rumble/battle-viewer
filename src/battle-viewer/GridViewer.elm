@@ -87,40 +87,50 @@ processLogs maybeTeam turn =
     Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
 
 
+selectUnit : Data.Id -> Maybe Data.Team -> Data.ProgressData -> Maybe Unit
+selectUnit unitId maybeTeam turn =
+    case ( Dict.get unitId turn.state.objs, Dict.get unitId turn.robotActions, Dict.get unitId turn.debugTables ) of
+        ( Just (( basic, details ) as obj), Just action, debugTable ) ->
+            case details of
+                Data.UnitDetails unit ->
+                    let
+                        isOurTeam =
+                            case maybeTeam of
+                                Just team ->
+                                    unit.team == team
+
+                                Nothing ->
+                                    False
+                    in
+                    Just <| Unit isOurTeam obj action debugTable
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+
+
 unitWithRuntimeError : Maybe Data.Team -> Data.ProgressData -> Maybe Unit
 unitWithRuntimeError maybeTeam turn =
     turn.robotActions
         |> Dict.toList
-        |> List.filter
+        |> List.filterMap
             (\( id, action ) ->
                 case action of
                     Ok _ ->
-                        False
+                        Nothing
 
                     Err _ ->
-                        True
-            )
-        |> List.filterMap
-            (\( id, action ) ->
-                case ( Dict.get id turn.state.objs, Dict.get id turn.debugTables ) of
-                    ( Just (( basic, details ) as obj), debugTable ) ->
-                        case details of
-                            Data.UnitDetails unit ->
-                                maybeTeam
-                                    |> Maybe.andThen
-                                        (\team ->
-                                            if unit.team == team then
-                                                Just <| Unit True obj action debugTable
+                        selectUnit id maybeTeam turn
+                            |> Maybe.andThen
+                                (\unit ->
+                                    if unit.isOurTeam then
+                                        Just unit
 
-                                            else
-                                                Nothing
-                                        )
-
-                            Data.TerrainDetails _ ->
-                                Nothing
-
-                    _ ->
-                        Nothing
+                                    else
+                                        Nothing
+                                )
             )
         |> List.head
 
@@ -129,8 +139,10 @@ update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotTurn turn ->
-            let
-                selectedUnit =
+            { model
+                | turns = Array.push turn model.turns
+                , logs = List.append model.logs (processLogs model.team turn)
+                , selectedUnit =
                     case model.selectedUnit of
                         Just unit ->
                             Just unit
@@ -142,22 +154,14 @@ update msg model =
 
                             else
                                 Nothing
-
-                logs =
-                    List.append model.logs (processLogs model.team turn)
-            in
-            { model | turns = Array.push turn model.turns, logs = logs, selectedUnit = selectedUnit }
+            }
 
         GotErrors errors ->
-            let
-                maybeError =
-                    model.team |> Maybe.andThen (\team -> Dict.get team errors)
-            in
-            { model | error = maybeError }
+            { model | error = model.team |> Maybe.andThen (\team -> Dict.get team errors) }
 
         ChangeTurn dir ->
-            { model
-                | currentTurn =
+            let
+                currentTurn =
                     model.currentTurn
                         + (case dir of
                             Next ->
@@ -174,6 +178,20 @@ update msg model =
                                 else
                                     -1
                           )
+            in
+            { model
+                | currentTurn = currentTurn
+                , selectedUnit =
+                    Array.get currentTurn model.turns
+                        |> Maybe.andThen
+                            (\turn ->
+                                case model.selectedUnit of
+                                    Just unit ->
+                                        selectUnit (first unit.obj).id model.team turn
+
+                                    Nothing ->
+                                        unitWithRuntimeError model.team turn
+                            )
             }
 
         SliderChange change ->
@@ -184,31 +202,11 @@ update msg model =
                 Grid.UnitSelected unitId ->
                     { model
                         | selectedUnit =
-                            case Array.get model.currentTurn model.turns of
-                                Just data ->
-                                    case ( Dict.get unitId data.state.objs, Dict.get unitId data.robotActions, Dict.get unitId data.debugTables ) of
-                                        ( Just (( basic, details ) as obj), Just action, debugTable ) ->
-                                            case details of
-                                                Data.UnitDetails unit ->
-                                                    let
-                                                        isOurTeam =
-                                                            case model.team of
-                                                                Just team ->
-                                                                    unit.team == team
-
-                                                                Nothing ->
-                                                                    False
-                                                    in
-                                                    Just <| Unit isOurTeam obj action debugTable
-
-                                                _ ->
-                                                    Nothing
-
-                                        _ ->
-                                            Nothing
-
-                                Nothing ->
-                                    Nothing
+                            Array.get model.currentTurn model.turns
+                                |> Maybe.andThen
+                                    (\turn ->
+                                        selectUnit unitId model.team turn
+                                    )
                     }
 
         ResetSelectedUnit ->

@@ -330,7 +330,14 @@ viewSlider model =
 viewRobotInspector : Unit -> Html Msg
 viewRobotInspector unit =
     div [ class "box" ]
-        [ p [ class "title" ] [ text "Robot Data" ]
+        [ p [ class "title" ] <|
+            [ text "Robot Data" ]
+                ++ (if not unit.isOurTeam then
+                        [ span [ class "text-red" ] [ text " (enemy)" ] ]
+
+                    else
+                        []
+                   )
         , div []
             [ div [ class "mb-3" ]
                 [ div []

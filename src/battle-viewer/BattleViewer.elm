@@ -129,7 +129,7 @@ update msg model =
                                     let
                                         viewerState =
                                             GridViewer.init turn model.team
-                                                |> GridViewer.update (GridViewer.GotErrors output)
+                                                |> GridViewer.update (GridViewer.GotErrors output.errors)
                                     in
                                     Render ( turn, viewerState )
 

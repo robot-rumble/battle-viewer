@@ -41,17 +41,14 @@ init flags =
             let
                 turnNum =
                     List.length outputData.turns
-            in
-            case outputData.turns of
-                firstTurn :: otherTurns ->
-                    let
-                        gridViewerModel =
-                            GridViewer.init firstTurn turnNum Nothing
-                    in
-                    Just <| List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel otherTurns
 
-                _ ->
-                    Nothing
+                gridViewerModel =
+                    GridViewer.init turnNum flags.team
+            in
+            Just
+                (List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel outputData.turns
+                    |> GridViewer.update (GridViewer.GotErrors outputData.errors)
+                )
 
         Err _ ->
             Nothing
@@ -60,7 +57,7 @@ init flags =
 
 
 type alias Flags =
-    { data : Decode.Value }
+    { data : Decode.Value, team : Maybe Data.Team }
 
 
 

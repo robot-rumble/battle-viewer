@@ -72,9 +72,13 @@ type alias Team =
     String
 
 
+type alias OutcomeErrors =
+    Dict Team OutcomeError
+
+
 type alias OutcomeData =
     { winner : Maybe Team
-    , errors : Dict Team OutcomeError
+    , errors : OutcomeErrors
     }
 
 
@@ -98,7 +102,7 @@ outcomeDataDecoder =
 
 type alias FullOutcomeData =
     { winner : Maybe Team
-    , errors : Dict Team OutcomeError
+    , errors : OutcomeErrors
     , turns : List ProgressData
     }
 

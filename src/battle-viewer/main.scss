@@ -7,10 +7,13 @@
   display: flex;
   flex-direction: column;
 
-  ._battle-viewer-root {
+  ._battle-viewer-root, ._grid-viewer-root {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    height: 100%;
+  }
+
+  ._battle-viewer-root {
     margin: map_get($spacers, 3) 0;
   }
 
@@ -25,7 +28,7 @@
   }
 
   .box {
-    .header {
+    .title {
       font-weight: bold;
     }
 
@@ -68,7 +71,6 @@
   }
 
   ._run-bar {
-    width: 100%;
     text-align: center;
     position: relative;
     margin-bottom: map_get($spacers, 3);

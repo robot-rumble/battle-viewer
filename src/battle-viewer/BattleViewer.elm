@@ -1,4 +1,4 @@
-module BattleViewer exposing (Model, RenderState(..), Msg(..), init, update, view)
+module BattleViewer exposing (Model, Msg(..), RenderState(..), init, update, view)
 
 import Api
 import Array exposing (Array)
@@ -38,19 +38,15 @@ type RenderState
     | NoRender
     | Initializing Int
     | Render RenderStateVal
-    | Error Data.OutcomeError
     | InternalError
 
 
 type alias RenderStateVal =
-    { logs : List String
-    , viewerState : GridViewer.Model
-    , turnNum : Int
-    }
+    ( Int, GridViewer.Model )
 
 
 init : Api.Context -> String -> Bool -> String -> Maybe Data.Team -> ( Model, Cmd Msg )
-init apiContext assetsPath  isRunnerLoading robot team =
+init apiContext assetsPath isRunnerLoading robot team =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
@@ -123,69 +119,39 @@ update msg model =
                     { model | renderState = NoRender }
 
                 GotOutput output ->
-                    let
-                        maybeError =
-                             model.team |> Maybe.andThen(\team -> Dict.get team output.errors)
-                    in
                     { model
                         | renderState =
-                            case maybeError of
-                                Just error ->
-                                    Error error
+                            case model.renderState of
+                                Render ( turn, viewerState ) ->
+                                    Render ( turn, GridViewer.update (GridViewer.GotErrors output.errors) viewerState )
 
-                                _ ->
-                                    model.renderState
+                                Initializing turn ->
+                                    let
+                                        viewerState =
+                                            GridViewer.init turn model.team
+                                                |> GridViewer.update (GridViewer.GotErrors output)
+                                    in
+                                    Render ( turn, viewerState )
+
+                                other2 ->
+                                    other2
                         , winner = Just output.winner
                     }
 
                 GotProgress progress ->
                     { model
                         | renderState =
-                            let
-                                turnLogs =
-                                    model.team
-                                    |> Maybe.andThen(\team ->
-                                        Dict.get team progress.logs
-                                            |> Maybe.andThen
-                                                (\logs ->
-                                                    if List.isEmpty logs then
-                                                        Nothing
-
-                                                    else
-                                                        Just logs
-                                                )
-                                        )
-
-                                addTurnHeading =
-                                    \logs ->
-                                        let
-                                            headingStart =
-                                                if progress.state.turn == 1 then
-                                                    "Turn "
-
-                                                else
-                                                    "\nTurn "
-                                        in
-                                        (headingStart ++ String.fromInt progress.state.turn ++ "\n") :: logs
-
-                                finalLogs =
-                                    Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
-                            in
                             case model.renderState of
-                                Render renderState ->
-                                    Render
-                                        { renderState
-                                            | logs = List.append renderState.logs finalLogs
-                                            , viewerState =
-                                                GridViewer.update (GridViewer.GotTurn progress) renderState.viewerState
-                                        }
+                                Render ( turn, viewerState ) ->
+                                    Render ( turn, GridViewer.update (GridViewer.GotTurn progress) viewerState )
 
-                                Initializing turnNum ->
-                                    Render
-                                        { turnNum = turnNum
-                                        , logs = finalLogs
-                                        , viewerState = GridViewer.init progress turnNum model.team
-                                        }
+                                Initializing turn ->
+                                    let
+                                        viewerState =
+                                            GridViewer.init turn model.team
+                                                |> GridViewer.update (GridViewer.GotTurn progress)
+                                    in
+                                    Render ( turn, viewerState )
 
                                 other2 ->
                                     other2
@@ -196,8 +162,8 @@ update msg model =
 
                 GotRenderMsg renderMsg ->
                     case model.renderState of
-                        Render state ->
-                            { model | renderState = Render { state | viewerState = GridViewer.update renderMsg state.viewerState } }
+                        Render ( turn, viewerState ) ->
+                            { model | renderState = Render ( turn, GridViewer.update renderMsg viewerState ) }
 
                         _ ->
                             model
@@ -252,46 +218,16 @@ view model =
             OpponentSelect.view model.opponentSelectState |> Html.map GotOpponentSelectMsg
 
           else
-            div []
-                [ div [ class "_battle-viewer-root" ]
-                    [ viewBar model
-                    , Html.map GotRenderMsg <|
-                        case model.renderState of
-                            Render state ->
-                                GridViewer.view (Just state.viewerState)
+            div [ class "_battle-viewer-root" ]
+                [ viewBar model
+                , Html.map GotRenderMsg <|
+                    case model.renderState of
+                        Render ( _, viewerState ) ->
+                            GridViewer.view (Just viewerState)
 
-                            _ ->
-                                GridViewer.view Nothing
-                    ]
-                , viewLog model
+                        _ ->
+                            GridViewer.view Nothing
                 ]
-        ]
-
-
-viewLog : Model -> Html Msg
-viewLog model =
-    div [ class "_logs box" ]
-        [ p [ class "header" ] [ text "Logs" ]
-        , case model.renderState of
-            Error error ->
-                textarea
-                    [ readonly True
-                    , class "error"
-                    ]
-                    [ text <| Data.outcomeErrorToString error ]
-
-            Render state ->
-                if List.isEmpty state.logs then
-                    p [ class "info" ] [ text "nothing here" ]
-
-                else
-                    textarea
-                        [ readonly True
-                        ]
-                        [ text <| String.concat state.logs ]
-
-            _ ->
-                p [ class "info" ] [ text "nothing here" ]
         ]
 
 
@@ -318,13 +254,13 @@ viewBar model =
         [ div [ class "_progress-outline" ] []
         , div [ class "_battle-section" ]
             [ case model.renderState of
-                Render render ->
+                Render ( turn, viewerState ) ->
                     let
                         totalTurns =
-                            Array.length render.viewerState.turns
+                            Array.length viewerState.turns
                     in
-                    if totalTurns /= render.turnNum then
-                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat render.turnNum * 100) ] []
+                    if totalTurns /= turn then
+                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat turn * 100) ] []
 
                     else
                         viewButtons ()

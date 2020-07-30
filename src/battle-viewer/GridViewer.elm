@@ -25,50 +25,14 @@ type alias Model =
     , currentTurn : Int
     , selectedUnit : Maybe Unit
     , team : Maybe Data.Team
+    , logs : List String
+    , error : Maybe Data.OutcomeError
     }
 
 
-init : Data.ProgressData -> Int -> Maybe Data.Team -> Model
-init firstTurn turnNum maybeTeam =
-    -- if any units have a runtime error, select that unit
-    let
-        selectedUnit =
-            firstTurn.robotActions
-                |> Dict.toList
-                |> List.filter
-                    (\( id, action ) ->
-                        case action of
-                            Ok _ ->
-                                False
-
-                            Err _ ->
-                                True
-                    )
-                |> List.filterMap
-                    (\( id, action ) ->
-                        case ( Dict.get id firstTurn.state.objs, Dict.get id firstTurn.debugTables ) of
-                            ( Just (( basic, details ) as obj), debugTable ) ->
-                                case details of
-                                    Data.UnitDetails unit ->
-                                        maybeTeam
-                                            |> Maybe.andThen
-                                                (\team ->
-                                                    if unit.team == team then
-                                                        Just <| Unit True obj action debugTable
-
-                                                    else
-                                                        Nothing
-                                                )
-
-                                    Data.TerrainDetails _ ->
-                                        Nothing
-
-                            _ ->
-                                Nothing
-                    )
-                |> List.head
-    in
-    Model (Array.fromList [ firstTurn ]) turnNum 0 selectedUnit maybeTeam
+init : Int -> Maybe Data.Team -> Model
+init turnNum maybeTeam =
+    Model Array.empty turnNum 0 Nothing maybeTeam [] Nothing
 
 
 
@@ -78,6 +42,7 @@ init firstTurn turnNum maybeTeam =
 type Msg
     = ChangeTurn Direction
     | GotTurn Data.ProgressData
+    | GotErrors Data.OutcomeErrors
     | SliderChange String
     | GotGridMsg Grid.Msg
     | ResetSelectedUnit
@@ -89,11 +54,101 @@ type Direction
     | Previous
 
 
+processLogs : Maybe Data.Team -> Data.ProgressData -> List String
+processLogs maybeTeam turn =
+    let
+        turnLogs =
+            maybeTeam
+                |> Maybe.andThen
+                    (\team ->
+                        Dict.get team turn.logs
+                            |> Maybe.andThen
+                                (\logs ->
+                                    if List.isEmpty logs then
+                                        Nothing
+
+                                    else
+                                        Just logs
+                                )
+                    )
+
+        addTurnHeading =
+            \logs ->
+                let
+                    headingStart =
+                        if turn.state.turn == 1 then
+                            "Turn "
+
+                        else
+                            "\nTurn "
+                in
+                (headingStart ++ String.fromInt turn.state.turn ++ "\n") :: logs
+    in
+    Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
+
+
+unitWithRuntimeError : Maybe Data.Team -> Data.ProgressData -> Maybe Unit
+unitWithRuntimeError maybeTeam turn =
+    turn.robotActions
+        |> Dict.toList
+        |> List.filter
+            (\( id, action ) ->
+                case action of
+                    Ok _ ->
+                        False
+
+                    Err _ ->
+                        True
+            )
+        |> List.filterMap
+            (\( id, action ) ->
+                case ( Dict.get id turn.state.objs, Dict.get id turn.debugTables ) of
+                    ( Just (( basic, details ) as obj), debugTable ) ->
+                        case details of
+                            Data.UnitDetails unit ->
+                                maybeTeam
+                                    |> Maybe.andThen
+                                        (\team ->
+                                            if unit.team == team then
+                                                Just <| Unit True obj action debugTable
+
+                                            else
+                                                Nothing
+                                        )
+
+                            Data.TerrainDetails _ ->
+                                Nothing
+
+                    _ ->
+                        Nothing
+            )
+        |> List.head
+
+
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         GotTurn turn ->
-            { model | turns = Array.push turn model.turns }
+            let
+                selectedUnit =
+                    -- if any units have a runtime error on the first turn only, select that unit
+                    if Array.isEmpty model.turns then
+                        unitWithRuntimeError model.team turn
+
+                    else
+                        Nothing
+
+                logs =
+                    List.append model.logs (processLogs model.team turn)
+            in
+            { model | turns = Array.push turn model.turns, logs = logs, selectedUnit = selectedUnit }
+
+        GotErrors errors ->
+            let
+                maybeError =
+                    model.team |> Maybe.andThen (\team -> Dict.get team errors)
+            in
+            { model | error = maybeError }
 
         ChangeTurn dir ->
             { model
@@ -164,6 +219,11 @@ update msg model =
 
 view : Maybe Model -> Html Msg
 view maybeModel =
+    div [ class "_grid-viewer-root" ] [ viewMain maybeModel, viewLogs maybeModel ]
+
+
+viewMain : Maybe Model -> Html Msg
+viewMain maybeModel =
     let
         selectedUnit =
             maybeModel
@@ -267,7 +327,7 @@ viewSlider model =
 viewRobotInspector : Unit -> Html Msg
 viewRobotInspector unit =
     div [ class "box" ]
-        [ p [ class "header" ] [ text "Robot Data" ]
+        [ p [ class "title" ] [ text "Robot Data" ]
         , div []
             [ div [ class "mb-3" ]
                 [ div []
@@ -309,4 +369,33 @@ viewRobotInspector unit =
               else
                 div [] []
             ]
+        ]
+
+
+viewLogs : Maybe Model -> Html Msg
+viewLogs maybeModel =
+    div [ class "_logs box mt-4" ]
+        [ p [ class "title" ] [ text "Logs" ]
+        , case maybeModel of
+            Just model ->
+                case model.error of
+                    Just error ->
+                        textarea
+                            [ readonly True
+                            , class "error"
+                            ]
+                            [ text <| Data.outcomeErrorToString error ]
+
+                    Nothing ->
+                        if List.isEmpty model.logs then
+                            p [ class "info" ] [ text "nothing here" ]
+
+                        else
+                            textarea
+                                [ readonly True
+                                ]
+                                [ text <| String.concat model.logs ]
+
+            Nothing ->
+                p [ class "info" ] [ text "nothing here" ]
         ]

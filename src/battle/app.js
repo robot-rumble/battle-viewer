@@ -5,15 +5,15 @@ customElements.define(
   class extends HTMLElement {
     connectedCallback() {
       const data = this.getAttribute('data')
+      const team = this.getAttribute('team') || null
       if (!data) {
-        throw new Error('No data found')
+        throw new Error('No data attribute found')
       }
-
-      window.data = data
+      console.log(data)
 
       Elm.Main.init({
         node: this,
-        flags: { data: JSON.parse(data) },
+        flags: { data: JSON.parse(data), team },
       })
     }
   },

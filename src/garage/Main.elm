@@ -64,8 +64,8 @@ type alias Model =
 
 errorFromRenderState renderState =
     case renderState of
-        BattleViewer.Render val ->
-            val.viewerState.selectedUnit
+        BattleViewer.Render ( _, viewerState ) ->
+            viewerState.selectedUnit
                 |> Maybe.andThen
                     (\unit ->
                         case unit.action of

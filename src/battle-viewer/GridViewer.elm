@@ -131,12 +131,17 @@ update msg model =
         GotTurn turn ->
             let
                 selectedUnit =
-                    -- if any units have a runtime error on the first turn only, select that unit
-                    if Array.isEmpty model.turns then
-                        unitWithRuntimeError model.team turn
+                    case model.selectedUnit of
+                        Just unit ->
+                            Just unit
 
-                    else
-                        Nothing
+                        Nothing ->
+                            -- if any units have a runtime error on the first turn only, select that unit
+                            if Array.isEmpty model.turns then
+                                unitWithRuntimeError model.team turn
+
+                            else
+                                Nothing
 
                 logs =
                     List.append model.logs (processLogs model.team turn)

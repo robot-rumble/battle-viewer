@@ -37,6 +37,10 @@ function createRoutes(user, robot, robotId, assetsPath) {
 if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./main.scss')
 
+  if (!process.env.BOT_LANG) {
+    throw new Error('You must specify the robot language through the "BOT_LANG" env var.')
+  }
+
   init(
     document.querySelector('#root'),
     {
@@ -47,7 +51,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
       code: '',
     },
     'dist/worker.js',
-    'Python',
+    process.env.BOT_LANG,
     '',
   )
 

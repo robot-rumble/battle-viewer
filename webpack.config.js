@@ -19,7 +19,6 @@ function createConfig(module) {
         loaders.js,
         loaders.css,
         loaders.elm(module),
-        loaders.raw,
         loaders.file,
         loaders.url,
       ],

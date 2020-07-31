@@ -22,7 +22,7 @@ module.exports = createConfigBase(dist, {
     fs: 'empty',
   },
   module: {
-    rules: [loaders.js, loaders.raw, loaders.worker],
+    rules: [loaders.js, loaders.worker],
   },
   resolve: {
     alias: {

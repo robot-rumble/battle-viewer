@@ -49,10 +49,6 @@ const loaders = {
     test: /\.svg$/,
     use: 'url-loader',
   },
-  raw: {
-    test: /\.raw.*$/,
-    use: 'raw-loader',
-  },
   worker: {
     test: /wasi\.worker\.js$/,
     use: 'worker-loader',

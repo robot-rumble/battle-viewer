@@ -41,9 +41,13 @@ const loaders = {
       },
     ]),
   }),
-  url: {
+  file: {
     test: /\.(woff|woff2|ttf)$/,
     use: 'file-loader',
+  },
+  url: {
+    test: /\.svg$/,
+    use: 'url-loader',
   },
   raw: {
     test: /\.raw.*$/,

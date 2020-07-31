@@ -19,6 +19,7 @@ module.exports = createConfigBase(dist, {
       loaders.css,
       loaders.elm('cli'),
       loaders.raw,
+      loaders.file,
       loaders.url,
     ],
   },

@@ -257,13 +257,11 @@
         }
       }
 
-      .obj.selected::after,
       .obj.errored::after,
-      .obj.inspected::after {
+      .obj.inspected::after,
+      .obj.selected::before {
         content: '';
         position: absolute;
-        height: 50%;
-        width: 50%;
         top: 0;
         bottom: 0;
         left: 0;
@@ -271,26 +269,34 @@
         margin: auto;
       }
 
+      .obj.errored::after,
+      .obj.inspected::after {
+        height: 80%;
+        width: 80%;
+        background-size: contain !important;
+        z-index: 2;
+
+        // make the image black
+        filter: brightness(var(--is-dark-theme));
+      }
 
       .obj.errored::after {
-        background: black;
+        background: url("../images/error.svg");
       }
 
       .obj.inspected::after,
-      .obj.inspected.errored {
-        background: white;
-        border-radius: 50%;
-        opacity: 0.8;
+      .obj.inspected.errored::after {
+        background: url("../images/star.svg");
       }
 
-      .obj.selected::after,
-      .obj.selected.errored::after,
-      .obj.selected.inspected.errored::after {
-        background: white;
-        border-radius: 0;
-        opacity: 0.5;
-        height: 100%;
-        width: 100%;
+      .obj.selected.errored::after, .obj.selected.inspected::after {
+        // make the image white (in light theme)
+        filter: brightness(calc(1 - var(--is-dark-theme)));
+      }
+
+      .obj.selected::before {
+        background: var(--black);
+        z-index: 1;
       }
     }
   }

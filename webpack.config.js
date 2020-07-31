@@ -20,6 +20,7 @@ function createConfig(module) {
         loaders.css,
         loaders.elm(module),
         loaders.raw,
+        loaders.file,
         loaders.url,
       ],
     },
@@ -33,7 +34,7 @@ const siteConfig = createConfigBase(dist, {
     site_css: './src/site/main.scss',
   },
   module: {
-    rules: [loaders.css, loaders.url],
+    rules: [loaders.css, loaders.file],
   },
 })
 

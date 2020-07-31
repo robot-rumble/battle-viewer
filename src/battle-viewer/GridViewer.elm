@@ -200,12 +200,7 @@ update msg model =
             changeTurn model newTurn
 
         SliderChange change ->
-            -- don't select units on slider change because the inspection popup causes the slider to move to the left
-            -- which messes up the currently selected slider location
-            { model
-                | currentTurn = Maybe.withDefault 0 (String.toInt change)
-                , selectedUnit = Nothing
-            }
+            changeTurn model <| Maybe.withDefault 0 (String.toInt change)
 
         GotGridMsg gridMsg ->
             case gridMsg of
@@ -237,30 +232,10 @@ view maybeModel =
 
 viewMain : Maybe Model -> Html Msg
 viewMain maybeModel =
-    let
-        selectedUnit =
-            maybeModel
-                |> Maybe.andThen
-                    (\model ->
-                        case model.selectedUnit of
-                            Just unitId ->
-                                Just ( model, unitId )
-
-                            Nothing ->
-                                Nothing
-                    )
-    in
     div
         [ class "_grid-viewer", onClick ResetSelectedUnit ]
         [ div
             [ class "_grid-viewer-main"
-            , class <|
-                case selectedUnit of
-                    Nothing ->
-                        "mx-auto"
-
-                    Just _ ->
-                        ""
 
             -- prevent clicking on grid from closing the inspector
             , stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
@@ -279,17 +254,12 @@ viewMain maybeModel =
                 )
                 |> Html.map GotGridMsg
             ]
-        , case selectedUnit of
-            Just ( model, unit ) ->
-                div
-                    [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
-                    , class "_inspector"
-                    ]
-                    [ viewRobotInspector unit
-                    ]
-
-            Nothing ->
-                div [] []
+        , div
+            [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
+            , class "_inspector"
+            ]
+            [ viewRobotInspector (maybeModel |> Maybe.andThen (\model -> model.selectedUnit))
+            ]
         ]
 
 
@@ -304,7 +274,7 @@ viewGameBar maybeModel =
                 ]
 
             Nothing ->
-                [ p [] [ text "Turn 0" ] ]
+                [ p [ class "_turn-indicator" ] [ text "Turn 0" ] ]
 
 
 viewArrows : Model -> Html Msg
@@ -337,58 +307,68 @@ viewSlider model =
         []
 
 
-viewRobotInspector : Unit -> Html Msg
-viewRobotInspector unit =
+viewRobotInspector : Maybe Unit -> Html Msg
+viewRobotInspector maybeUnit =
     div [ class "box" ]
         [ p [ class "title" ] <|
             [ text "Robot Data" ]
-                ++ (if not unit.isOurTeam then
-                        [ span [ class "text-red" ] [ text " (enemy)" ] ]
+                ++ (case maybeUnit of
+                        Just unit ->
+                            if not unit.isOurTeam then
+                                [ span [ class "text-red" ] [ text " (enemy)" ] ]
 
-                    else
-                        []
+                            else
+                                []
+
+                        Nothing ->
+                            []
                    )
-        , div []
-            [ div [ class "mb-3" ]
-                [ div []
-                    [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
-                    , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
-                    ]
-                , case unit.action of
-                    Ok action ->
-                        p [] [ text <| "Action: " ++ Data.actionToString action ]
+        , case maybeUnit of
+            Just unit ->
+                div []
+                    [ div []
+                        [ div []
+                            [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
+                            , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
+                            ]
+                        , case unit.action of
+                            Ok action ->
+                                p [] [ text <| "Action: " ++ Data.actionToString action ]
 
-                    Err error ->
-                        if unit.isOurTeam then
-                            p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                            Err error ->
+                                if unit.isOurTeam then
+                                    p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+
+                                else
+                                    p [ class "error" ] [ text "Errored" ]
+                        ]
+                    , if unit.isOurTeam then
+                        let
+                            debugPairs =
+                                case unit.debugTable of
+                                    Just debugTable ->
+                                        Dict.toList debugTable
+
+                                    Nothing ->
+                                        []
+                        in
+                        if List.isEmpty debugPairs then
+                            p [ class "info mt-3" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
 
                         else
-                            p [ class "error" ] [ text "Errored" ]
-                ]
-            , if unit.isOurTeam then
-                let
-                    debugPairs =
-                        case unit.debugTable of
-                            Just debugTable ->
-                                Dict.toList debugTable
+                            div [ class "_table mt-3" ] <|
+                                List.map
+                                    (\( key, val ) ->
+                                        p [] [ text <| key ++ ": " ++ val ]
+                                    )
+                                    debugPairs
 
-                            Nothing ->
-                                []
-                in
-                if List.isEmpty debugPairs then
-                    p [ class "info" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+                      else
+                        div [] []
+                    ]
 
-                else
-                    div [ class "_table" ] <|
-                        List.map
-                            (\( key, val ) ->
-                                p [] [ text <| key ++ ": " ++ val ]
-                            )
-                            debugPairs
-
-              else
-                div [] []
-            ]
+            Nothing ->
+                div [] [ p [ class "info" ] [ text "No unit selected" ] ]
         ]
 
 

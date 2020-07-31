@@ -269,26 +269,27 @@ update msg model =
 
                 other ->
                     ( case other of
-                        BattleViewer.GotRenderMsg (GridViewer.GotGridMsg (Grid.UnitSelected _)) ->
+                        BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
+                            { model
+                                | battleViewerModel = newBattleViewerModel
+                                , error = Nothing
+                            }
+
+                        -- an error can be set on a turn/slider change or unit selection
+                        BattleViewer.GotRenderMsg _ ->
                             { model
                                 | battleViewerModel = newBattleViewerModel
                                 , error = errorFromRenderState newBattleViewerModel.renderState
                                 , errorCounter = model.errorCounter + 1
                             }
 
-                        -- an error can also be set as the battle loads. concretely, if the first turn has an error,
-                        -- the robot with that error is automatically selected
+                        -- an error can also be set automatically on an initial load if one of the robots in the
+                        -- first turn has a runtime exception
                         BattleViewer.GotProgress _ ->
                             { model
                                 | battleViewerModel = newBattleViewerModel
                                 , error = errorFromRenderState newBattleViewerModel.renderState
                                 , errorCounter = model.errorCounter + 1
-                            }
-
-                        BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
-                            { model
-                                | battleViewerModel = newBattleViewerModel
-                                , error = Nothing
                             }
 
                         _ ->

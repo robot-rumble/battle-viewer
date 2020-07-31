@@ -13,6 +13,10 @@
     height: 100%;
   }
 
+  ._grid-viewer-root {
+    align-items: center;
+  }
+
   ._battle-viewer-root {
     margin: map_get($spacers, 3) 0;
   }
@@ -49,6 +53,7 @@
 
     border-top: $border-2;
     height: 100%;
+    width: 100%;
 
     textarea {
       // cancel padding so that the textarea background stretches all the way across

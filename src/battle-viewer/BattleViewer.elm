@@ -249,6 +249,12 @@ viewBar model =
                             )
                     )
                 ]
+
+        viewLoadingMessage message =
+            div [ class "d-flex justify-content-center align-items-center" ]
+                [ p [ class "_text mr-2" ] [ text message ]
+                , img [ class "spinner", src <| model.assetsPath ++ "/images/spinner.gif" ] []
+                ]
     in
     div [ class "_run-bar" ]
         [ div [ class "_progress-outline" ] []
@@ -269,10 +275,10 @@ viewBar model =
                     p [ class "_text" ] [ text "Initializing..." ]
 
                 DownloadingRunner ->
-                    p [ class "_text" ] [ text "Downloading runner..." ]
+                    viewLoadingMessage "Loading runner..."
 
                 LoadingRunner ->
-                    p [ class "_text" ] [ text "Compiling runner..." ]
+                    viewLoadingMessage "Compiling runner..."
 
                 _ ->
                     viewButtons ()

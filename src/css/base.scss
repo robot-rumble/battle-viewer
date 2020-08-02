@@ -16,6 +16,8 @@ $font-family-base: $code-font;
   --dark-blue: #39acff;
   --light-red: #fcdee7;
   --light-blue: #cae9ff;
+  --bright-red: #dc3545;
+  --bright-blue: #007bff;
   --grey-1: #636363;
   --grey-2: #c7c7c7;
   --grey-3: #f0f0f0;
@@ -111,14 +113,22 @@ button {
 }
 
 .error {
-  color: var(--orange);
+  color: var(--bright-red) !important;
 }
 
 .internal-error {
-  color: var(--red);
+  color: var(--bright-red) !important;
 }
 
 .spinner {
   height: 20px;
   width: 20px;
+}
+
+.text-red {
+  color: var(--bright-red);
+}
+
+.text-blue {
+  color: var(--bright-blue);
 }

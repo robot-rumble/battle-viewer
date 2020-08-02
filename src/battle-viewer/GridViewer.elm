@@ -327,7 +327,7 @@ viewRobotInspector maybeUnit =
             Just unit ->
                 div []
                     [ div []
-                        [ div []
+                        [ div [ class "mb-2" ]
                             [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
                             , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
                             ]
@@ -337,7 +337,20 @@ viewRobotInspector maybeUnit =
 
                             Err error ->
                                 if unit.isOurTeam then
-                                    p [ class "error" ] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                                    div [ class "error" ]
+                                        [ p [] [ text <| "Error: " ++ Data.robotErrorToString error ]
+                                        , case error of
+                                            Data.RuntimeError details ->
+                                                case details.loc of
+                                                    Just loc ->
+                                                        p [] [ text <| "Line: " ++ String.fromInt (first loc.start) ]
+
+                                                    Nothing ->
+                                                        div [] []
+
+                                            _ ->
+                                                div [] []
+                                        ]
 
                                 else
                                     p [ class "error" ] [ text "Errored" ]
@@ -353,7 +366,7 @@ viewRobotInspector maybeUnit =
                                         []
                         in
                         if List.isEmpty debugPairs then
-                            p [ class "info mt-3" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+                            p [ class "info mt-2" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
 
                         else
                             div [ class "_table mt-3" ] <|
@@ -384,7 +397,19 @@ viewLogs maybeModel =
                             [ readonly True
                             , class "error"
                             ]
-                            [ text <| Data.outcomeErrorToString error ]
+                            [ text <| Data.outcomeErrorToString error
+                            , case error of
+                                Data.InitError details ->
+                                    case details.loc of
+                                        Just loc ->
+                                            text <| "\n\nLine: " ++ String.fromInt (first loc.start)
+
+                                        Nothing ->
+                                            text ""
+
+                                _ ->
+                                    text ""
+                            ]
 
                     Nothing ->
                         if List.isEmpty model.logs then

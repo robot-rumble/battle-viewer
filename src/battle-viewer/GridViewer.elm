@@ -333,7 +333,7 @@ viewRobotInspector maybeUnit =
                             ]
                         , case unit.action of
                             Ok action ->
-                                p [] [ text <| "Action: " ++ Data.actionToString action ]
+                                p [] [ text <| "Next action: " ++ Data.actionToString action ]
 
                             Err error ->
                                 if unit.isOurTeam then

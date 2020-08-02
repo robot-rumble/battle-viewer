@@ -385,7 +385,7 @@ viewBar model =
     div [ class "_bar d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
             [ p [] [ text "The Garage -- editing ", a [ href model.paths.robot ] [ text model.apiContext.robot ] ]
-            , button [ class "button ml-5", onClick Save ] [ text "save" ]
+            , button [ class "button ml-4", onClick Save ] [ text "save" ]
             , p
                 [ class "mx-3"
                 , class <|
@@ -409,9 +409,12 @@ viewBar model =
                             "visible"
                 ]
                 [ text "saved" ]
-            , a [ href model.paths.publish ] [ text "ready to publish?" ]
             ]
-        , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
+        , div [ class "d-flex" ]
+            [ a [ class "mr-3", href model.paths.publish ] [ text "ready to publish?" ]
+            , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/" ] [ text "docs" ]
+            , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
+            ]
         ]
 
 

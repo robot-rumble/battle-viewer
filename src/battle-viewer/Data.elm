@@ -142,7 +142,7 @@ outcomeErrorToString outcomeError =
             error.message
 
         _ ->
-            "Internal error!"
+            "Internal error! If you would like to help, please reach out to antonoutkine@gmail.com and explain how you got here."
 
 
 outcomeErrorDecoder : Decoder OutcomeError

@@ -253,7 +253,7 @@ viewBar model =
         viewLoadingMessage message =
             div [ class "d-flex justify-content-center align-items-center" ]
                 [ p [ class "_text mr-2" ] [ text message ]
-                , img [ class "spinner", src <| model.assetsPath ++ "/images/spinner.gif" ] []
+                , img [ class "spinner", src <| model.assetsPath ++ "/images/spinner.svg" ] []
                 ]
     in
     div [ class "_run-bar" ]

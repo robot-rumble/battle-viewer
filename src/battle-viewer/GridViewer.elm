@@ -337,20 +337,7 @@ viewRobotInspector maybeUnit =
 
                             Err error ->
                                 if unit.isOurTeam then
-                                    div [ class "error" ]
-                                        [ p [] [ text <| "Error: " ++ Data.robotErrorToString error ]
-                                        , case error of
-                                            Data.RuntimeError details ->
-                                                case details.loc of
-                                                    Just loc ->
-                                                        p [] [ text <| "Line: " ++ String.fromInt (first loc.start) ]
-
-                                                    Nothing ->
-                                                        div [] []
-
-                                            _ ->
-                                                div [] []
-                                        ]
+                                    p [ class "error" ] [ text <| Data.robotErrorToString error ]
 
                                 else
                                     p [ class "error" ] [ text "Errored" ]
@@ -398,17 +385,6 @@ viewLogs maybeModel =
                             , class "error"
                             ]
                             [ text <| Data.outcomeErrorToString error
-                            , case error of
-                                Data.InitError details ->
-                                    case details.loc of
-                                        Just loc ->
-                                            text <| "\n\nLine: " ++ String.fromInt (first loc.start)
-
-                                        Nothing ->
-                                            text ""
-
-                                _ ->
-                                    text ""
                             ]
 
                     Nothing ->

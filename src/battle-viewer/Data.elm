@@ -139,7 +139,7 @@ outcomeErrorToString : OutcomeError -> String
 outcomeErrorToString outcomeError =
     case outcomeError of
         InitError error ->
-            error.message
+            error.summary ++ "\n" ++ error.details
 
         _ ->
             "Internal error! If you would like to help, please reach out to antonoutkine@gmail.com and explain how you got here."
@@ -174,7 +174,8 @@ outcomeErrorDecoder =
 
 
 type alias ErrorDetails =
-    { message : String
+    { summary : String
+    , details : String
     , loc : Maybe ErrorLoc
     }
 
@@ -182,7 +183,8 @@ type alias ErrorDetails =
 errorDecoder : Decoder ErrorDetails
 errorDecoder =
     succeed ErrorDetails
-        |> required "message" string
+        |> required "summary" string
+        |> required "details" string
         |> required "loc" (nullable errorLocDecoder)
 
 
@@ -263,10 +265,10 @@ type RobotError
 
 
 robotErrorToString : RobotError -> String
-robotErrorToString error =
-    case error of
-        RuntimeError runtimeError ->
-            runtimeError.message
+robotErrorToString robotError =
+    case robotError of
+        RuntimeError error ->
+            error.summary ++ "\n" ++ error.details
 
         InvalidAction message ->
             message

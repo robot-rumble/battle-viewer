@@ -222,7 +222,7 @@ type alias DebugTable =
 
 
 type alias ActionResult =
-    Result RobotError Action
+    Result RobotError (Maybe Action)
 
 
 type alias ProgressData =
@@ -244,7 +244,7 @@ progressDataDecoder =
     succeed ProgressData
         |> required "state" stateDecoder
         |> required "logs" (dict (list string))
-        |> required "robot_actions" (dict (result robotErrorDecoder actionDecoder))
+        |> required "robot_actions" (dict (result robotErrorDecoder (nullable actionDecoder)))
         |> required "debug_tables" (dict (dict string))
         |> required "debug_inspections" (dict (list string))
 

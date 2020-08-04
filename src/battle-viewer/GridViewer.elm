@@ -348,8 +348,11 @@ viewRobotInspector maybeUnit =
                             , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
                             ]
                         , case unit.action of
-                            Ok action ->
+                            Ok (Just action) ->
                                 p [] [ text <| "Next action: " ++ Data.actionToString action ]
+
+                            Ok Nothing ->
+                                p [] [ text <| "Next action: pass" ]
 
                             Err robotError ->
                                 if unit.isOurTeam then

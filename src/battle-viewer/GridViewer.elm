@@ -227,7 +227,23 @@ update msg model =
 
 view : Maybe Model -> Html Msg
 view maybeModel =
-    div [ class "_grid-viewer-root" ] [ viewMain maybeModel, viewLogs maybeModel ]
+    let
+        logBoxShown =
+            case maybeModel of
+                Just model ->
+                    model.team /= Nothing
+
+                Nothing ->
+                    True
+    in
+    div [ class "_grid-viewer-root" ] <|
+        [ viewMain maybeModel ]
+            ++ (if logBoxShown then
+                    [ viewLogs maybeModel ]
+
+                else
+                    []
+               )
 
 
 viewMain : Maybe Model -> Html Msg
@@ -258,7 +274,9 @@ viewMain maybeModel =
             [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
             , class "_inspector"
             ]
-            [ viewRobotInspector (maybeModel |> Maybe.andThen (\model -> model.selectedUnit))
+            [ viewRobotInspector
+                (maybeModel |> Maybe.andThen (\model -> model.selectedUnit))
+                (maybeModel |> Maybe.andThen (\model -> model.team))
             ]
         ]
 
@@ -323,14 +341,14 @@ viewErrorDetails errorDetails =
         ]
 
 
-viewRobotInspector : Maybe Unit -> Html Msg
-viewRobotInspector maybeUnit =
+viewRobotInspector : Maybe Unit -> Maybe Data.Team -> Html Msg
+viewRobotInspector maybeUnit maybeTeam =
     div [ class "box" ]
         [ p [ class "title" ] <|
             [ text "Robot Data" ]
                 ++ (case maybeUnit of
                         Just unit ->
-                            if not unit.isOurTeam then
+                            if not unit.isOurTeam && maybeTeam /= Nothing then
                                 [ span [ class "text-red" ] [ text " (enemy)" ] ]
 
                             else

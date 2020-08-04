@@ -307,6 +307,22 @@ viewSlider model =
         []
 
 
+viewErrorDetails : Data.ErrorDetails -> Html Msg
+viewErrorDetails errorDetails =
+    div []
+        [ p [ class "error" ] [ text errorDetails.summary ]
+        , case ( errorDetails.details, errorDetails.loc ) of
+            ( Just details, _ ) ->
+                p [ class "error mt-2", style "white-space" "pre" ] [ text details ]
+
+            ( Nothing, Just loc ) ->
+                p [ class "error mt-2" ] [ text <| "Line: " ++ String.fromInt (first loc.start) ]
+
+            _ ->
+                div [] []
+        ]
+
+
 viewRobotInspector : Maybe Unit -> Html Msg
 viewRobotInspector maybeUnit =
     div [ class "box" ]
@@ -335,9 +351,14 @@ viewRobotInspector maybeUnit =
                             Ok action ->
                                 p [] [ text <| "Next action: " ++ Data.actionToString action ]
 
-                            Err error ->
+                            Err robotError ->
                                 if unit.isOurTeam then
-                                    p [ class "error" ] [ text <| Data.robotErrorToString error ]
+                                    case robotError of
+                                        Data.RuntimeError errorDetails ->
+                                            viewErrorDetails errorDetails
+
+                                        Data.InvalidAction message ->
+                                            p [ class "error" ] [ text message ]
 
                                 else
                                     p [ class "error" ] [ text "Errored" ]
@@ -380,12 +401,14 @@ viewLogs maybeModel =
             Just model ->
                 case model.error of
                     Just error ->
-                        textarea
-                            [ readonly True
-                            , class "error"
-                            ]
-                            [ text <| Data.outcomeErrorToString error
-                            ]
+                        case error of
+                            Data.InitError errorDetails ->
+                                div [ style "white-space" "pre" ]
+                                    [ viewErrorDetails errorDetails
+                                    ]
+
+                            _ ->
+                                p [ class "error" ] [ text "Internal error! If you would like to help, please reach out to antonoutkine@gmail.com and explain how you got here." ]
 
                     Nothing ->
                         if List.isEmpty model.logs then

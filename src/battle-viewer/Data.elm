@@ -135,16 +135,6 @@ type OutcomeError
     | Timeout
 
 
-outcomeErrorToString : OutcomeError -> String
-outcomeErrorToString outcomeError =
-    case outcomeError of
-        InitError error ->
-            error.summary ++ "\n" ++ error.details
-
-        _ ->
-            "Internal error! If you would like to help, please reach out to antonoutkine@gmail.com and explain how you got here."
-
-
 outcomeErrorDecoder : Decoder OutcomeError
 outcomeErrorDecoder =
     oneOf
@@ -175,7 +165,7 @@ outcomeErrorDecoder =
 
 type alias ErrorDetails =
     { summary : String
-    , details : String
+    , details : Maybe String
     , loc : Maybe ErrorLoc
     }
 
@@ -184,7 +174,7 @@ errorDecoder : Decoder ErrorDetails
 errorDecoder =
     succeed ErrorDetails
         |> required "summary" string
-        |> required "details" string
+        |> required "details" (nullable string)
         |> required "loc" (nullable errorLocDecoder)
 
 
@@ -262,16 +252,6 @@ progressDataDecoder =
 type RobotError
     = RuntimeError ErrorDetails
     | InvalidAction String
-
-
-robotErrorToString : RobotError -> String
-robotErrorToString robotError =
-    case robotError of
-        RuntimeError error ->
-            error.summary ++ "\n" ++ error.details
-
-        InvalidAction message ->
-            message
 
 
 robotErrorDecoder : Decoder RobotError

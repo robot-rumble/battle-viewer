@@ -2,5 +2,11 @@
 @import '../battle-viewer/main';
 
 #viewer {
-  margin: 0 25%;
+  @extend .container;
+  height: 100%;
+  border: $border-2;
+}
+
+._app-root {
+  height: 100%;
 }

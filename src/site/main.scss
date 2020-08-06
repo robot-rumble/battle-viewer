@@ -39,6 +39,25 @@ body {
   border-top: $border-2;
 }
 
+table._battles {
+  ._robot {
+    background: var(--grey-4);
+  }
+
+  ._rating {
+    //background: hsl(0, 0%, 91%);
+    //padding: 3px;
+    color: grey;
+
+    img {
+      display: inline;
+      width: 13px;
+      vertical-align: middle;
+    }
+  }
+}
+
+
 //// tables
 
 tbody {
@@ -83,5 +102,15 @@ tbody {
     & > * {
       margin-right: map-get($spacers, 4);
     }
+  }
+}
+
+//// robot/battle.html
+.battle {
+  .winner {
+    position: relative;
+    padding: 0 1rem;
+    display: inline-block;
+    background: var(--grey-3);
   }
 }

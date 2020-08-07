@@ -30,17 +30,10 @@ $border-2: 2px solid var(--grey-3);
 $border-3: 1px solid var(--grey-3);
 
 @import '~bootstrap/scss/bootstrap-reboot';
-@import '~bootstrap/scss/utilities/flex';
-@import '~bootstrap/scss/utilities/spacing';
+@import '~bootstrap/scss/bootstrap-grid';
 
 .d-flex {
   display: flex;
-}
-
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: map_get($grid-breakpoints, lg);
 }
 
 .font-italic {

@@ -39,6 +39,59 @@ body {
   border-top: $border-2;
 }
 
+@include media-breakpoint-down(md) {
+  body {
+    font-size: 1rem;
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .header {
+    margin: map-get($spacers, 3);
+    flex-direction: column;
+    .links {
+      margin-top: map-get($spacers, 3);
+      flex-direction: column;
+    }
+  }
+
+  .main {
+    margin: map-get($spacers, 5) 0 0;
+
+    h1 {
+      margin-bottom: map-get($spacers, 3);
+    }
+  }
+
+  .footer {
+    font-size: 0.8rem;
+    flex-direction: column;
+    padding: map-get($spacers, 3);
+  }
+
+  tbody {
+    tr {
+      td {
+        padding: map_get($spacers, 1) map_get($spacers, 2) !important;
+      }
+    }
+  }
+
+  .battle {
+    ._app-root ._grid-viewer {
+      flex-direction: column;
+      align-items: center;
+      ._grid-viewer-main {
+        margin-bottom: map_get($spacers, 3);
+        width: 90%;
+      }
+      ._inspector {
+        width: 90%;
+      }
+    }
+  }
+}
+
 table._battles {
   ._robot {
     background: var(--grey-4);
@@ -61,6 +114,7 @@ table._battles {
 //// tables
 
 tbody {
+  white-space: nowrap;
   tr {
     border: $border-2;
     td {
@@ -76,8 +130,6 @@ tbody {
 
 .index {
   .overview {
-    font-size: $h5-font-size;
-
     .rules {
       margin-left: map-get($spacers, 3);
       margin-top: map-get($spacers, 2);
@@ -99,6 +151,7 @@ tbody {
 //// robot/view.html
 .robot-page {
   .actions {
+    white-space: nowrap;
     & > * {
       margin-right: map-get($spacers, 4);
     }

@@ -411,7 +411,7 @@ viewBar model =
                 [ text "saved" ]
             ]
         , div [ class "d-flex" ]
-            [ a [ class "mr-3", href model.paths.publish ] [ text "ready to publish?", target "_blank" ]
+            [ a [ class "mr-3", href model.paths.publish, target "_blank" ] [ text "ready to publish?" ]
             , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
             , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
             ]

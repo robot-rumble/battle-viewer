@@ -22,10 +22,12 @@ jobs:
       - run: yarn
       - run: yarn prod
       - run: aws s3 sync dist s3://${{ secrets.S3_BUCKET_PUBLIC }}/dist
+      - run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID }} --paths "/dist/*"
 
       - run: aws s3 sync s3://${{ secrets.S3_BUCKET_BUILD }}/browser-runner wasm-dist/browser-runner
       - run: yarn prod-worker
       - run: aws s3 sync worker-dist s3://${{ secrets.S3_BUCKET_PUBLIC }}/worker-assets
+      - run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_ID }} --paths "/worker-assets/*"
 
       - run: aws s3 sync s3://${{ secrets.S3_BUCKET_PUBLIC }}/images images
       - run: yarn prod-cli

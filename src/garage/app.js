@@ -22,8 +22,8 @@ function loadSettings() {
 function createRoutes(user, robot, robotId, assetsPath) {
   return {
     paths: {
-      robot: `/p/${user}/${robot}`,
-      publish: `/publish/${robotId}`,
+      robot: `/${user}/${robot}`,
+      publish: `/${user}/${robot}/publish`,
       assets: assetsPath,
     },
     apiPaths: {

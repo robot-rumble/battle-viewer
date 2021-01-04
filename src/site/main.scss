@@ -97,6 +97,10 @@ table._battles {
     background: var(--grey-4);
   }
 
+  ._robot._winner {
+    background: #e3e5ee;
+  }
+
   ._rating {
     //background: hsl(0, 0%, 91%);
     //padding: 3px;

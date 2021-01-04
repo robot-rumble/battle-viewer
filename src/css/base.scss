@@ -74,7 +74,11 @@ h6 {
 }
 
 h1 {
-  margin-bottom: map_get($spacers, 5);
+  margin-bottom: map_get($spacers, 4);
+}
+
+h2 {
+  margin-bottom: map_get($spacers, 3);
 }
 
 input,
@@ -84,6 +88,10 @@ select {
 
 a {
   color: var(--blue) !important;
+}
+
+a img {
+  width: 18px;
 }
 
 button {
@@ -125,4 +133,8 @@ button {
 
 .text-blue {
   color: var(--bright-blue);
+}
+
+.text-grey {
+  color: var(--grey-1);
 }

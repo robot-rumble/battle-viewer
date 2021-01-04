@@ -111,6 +111,29 @@ table._battles {
 }
 
 
+._table {
+  display: inline-block;
+  ._header, ._footer {
+    justify-content: space-between;
+    border: $border-2;
+    display: flex;
+    & > * {
+      padding: map_get($spacers, 1) map_get($spacers, 3);
+    }
+  }
+  ._header {
+    margin-bottom: -2px;
+    background: var(--grey-3);
+  }
+  ._footer {
+    margin-top: -2px;
+  }
+  ._body {
+    width: 100%;
+  }
+}
+
+
 //// tables
 
 tbody {

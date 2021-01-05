@@ -23,7 +23,7 @@ function createRoutes(user, robot, robotId, assetsPath) {
   return {
     paths: {
       robot: `/${user}/${robot}`,
-      publish: `/${user}/${robot}/publish`,
+      boards: '/boards',
       assets: assetsPath,
     },
     apiPaths: {

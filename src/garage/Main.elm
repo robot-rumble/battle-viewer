@@ -86,7 +86,7 @@ errorFromRenderState renderState =
 
 type alias Paths =
     { robot : String
-    , publish : String
+    , boards : String
     , assets : String
     }
 
@@ -411,7 +411,7 @@ viewBar model =
                 [ text "saved" ]
             ]
         , div [ class "d-flex" ]
-            [ a [ class "mr-3", href model.paths.publish, target "_blank" ] [ text "ready to publish?" ]
+            [ a [ class "mr-3", href model.paths.boards, target "_blank" ] [ text "publish to a board" ]
             , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
             , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
             ]

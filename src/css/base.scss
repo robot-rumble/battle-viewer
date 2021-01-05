@@ -29,6 +29,8 @@ $border-1: 2px solid var(--grey-2);
 $border-2: 2px solid var(--grey-3);
 $border-3: 1px solid var(--grey-3);
 
+$h2-font-size: $font-size-base * 1.75;
+
 @import '~bootstrap/scss/bootstrap-reboot';
 @import '~bootstrap/scss/bootstrap-grid';
 

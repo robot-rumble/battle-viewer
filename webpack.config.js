@@ -37,4 +37,14 @@ const siteConfig = createConfigBase(dist, {
   },
 })
 
-module.exports = [siteConfig, createConfig('garage'), createConfig('battle')]
+const baseConfig = createConfigBase(dist, {
+  name: 'base',
+  entry: {
+    base_js: './src/base/app.js',
+  },
+  module: {
+    rules: [loaders.js],
+  },
+})
+
+module.exports = [siteConfig, baseConfig, createConfig('garage'), createConfig('battle')]

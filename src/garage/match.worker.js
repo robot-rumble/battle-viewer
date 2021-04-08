@@ -44,11 +44,17 @@ class MatchWorker {
       worker1.terminate()
       worker2.terminate()
 
+      throw new Error('in worker')
+
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
       cb({ type: 'getOutput', data: finalState })
     } catch (e) {
       console.error('Error in worker', e, e && e.stack)
-      cb({ type: 'error', data: e.message })
+      // can't pass error object directly because of:
+      // DataCloneError: The object could not be cloned.
+      // so we stringify the error object, but there's a nuance to doing this
+      // https://stackoverflow.com/a/50738205
+      cb({ type: 'error', data: JSON.stringify(e, Object.getOwnPropertyNames(e)) })
     }
   }
 }

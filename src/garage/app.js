@@ -9,7 +9,6 @@ import Split from 'split.js'
 import * as Sentry from '@sentry/browser'
 import { Integrations } from '@sentry/tracing'
 
-
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
   integrations: [new Integrations.BrowserTracing()],
@@ -19,7 +18,6 @@ Sentry.init({
   // We recommend adjusting this value in production
   tracesSampleRate: 1.0,
 })
-
 
 function loadSettings() {
   let settings
@@ -178,8 +176,10 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   const runCallback = (data) => {
     if (data.type === 'error') {
+      const error = JSON.parse(data.data)
       console.log('Worker Error!')
-      console.error(data.data)
+      console.error(error)
+      Sentry.captureMessage(error)
       app.ports.getInternalError.send(null)
     } else if (data.type in app.ports) {
       if (data.type === 'getOutput') workerRunning = false
@@ -195,6 +195,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   app.ports.reportDecodeError.subscribe((error) => {
     console.log('Decode Error!')
     console.error(error)
+    Sentry.captureMessage(error)
   })
 }
 

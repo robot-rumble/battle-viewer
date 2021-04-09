@@ -76,6 +76,7 @@
   }
 
   ._run-bar {
+    user-select: none;
     text-align: center;
     position: relative;
     margin-bottom: map_get($spacers, 3);

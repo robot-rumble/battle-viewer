@@ -49,7 +49,7 @@ class WasiRunner {
   get_output(len) {
     const ptr = this.wasmExports.__rr_io_addr()
     const output = new Uint8Array(this.wasmExports.memory.buffer, ptr, len)
-    return output
+    return output.slice()
   }
   init(input) {
     this.set_input(input)

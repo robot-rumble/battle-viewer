@@ -224,24 +224,19 @@
 
       .obj {
         position: relative;
+        border: 1px solid var(--grey-3);
+        // to keep the colors of adjacent robots from blending together
+        // not a box-shadow because that clips between robots
 
         &.unit {
           cursor: pointer;
 
-          &.team-Red {
-            background: var(--light-red);
-
-            .health-bar {
-              background: var(--red);
-            }
+          &.team-Red .health-bar {
+            background: var(--red);
           }
 
-          &.team-Blue {
-            background: var(--light-blue);
-
-            .health-bar {
-              background: var(--blue);
-            }
+          &.team-Blue .health-bar {
+            background: var(--blue);
           }
         }
 
@@ -297,9 +292,12 @@
         filter: brightness(calc(1 - var(--is-dark-theme)));
       }
 
+      .obj.selected {
+        border: none;
+      }
       .obj.selected::before {
-        background: var(--black);
         z-index: 1;
+        box-shadow: 0 0 0 7px rgba(0, 0, 0, .3);
       }
     }
   }

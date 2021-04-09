@@ -149,14 +149,9 @@ gameObjs data selectedUnit maybeTeam =
                     )
                     [ case details of
                         Data.UnitDetails unit ->
-                            let
-                                health_perc =
-                                    toFloat unit.health / toFloat max_health * 100
-                            in
                             div
                                 [ class "health-bar"
-                                , style "width" <| to_perc health_perc
-                                , style "height" <| to_perc health_perc
+                                , style "opacity" <| String.fromFloat (toFloat unit.health / toFloat max_health)
                                 ]
                                 []
 

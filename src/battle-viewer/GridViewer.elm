@@ -16,7 +16,7 @@ import Tuple exposing (..)
 
 
 type alias Unit =
-    { isOurTeam : Bool, obj : Data.Obj, action : Data.ActionResult, debugTable : Maybe Data.DebugTable }
+    { isOurTeam : Bool, health : Int, obj : Data.Obj, action : Data.ActionResult, debugTable : Maybe Data.DebugTable }
 
 
 type alias Model =
@@ -102,7 +102,7 @@ selectUnit unitId maybeTeam turn =
                                 Nothing ->
                                     False
                     in
-                    Just <| Unit isOurTeam obj action debugTable
+                    Just <| Unit isOurTeam unit.health obj action debugTable
 
                 _ ->
                     Nothing
@@ -341,6 +341,8 @@ viewErrorDetails errorDetails =
         ]
 
 
+maxHealth = 5
+
 viewRobotInspector : Maybe Unit -> Maybe Data.Team -> Html Msg
 viewRobotInspector maybeUnit maybeTeam =
     div [ class "box" ]
@@ -364,6 +366,7 @@ viewRobotInspector maybeUnit maybeTeam =
                         [ div [ class "mb-2" ]
                             [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
                             , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
+                            , p [] [ text <| "Health: " ++ String.fromInt unit.health ++ " / " ++ String.fromInt maxHealth ]
                             ]
                         , case unit.action of
                             Ok (Just action) ->

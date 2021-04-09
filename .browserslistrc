@@ -1,7 +1,9 @@
 [garage]
+> 0.25%
 supports wasm
 
 [worker]
+> 0.25%
 supports wasm
 
 [site]

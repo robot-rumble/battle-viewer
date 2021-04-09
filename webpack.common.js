@@ -10,23 +10,24 @@ const dist =
     : path.join(__dirname, '../backend/public/dist')
 
 const loaders = {
-  js: {
+  js: (browserslistEnv) => ({
     test: /\.js$/,
     exclude: /node_modules/,
-    use: 'babel-loader',
-  },
+    use: {
+      loader: 'babel-loader',
+      options: {
+        presets: [
+          [
+            '@babel/preset-env',
+            { useBuiltIns: 'entry', corejs: 3, browserslistEnv },
+          ],
+        ],
+      },
+    },
+  }),
   css: {
     test: /\.(sa|sc|c)ss$/,
-    use: [
-      {
-        loader: MiniCssExtractPlugin.loader,
-        options: {
-          hmr: process.env.HOT === '1',
-        },
-      },
-      'css-loader',
-      'sass-loader',
-    ],
+    use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
   },
   elm: (module) => ({
     test: /\.elm$/,
@@ -49,10 +50,6 @@ const loaders = {
     test: /\.svg$/,
     use: 'url-loader',
   },
-  worker: {
-    test: /wasi\.worker\.js$/,
-    use: 'worker-loader',
-  },
 }
 
 function mergeCustomizer(objValue, srcValue) {
@@ -62,10 +59,11 @@ function mergeCustomizer(objValue, srcValue) {
 }
 
 function createConfigBase(dist, additional) {
-  return _.mergeWith({
+  const common = {
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
     output: {
+      publicPath: 'auto',
       path: dist,
     },
     devtool: 'source-map',
@@ -74,10 +72,14 @@ function createConfigBase(dist, additional) {
       new webpack.EnvironmentPlugin({
         NODE_ENV: 'development',
         BOT_LANG: process.env.BOT_LANG || 'Python',
-        SENTRY_DSN: process.env.NODE_ENV,
+        SENTRY_DSN: process.env.SENTRY_DSN || '',
       }),
     ],
-  }, additional, mergeCustomizer)
+    experiments: {
+      asyncWebAssembly: true,
+    },
+  }
+  return _.mergeWith(common, additional, mergeCustomizer)
 }
 
 function createDevServerConfig(base) {

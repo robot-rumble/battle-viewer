@@ -1,6 +1,5 @@
 const path = require('path')
 
-
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const CopyWebpackPlugin = require('copy-webpack-plugin')
 
@@ -15,7 +14,7 @@ module.exports = createConfigBase(dist, {
   entry: './src/cli/app.js',
   module: {
     rules: [
-      loaders.js,
+      loaders.js('cli'),
       loaders.css,
       loaders.elm('cli'),
       loaders.file,
@@ -24,13 +23,16 @@ module.exports = createConfigBase(dist, {
   },
   plugins: [
     new HtmlWebpackPlugin({ template: 'src/cli/index.html' }),
-    new CopyWebpackPlugin([
-      {
-        from: process.env.NODE_ENV === 'production'
-          ? path.join(__dirname, './images')
-          : path.join(__dirname, '../backend/public/images'),
-        to: path.join(dist, 'images'),
-      },
-    ]),
+    new CopyWebpackPlugin({
+      patterns: [
+        {
+          from:
+            process.env.NODE_ENV === 'production'
+              ? path.join(__dirname, './images')
+              : path.join(__dirname, '../backend/public/images'),
+          to: path.join(dist, 'images'),
+        },
+      ],
+    }),
   ],
 })

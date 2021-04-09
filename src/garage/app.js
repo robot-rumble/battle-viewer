@@ -9,15 +9,17 @@ import Split from 'split.js'
 import * as Sentry from '@sentry/browser'
 import { Integrations } from '@sentry/tracing'
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [new Integrations.BrowserTracing()],
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [new Integrations.BrowserTracing()],
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
-})
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  })
+}
 
 function loadSettings() {
   let settings
@@ -139,7 +141,7 @@ function init(node, flags, workerUrl, lang, assetsPath) {
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return 'You\'ve made unsaved changes.'
+      return "You've made unsaved changes."
     }
   }
 }

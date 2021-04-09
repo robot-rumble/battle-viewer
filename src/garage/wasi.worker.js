@@ -1,6 +1,6 @@
-import { WASI } from '@wasmer/wasi'
+import '../polyfill.js'
+import { WASI } from '@wasmer/wasi/lib/index.esm.js'
 import { WasmFs } from '@wasmer/wasmfs'
-import wasiBindings from '@wasmer/wasi/lib/bindings/browser'
 import * as Comlink from 'comlink'
 
 class WasiRunner {
@@ -16,7 +16,7 @@ class WasiRunner {
     const wasi = (this.wasi = new WASI({
       preopens: { '/': '/' },
       bindings: {
-        ...wasiBindings,
+        ...WASI.defaultBindings,
         fs: wasmFs.fs,
       },
     }))
@@ -49,6 +49,8 @@ class WasiRunner {
   get_output(len) {
     const ptr = this.wasmExports.__rr_io_addr()
     const output = new Uint8Array(this.wasmExports.memory.buffer, ptr, len)
+    // output is a view into the wasm memory buffer, we just want to return a
+    // standalone uint8array buffer, so we copy it with slice()
     return output.slice()
   }
   init(input) {
@@ -59,9 +61,9 @@ class WasiRunner {
     } catch (e) {
       console.error('error while initializing', e, e && e.stack)
       console.error(this.wasmFs.fs.readFileSync('/dev/stderr', 'utf8'))
-      return {
-        output: new TextEncoder().encode('{"Err":{"InternalError":null}}'),
-      }
+      this._initResult = new TextEncoder().encode(
+        '{"Err":{"InternalError":null}}',
+      )
     }
   }
   run_turn(input) {
@@ -77,9 +79,7 @@ class WasiRunner {
       console.error('error while running turn', e, e && e.stack)
       console.error(fs.readFileSync('/dev/stderr', 'utf8'))
       return {
-        output: new TextEncoder().encode(
-          '{"Err":{"InternalError":null}}',
-        ),
+        output: new TextEncoder().encode('{"Err":{"InternalError":null}}'),
         logs,
       }
     }

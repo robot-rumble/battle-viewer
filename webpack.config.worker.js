@@ -15,21 +15,25 @@ const logicWasmDist =
 
 module.exports = createConfigBase(dist, {
   entry: {
-    worker: ['@babel/polyfill', './src/garage/match.worker.js'],
+    worker: ['./src/polyfill.js', './src/garage/match.worker.js'],
   },
   target: 'webworker',
-  node: {
-    fs: 'empty',
-  },
   module: {
-    rules: [loaders.js, loaders.worker],
+    rules: [loaders.js('worker')],
   },
   resolve: {
     alias: {
       logic: path.join(logicWasmDist, 'browser-runner'),
     },
   },
-  plugins: process.env.NODE_ENV !== 'production'
-    ? [new CopyPlugin([{ from: path.join(logicWasmDist, 'lang-runners'), to: dist }])]
-    : [],
+  plugins:
+    process.env.NODE_ENV !== 'production'
+      ? [
+          new CopyPlugin({
+            patterns: [
+              { from: path.join(logicWasmDist, 'lang-runners'), to: dist },
+            ],
+          }),
+        ]
+      : [],
 })

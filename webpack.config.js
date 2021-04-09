@@ -1,4 +1,6 @@
 const path = require('path')
+const _ = require('lodash')
+const CopyPlugin = require('copy-webpack-plugin')
 
 const {
   createConfigBase,
@@ -11,12 +13,12 @@ function createConfig(module) {
   return createConfigBase(dist, {
     name: module,
     entry: {
-      [`${module}_js`]: ['@babel/polyfill', `./src/${module}/app.js`],
+      [`${module}_js`]: ['./src/polyfill.js', `./src/${module}/app.js`],
       [`${module}_css`]: `./src/${module}/main.scss`,
     },
     module: {
       rules: [
-        loaders.js,
+        loaders.js(module),
         loaders.css,
         loaders.elm(module),
         loaders.file,
@@ -34,7 +36,7 @@ const siteConfig = createConfigBase(dist, {
     site_css: './src/site/main.scss',
   },
   module: {
-    rules: [loaders.js, loaders.css, loaders.file],
+    rules: [loaders.js('site'), loaders.css, loaders.file],
   },
 })
 

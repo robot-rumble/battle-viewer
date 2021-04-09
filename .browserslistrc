@@ -1,0 +1,13 @@
+[garage]
+supports wasm
+
+[worker]
+supports wasm
+
+[site]
+> 0.25%
+not dead
+
+[battle]
+> 0.25%
+not dead

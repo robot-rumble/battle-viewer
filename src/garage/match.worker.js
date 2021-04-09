@@ -1,4 +1,3 @@
-import RawWasiWorker from './wasi.worker.js'
 import * as Comlink from 'comlink'
 
 import fetchRunner from './fetchRunner'
@@ -17,7 +16,9 @@ class MatchWorker {
 
       const makeRunner = async ({ code, lang }) => {
         const langRunner = await fetchRunner(assetsPath, lang, () => {})
-        const rawWorker = new RawWasiWorker()
+        const rawWorker = new Worker(
+          new URL('./wasi.worker.js', import.meta.url),
+        )
         const WasiWorker = Comlink.wrap(rawWorker)
         const runner = await new WasiWorker(langRunner)
         await runner.setup()
@@ -43,8 +44,6 @@ class MatchWorker {
 
       worker1.terminate()
       worker2.terminate()
-
-      throw new Error('in worker')
 
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
       cb({ type: 'getOutput', data: finalState })

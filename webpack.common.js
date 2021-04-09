@@ -38,6 +38,7 @@ const loaders = {
         options: {
           optimize: process.env.NODE_ENV === 'production',
           cwd: path.join(__dirname, `./src/${module}`),
+          debug: false,
         },
       },
     ]),

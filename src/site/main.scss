@@ -121,7 +121,7 @@ tbody {
     }
   }
 
-  img {
+  img._demo {
     width: 400px;
   }
 }
@@ -156,6 +156,13 @@ tbody {
   }
 }
 
+//// board/index.html
+.boards {
+  h2 {
+    margin-top: 3rem;
+  }
+}
+
 
 @include media-breakpoint-down(md) {
   body {
@@ -163,7 +170,7 @@ tbody {
   }
 
   .index {
-    img {
+    img._demo {
       width: 60vw;
     }
   }

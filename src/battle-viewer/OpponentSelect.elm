@@ -14,6 +14,7 @@ type alias Model =
     { apiContext : Api.Context
     , opponent : Opponent
     , userRobots : List Api.Robot
+    , builtinRobots : List Api.Robot
     , apiError : Maybe String
     }
 
@@ -46,7 +47,14 @@ userOwnsOpponent model userId =
 
 init : Api.Context -> ( Model, Cmd Msg )
 init apiContext =
-    ( Model apiContext Itself [] Nothing, Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots )
+    let
+        getUserRobotsCmd =
+            Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots
+
+        getBuiltinRobotsCmd =
+            Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
+    in
+    ( Model apiContext Itself [] [] Nothing, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
 
 
 
@@ -56,6 +64,7 @@ init apiContext =
 type Msg
     = SelectOpponent Opponent
     | GotUserRobots (Api.Result (List Api.Robot))
+    | GotBuiltinRobots (Api.Result (List Api.Robot))
     | GotCode (Api.Result String)
 
 
@@ -97,6 +106,16 @@ update msg model =
             , Cmd.none
             )
 
+        GotBuiltinRobots result ->
+            ( case result of
+                Ok robots ->
+                    { model | builtinRobots = robots }
+
+                Err error ->
+                    { model | apiError = Just <| Api.errorToString error }
+            , Cmd.none
+            )
+
         GotCode result ->
             ( case result of
                 Ok code ->
@@ -125,7 +144,7 @@ view model =
     div [ class "_opponent-select" ] <|
         (case model.apiError of
             Just _ ->
-                [ p [ class "error" ] [ text "Api error! Something broke. Unfortunately, you can't switch your opponent for now, but we're working on this." ] ]
+                [ p [ class "error" ] [ text "Api error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
 
             Nothing ->
                 []
@@ -133,30 +152,43 @@ view model =
             ++ [ button [ class "button", onClick <| SelectOpponent Itself ] [ text "Itself" ]
                , div []
                     [ p [ class "mb-2" ] [ text "Your robots" ]
-                    , div [] <|
-                        if List.isEmpty model.userRobots then
-                            [ p [ class "font-italic" ] [ text "nothing here" ] ]
-
-                        else
-                            model.userRobots
-                                |> List.map
-                                    (\robot ->
-                                        div [ class "d-flex" ] <|
-                                            [ button
-                                                [ class "mb-2 mr-3 button"
-                                                , onClick <| SelectOpponent (Robot { robot = robot, code = Nothing })
-                                                ]
-                                                [ text robot.basic.name ]
-                                            ]
-                                                ++ (case robot.details of
-                                                        Api.Site _ ->
-                                                            [ a [ href <| Api.urlForViewingRobot model.apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ]
-                                                            , a [ href <| Api.urlForEditingRobot model.apiContext robot.basic.id, target "_blank" ] [ text "edit" ]
-                                                            ]
-
-                                                        Api.Local ->
-                                                            []
-                                                   )
-                                    )
+                    , viewRobotsList model.apiContext model.userRobots
+                    ]
+               , div []
+                    [ p [ class "mb-2" ] [ text "Built-in robots" ]
+                    , viewRobotsList model.apiContext model.builtinRobots
                     ]
                ]
+
+
+viewRobotsList : Api.Context -> List Api.Robot -> Html Msg
+viewRobotsList apiContext robots =
+    if List.isEmpty robots then
+        p [ class "font-italic" ] [ text "nothing here" ]
+
+    else
+        div [] <|
+            List.map
+                (\robot ->
+                    div [ class "d-flex" ] <|
+                        [ button
+                            [ class "mb-2 mr-3 button"
+                            , onClick <| SelectOpponent (Robot { robot = robot, code = Nothing })
+                            ]
+                            [ text robot.basic.name ]
+                        ]
+                            ++ (case robot.details of
+                                    Api.Site siteRobot ->
+                                        [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ]
+                                        , if siteRobot.userId == apiContext.userId then
+                                            a [ href <| Api.urlForEditingRobot apiContext robot.basic.id, target "_blank" ] [ text "edit" ]
+
+                                          else
+                                            div [] []
+                                        ]
+
+                                    Api.Local ->
+                                        []
+                               )
+                )
+                robots

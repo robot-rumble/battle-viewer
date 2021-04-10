@@ -8,6 +8,7 @@ module Api exposing
     , RobotId(..)
     , UserId(..)
     , errorToString
+    , getBuiltinRobots
     , getRobotCode
     , getUserRobots
     , makeRequest
@@ -189,11 +190,9 @@ type RobotDetails
 
 
 type alias SiteRobot =
-    { id : RobotId
-    , userId : UserId
-    , name : String
-    , lang : String
+    { userId : UserId
     , published : Bool
+    , lang : String
     }
 
 
@@ -205,11 +204,9 @@ objDetailsDecoder =
 siteRobotDecoder : Decoder RobotDetails
 siteRobotDecoder =
     succeed SiteRobot
-        |> required "id" (id |> map RobotId)
         |> required "userId" (id |> map UserId)
-        |> required "name" string
-        |> required "lang" string
         |> required "published" bool
+        |> required "lang" string
         |> map Site
 
 
@@ -225,6 +222,15 @@ localRobotDecoder =
 getUserRobots : Context -> String -> Request (List Robot)
 getUserRobots context user =
     Get ( context.paths.getUserRobots, [ user ], list robotDecoder )
+
+
+builtinUsername =
+    "builtin"
+
+
+getBuiltinRobots : Context -> Request (List Robot)
+getBuiltinRobots context =
+    getUserRobots context builtinUsername
 
 
 getRobotCode : Context -> RobotId -> Request String

@@ -16,20 +16,23 @@ if (process.env.SENTRY_DSN) {
 }
 
 export function captureMessage(message, data) {
-  if (!process.env.SENTRY_DSN) return
-
   // Sentry doesn't provide the option of seeing the full message if it's long
   // and Elm decode errors that log the entire data structure are very long
   // and have the useful bit at the very end, which is truncated by Sentry
   const truncatedData = data.length < 2000 ? data : data.slice(0, 1000) + '\n...TRUNCATED...\n' + data.slice(-1000)
 
-  console.log('The following information has been reported:')
-  console.log(truncatedData)
+  if (process.env.SENTRY_DSN) {
+    console.log('The following information has been reported:')
+    console.log(truncatedData)
 
-  Sentry.captureEvent({
-    message,
-    breadcrumbs: [{
-      message: truncatedData,
-    }],
-  })
+    Sentry.captureEvent({
+      message,
+      breadcrumbs: [{
+        message: truncatedData,
+      }],
+    })
+  } else {
+    console.log('Error reporting is currently turned off. Here is what would have been reported:')
+    console.log(truncatedData)
+  }
 }

@@ -87,17 +87,22 @@ view : Model -> Html Msg
 view model =
     div [ class "_opponent-select" ]
         [ button [ onClick <| SelectOpponent Itself ] [ text "Itself" ]
-        , div []
-            [ p [] [ text "Your published robots" ]
-            , div [] <|
-                if List.isEmpty model.userRobots then
-                    [ p [ class "font-italic" ] [ text "nothing here" ] ]
-
-                else
-                    model.userRobots
-                        |> List.map
-                            (\robot ->
-                                button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
-                            )
+        , p []
+            [ text "More coming soon! In the meantime, if you would like to battle against a different opponent, either publish your robot, or download "
+            , a [ href "https://rr-docs.readthedocs.io/en/latest/rumblebot.html" ] [ text "rumblebot" ]
             ]
+
+        --, div []
+        --    [ p [] [ text "Your published robots" ]
+        --    , div [] <|
+        --        if List.isEmpty model.userRobots then
+        --            [ p [ class "font-italic" ] [ text "nothing here" ] ]
+        --
+        --        else
+        --            model.userRobots
+        --                |> List.map
+        --                    (\robot ->
+        --                        button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
+        --                    )
+        --    ]
         ]

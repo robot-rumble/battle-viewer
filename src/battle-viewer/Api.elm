@@ -100,7 +100,6 @@ type alias Id =
 type alias Robot =
     { id : Id
     , name : String
-    , rating : Int
     , lang : String
     , published : Bool
     }
@@ -110,7 +109,6 @@ robotDecoder =
     succeed Robot
         |> required "id" int
         |> required "name" string
-        |> required "rating" int
         |> required "lang" string
         |> required "published" bool
 

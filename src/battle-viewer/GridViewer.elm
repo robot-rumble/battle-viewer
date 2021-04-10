@@ -398,7 +398,7 @@ viewRobotInspector maybeUnit maybeTeam =
                                         []
                         in
                         if List.isEmpty debugPairs then
-                            p [ class "info mt-2" ] [ text "no watch data. ", a [ href "https://rr-docs.readthedocs.io/en/latest/quickstart.html#debugging-your-robot", target "_blank" ] [ text "learn more" ] ]
+                            p [ class "info mt-2" ] [ text "no data inspected. ", a [ href "https://rr-docs.readthedocs.io/en/latest/debugging.html", target "_blank" ] [ text "learn more" ] ]
 
                         else
                             div [ class "_table mt-3" ] <|

@@ -1,19 +1,23 @@
 import * as Sentry from '@sentry/browser'
 import { Integrations } from '@sentry/tracing'
 
-// Sentry fails silently if DSN isn't provided
-// so this should work for dev mode
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  integrations: [new Integrations.BrowserTracing()],
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [new Integrations.BrowserTracing()],
 
-  // Set tracesSampleRate to 1.0 to capture 100%
-  // of transactions for performance monitoring.
-  // We recommend adjusting this value in production
-  tracesSampleRate: 1.0,
-})
+    // Set tracesSampleRate to 1.0 to capture 100%
+    // of transactions for performance monitoring.
+    // We recommend adjusting this value in production
+    tracesSampleRate: 1.0,
+  })
+} else {
+  console.log('Sentry is turned off.')
+}
 
 export function captureMessage(message, data) {
+  if (!process.env.SENTRY_DSN) return
+
   // Sentry doesn't provide the option of seeing the full message if it's long
   // and Elm decode errors that log the entire data structure are very long
   // and have the useful bit at the very end, which is truncated by Sentry

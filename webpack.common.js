@@ -73,7 +73,7 @@ function createConfigBase(dist, additional) {
       new webpack.EnvironmentPlugin({
         NODE_ENV: 'development',
         BOT_LANG: process.env.BOT_LANG || 'Python',
-        SENTRY_DSN: process.env.SENTRY_DSN,
+        SENTRY_DSN: process.env.SENTRY_DSN || null,
       }),
     ],
     experiments: {

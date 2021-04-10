@@ -342,7 +342,9 @@ viewErrorDetails errorDetails =
         ]
 
 
-maxHealth = 5
+maxHealth =
+    5
+
 
 viewRobotInspector : Maybe Unit -> Maybe Data.Team -> Html Msg
 viewRobotInspector maybeUnit maybeTeam =
@@ -364,7 +366,7 @@ viewRobotInspector maybeUnit maybeTeam =
             Just unit ->
                 div []
                     [ div []
-                        [ div [ class "mb-2" ]
+                        [ div []
                             [ p [] [ text <| "Id: " ++ (first unit.obj).id ]
                             , p [] [ text <| "Coords: " ++ Data.coordsToString (first unit.obj).coords ]
                             , p [] [ text <| "Health: " ++ String.fromInt unit.health ++ " / " ++ String.fromInt maxHealth ]
@@ -388,8 +390,15 @@ viewRobotInspector maybeUnit maybeTeam =
                                 else
                                     p [ class "error" ] [ text "Errored" ]
                         ]
-                    , if unit.isOurTeam then
-                        let
+                    ]
+
+            Nothing ->
+                div [] [ p [ class "info" ] [ text "No unit selected" ] ]
+        , case maybeUnit of
+            Just unit ->
+                if unit.isOurTeam then
+                    div [ class "_table-wrapper" ]
+                        [ let
                             debugPairs =
                                 case unit.debugInspectTable of
                                     Just debugInspectTable ->
@@ -397,24 +406,24 @@ viewRobotInspector maybeUnit maybeTeam =
 
                                     Nothing ->
                                         []
-                        in
-                        if List.isEmpty debugPairs then
-                            p [ class "info mt-2" ] [ text "no data inspected. ", a [ href "https://rr-docs.readthedocs.io/en/latest/debugging.html", target "_blank" ] [ text "learn more" ] ]
+                          in
+                          if List.isEmpty debugPairs then
+                            p [ class "info mt-1" ] [ text "no data inspected. ", a [ href "https://rr-docs.readthedocs.io/en/latest/debugging.html", target "_blank" ] [ text "learn more" ] ]
 
-                        else
-                            div [ class "_table mt-3" ] <|
+                          else
+                            div [ class "_table mt-1" ] <|
                                 List.map
                                     (\( key, val ) ->
                                         p [] [ text <| key ++ ": " ++ val ]
                                     )
                                     debugPairs
+                        ]
 
-                      else
-                        div [] []
-                    ]
+                else
+                    div [ style "padding" "0" ] []
 
             Nothing ->
-                div [] [ p [ class "info" ] [ text "No unit selected" ] ]
+                div [ style "padding" "0" ] []
         ]
 
 

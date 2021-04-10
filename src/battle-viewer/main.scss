@@ -190,8 +190,12 @@
     border: $border-2;
     overflow: auto;
 
-    ._table {
-      line-height: 1;
+    ._table-wrapper {
+      background: var(--grey-3);
+
+      ._table {
+        line-height: 1;
+      }
     }
 
     .info {

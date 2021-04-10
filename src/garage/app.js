@@ -6,20 +6,7 @@ import * as Comlink from 'comlink'
 
 import Split from 'split.js'
 
-import * as Sentry from '@sentry/browser'
-import { Integrations } from '@sentry/tracing'
-
-if (process.env.SENTRY_DSN) {
-  Sentry.init({
-    dsn: process.env.SENTRY_DSN,
-    integrations: [new Integrations.BrowserTracing()],
-
-    // Set tracesSampleRate to 1.0 to capture 100%
-    // of transactions for performance monitoring.
-    // We recommend adjusting this value in production
-    tracesSampleRate: 1.0,
-  })
-}
+import { captureMessage } from '../sentry'
 
 function loadSettings() {
   let settings
@@ -180,8 +167,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     if (data.type === 'error') {
       const error = JSON.parse(data.data)
       console.log('Worker Error!')
-      console.error(error)
-      Sentry.captureMessage(error)
+      captureMessage('Garage worker error', error)
       app.ports.getInternalError.send(null)
     } else if (data.type in app.ports) {
       if (data.type === 'getOutput') workerRunning = false
@@ -196,8 +182,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   app.ports.reportDecodeError.subscribe((error) => {
     console.log('Decode Error!')
-    console.error(error)
-    Sentry.captureMessage(error)
+    captureMessage('Garage decode error', error)
   })
 }
 

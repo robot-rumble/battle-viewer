@@ -1,4 +1,5 @@
 import { Elm } from './Main.elm'
+import { captureMessage } from '../sentry'
 
 customElements.define(
   'battle-el',
@@ -9,11 +10,16 @@ customElements.define(
       if (!data) {
         throw new Error('No data attribute found')
       }
-      console.log(data)
 
-      Elm.Main.init({
+      const app = Elm.Main.init({
         node: this,
         flags: { data: JSON.parse(data), team },
+      })
+
+      app.ports.reportDecodeError.subscribe((error) => {
+        console.log('Decode Error!')
+        // don't do console.log or else Sentry will pick that up as a breadcrumb
+        captureMessage('Battle viewer decode error', error)
       })
     }
   },

@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Data
@@ -30,13 +30,16 @@ type alias Model =
     Maybe GridViewer.Model
 
 
+port reportDecodeError : String -> Cmd msg
+
+
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         output =
             Data.decodeFullOutcomeData flags.data
     in
-    ( case output of
+    case output of
         Ok outputData ->
             let
                 turnNum =
@@ -45,15 +48,15 @@ init flags =
                 gridViewerModel =
                     GridViewer.init turnNum flags.team
             in
-            Just
+            ( Just
                 (List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel outputData.turns
                     |> GridViewer.update (GridViewer.GotErrors outputData.errors)
                 )
+            , Cmd.none
+            )
 
-        Err _ ->
-            Nothing
-    , Cmd.none
-    )
+        Err error ->
+            ( Nothing, reportDecodeError <| Decode.errorToString error )
 
 
 type alias Flags =

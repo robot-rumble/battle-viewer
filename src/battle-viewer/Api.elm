@@ -1,4 +1,4 @@
-module Api exposing (Context, Id, Paths, Result, Robot, getRobotCode, getUserRobots, makeRequest, updateRobotCode)
+module Api exposing (Context, Id, Paths, Result, Robot, errorToString, getRobotCode, getUserRobots, makeRequest, updateRobotCode)
 
 import Http exposing (Part, stringPart)
 import Json.Decode exposing (..)
@@ -29,6 +29,31 @@ type alias Error =
 
 type alias Result val =
     Result.Result Error val
+
+
+errorToString : Error -> String
+errorToString error =
+    case error of
+        Http.BadUrl url ->
+            "The URL " ++ url ++ " was invalid"
+
+        Http.Timeout ->
+            "Unable to reach the server, try again"
+
+        Http.NetworkError ->
+            "Unable to reach the server, check your network connection"
+
+        Http.BadStatus 500 ->
+            "The server had a problem, try again later"
+
+        Http.BadStatus 400 ->
+            "Verify your information and try again"
+
+        Http.BadStatus _ ->
+            "Unknown error"
+
+        Http.BadBody errorMessage ->
+            errorMessage
 
 
 type alias Endpoint val =

@@ -14,6 +14,7 @@ type alias Model =
     { apiContext : Api.Context
     , opponent : Opponent
     , userRobots : List Api.Robot
+    , apiError : Maybe String
     }
 
 
@@ -24,7 +25,7 @@ type Opponent
 
 init : Api.Context -> ( Model, Cmd Msg )
 init apiContext =
-    ( Model apiContext Itself [], Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots )
+    ( Model apiContext Itself [] Nothing, Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots )
 
 
 
@@ -55,26 +56,26 @@ update msg model =
                 Ok data ->
                     { model | userRobots = data |> List.filter (\robot -> robot.published && robot.name /= model.apiContext.robot) }
 
-                Err _ ->
-                    model
+                Err error ->
+                    { model | apiError = Just <| Api.errorToString error }
             , Cmd.none
             )
 
         GotCode result ->
-            ( { model
-                | opponent =
-                    case result of
-                        Ok code ->
+            ( case result of
+                Ok code ->
+                    { model
+                        | opponent =
                             case model.opponent of
                                 Robot ( robot, _ ) ->
                                     Robot ( robot, Just code )
 
                                 other ->
                                     other
+                    }
 
-                        Err _ ->
-                            model.opponent
-              }
+                Err error ->
+                    { model | apiError = Just <| Api.errorToString error }
             , Cmd.none
             )
 
@@ -86,23 +87,24 @@ update msg model =
 view : Model -> Html Msg
 view model =
     div [ class "_opponent-select" ]
-        [ button [ onClick <| SelectOpponent Itself ] [ text "Itself" ]
-        , p []
-            [ text "More coming soon! In the meantime, if you would like to battle against a different opponent, either publish your robot, or download "
-            , a [ href "https://rr-docs.readthedocs.io/en/latest/rumblebot.html" ] [ text "rumblebot" ]
-            ]
+        [ case model.apiError of
+            Just _ ->
+                p [ class "error" ] [ text "Api error! Something broke. Unfortunately, you can't switch your opponent for now, but we're working on this." ]
 
-        --, div []
-        --    [ p [] [ text "Your published robots" ]
-        --    , div [] <|
-        --        if List.isEmpty model.userRobots then
-        --            [ p [ class "font-italic" ] [ text "nothing here" ] ]
-        --
-        --        else
-        --            model.userRobots
-        --                |> List.map
-        --                    (\robot ->
-        --                        button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
-        --                    )
-        --    ]
+            Nothing ->
+                div [] []
+        , button [ onClick <| SelectOpponent Itself ] [ text "Itself" ]
+        , div []
+            [ p [] [ text "Your published robots" ]
+            , div [] <|
+                if List.isEmpty model.userRobots then
+                    [ p [ class "font-italic" ] [ text "nothing here" ] ]
+
+                else
+                    model.userRobots
+                        |> List.map
+                            (\robot ->
+                                button [ onClick <| SelectOpponent (Robot ( robot, Nothing )) ] [ text robot.name ]
+                            )
+            ]
         ]

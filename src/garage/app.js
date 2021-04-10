@@ -29,9 +29,9 @@ function createRoutes(user, robot, robotId, assetsPath) {
       assets: assetsPath,
     },
     apiPaths: {
-      getUserRobots: `/api/get-user-robots`,
-      getRobotCode: `/api/get-robot-code`,
-      updateRobotCode: `/api/update-robot-code`,
+      getUserRobots: '/api/get-user-robots',
+      getRobotCode: '/api/get-robot-code',
+      updateRobotCode: '/api/update-robot-code',
     },
   }
 }
@@ -184,5 +184,9 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     console.log('Decode Error!')
     captureMessage('Garage decode error', error)
   })
-}
 
+  app.ports.reportApiError.subscribe((error) => {
+    console.log('Api Error!')
+    captureMessage('Garage Api error', error)
+  })
+}

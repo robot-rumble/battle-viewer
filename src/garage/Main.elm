@@ -152,6 +152,9 @@ port startEval : Encode.Value -> Cmd msg
 port reportDecodeError : String -> Cmd msg
 
 
+port reportApiError : String -> Cmd msg
+
+
 port savedCode : String -> Cmd msg
 
 
@@ -233,69 +236,82 @@ update msg model =
                 ( newBattleViewerModel, renderCmd ) =
                     BattleViewer.update renderMsg model.battleViewerModel
             in
-            case renderMsg of
-                BattleViewer.Run turnNum ->
-                    let
-                        encodeCode ( code, lang ) =
-                            Encode.object
-                                [ ( "code", Encode.string code )
-                                , ( "lang", Encode.string lang )
-                                ]
+            let
+                ( newModel, newCmd ) =
+                    case renderMsg of
+                        BattleViewer.Run turnNum ->
+                            let
+                                encodeCode ( code, lang ) =
+                                    Encode.object
+                                        [ ( "code", Encode.string code )
+                                        , ( "lang", Encode.string lang )
+                                        ]
 
-                        selfCode =
-                            ( model.code, model.lang )
+                                selfCode =
+                                    ( model.code, model.lang )
 
-                        maybeOpponentCode =
-                            case model.battleViewerModel.opponentSelectState.opponent of
-                                OpponentSelect.Robot ( robot, code ) ->
-                                    code |> Maybe.map (\c -> ( c, robot.lang ))
+                                maybeOpponentCode =
+                                    case model.battleViewerModel.opponentSelectState.opponent of
+                                        OpponentSelect.Robot ( robot, code ) ->
+                                            code |> Maybe.map (\c -> ( c, robot.lang ))
 
-                                OpponentSelect.Itself ->
-                                    Just selfCode
-                    in
-                    case maybeOpponentCode of
-                        Just opponentCode ->
-                            ( { model | battleViewerModel = newBattleViewerModel, error = Nothing }
-                            , startEval <|
-                                Encode.object
-                                    [ ( "code", encodeCode selfCode )
-                                    , ( "opponentCode", encodeCode opponentCode )
-                                    , ( "turnNum", Encode.int turnNum )
-                                    ]
+                                        OpponentSelect.Itself ->
+                                            Just selfCode
+                            in
+                            case maybeOpponentCode of
+                                Just opponentCode ->
+                                    ( { model | battleViewerModel = newBattleViewerModel, error = Nothing }
+                                    , startEval <|
+                                        Encode.object
+                                            [ ( "code", encodeCode selfCode )
+                                            , ( "opponentCode", encodeCode opponentCode )
+                                            , ( "turnNum", Encode.int turnNum )
+                                            ]
+                                    )
+
+                                Nothing ->
+                                    ( { model | battleViewerModel = newBattleViewerModel }, Cmd.none )
+
+                        other ->
+                            ( case other of
+                                BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
+                                    { model
+                                        | battleViewerModel = newBattleViewerModel
+                                        , error = Nothing
+                                    }
+
+                                -- an error can be set on a turn/slider change or unit selection
+                                BattleViewer.GotRenderMsg _ ->
+                                    { model
+                                        | battleViewerModel = newBattleViewerModel
+                                        , error = errorFromRenderState newBattleViewerModel.renderState
+                                        , errorCounter = model.errorCounter + 1
+                                    }
+
+                                -- an error can also be set automatically on an initial load if one of the robots in the
+                                -- first turn has a runtime exception
+                                BattleViewer.GotProgress _ ->
+                                    { model
+                                        | battleViewerModel = newBattleViewerModel
+                                        , error = errorFromRenderState newBattleViewerModel.renderState
+                                        , errorCounter = model.errorCounter + 1
+                                    }
+
+                                _ ->
+                                    { model | battleViewerModel = newBattleViewerModel }
+                            , Cmd.map GotRenderMsg renderCmd
                             )
+            in
+            let
+                reportApiErrorCmd =
+                    case newBattleViewerModel.apiError of
+                        Just error ->
+                            reportApiError error
 
                         Nothing ->
-                            ( { model | battleViewerModel = newBattleViewerModel }, Cmd.none )
-
-                other ->
-                    ( case other of
-                        BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
-                            { model
-                                | battleViewerModel = newBattleViewerModel
-                                , error = Nothing
-                            }
-
-                        -- an error can be set on a turn/slider change or unit selection
-                        BattleViewer.GotRenderMsg _ ->
-                            { model
-                                | battleViewerModel = newBattleViewerModel
-                                , error = errorFromRenderState newBattleViewerModel.renderState
-                                , errorCounter = model.errorCounter + 1
-                            }
-
-                        -- an error can also be set automatically on an initial load if one of the robots in the
-                        -- first turn has a runtime exception
-                        BattleViewer.GotProgress _ ->
-                            { model
-                                | battleViewerModel = newBattleViewerModel
-                                , error = errorFromRenderState newBattleViewerModel.renderState
-                                , errorCounter = model.errorCounter + 1
-                            }
-
-                        _ ->
-                            { model | battleViewerModel = newBattleViewerModel }
-                    , Cmd.map GotRenderMsg renderCmd
-                    )
+                            Cmd.none
+            in
+            ( newModel, Cmd.batch [ newCmd, reportApiErrorCmd ] )
 
         CodeChanged code ->
             ( { model | code = code }, Cmd.none )

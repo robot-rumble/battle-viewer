@@ -22,6 +22,7 @@ to_perc float =
 
 type alias Model =
     { apiContext : Api.Context
+    , apiError : Maybe String
     , winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
@@ -58,7 +59,7 @@ init apiContext assetsPath isRunnerLoading robot team =
             else
                 NoRender
     in
-    ( Model apiContext Nothing renderState model False assetsPath robot team, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing Nothing renderState model False assetsPath robot team, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -106,6 +107,7 @@ update msg model =
 
                         _ ->
                             model.viewingOpponentSelect
+                , apiError = selectModel.apiError
               }
             , Cmd.map GotOpponentSelectMsg selectCmd
             )

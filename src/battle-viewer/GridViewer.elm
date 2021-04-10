@@ -321,6 +321,7 @@ viewSlider model =
         , Html.Attributes.max <| String.fromInt (model.turnNum - 1)
         , value <| String.fromInt model.currentTurn
         , onInput SliderChange
+        , disabled <| Array.length model.turns == 0
         ]
         []
 
@@ -427,7 +428,7 @@ viewLogs maybeModel =
                     Just error ->
                         case error of
                             Data.InitError errorDetails ->
-                                div [ style "white-space" "pre" ]
+                                div [ style "white-space" "pre", class "error-wrapper" ]
                                     [ viewErrorDetails errorDetails
                                     ]
 

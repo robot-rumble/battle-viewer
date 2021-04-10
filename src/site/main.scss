@@ -39,59 +39,6 @@ body {
   border-top: $border-2;
 }
 
-@include media-breakpoint-down(md) {
-  body {
-    font-size: 1rem;
-  }
-}
-
-@include media-breakpoint-down(sm) {
-  .header {
-    margin: map-get($spacers, 3);
-    flex-direction: column;
-    .links {
-      margin-top: map-get($spacers, 3);
-      flex-direction: column;
-    }
-  }
-
-  .main {
-    margin: map-get($spacers, 5) 0 0;
-
-    h1 {
-      margin-bottom: map-get($spacers, 3);
-    }
-  }
-
-  .footer {
-    font-size: 0.8rem;
-    flex-direction: column;
-    padding: map-get($spacers, 3);
-  }
-
-  tbody {
-    tr {
-      td {
-        padding: map_get($spacers, 1) map_get($spacers, 2) !important;
-      }
-    }
-  }
-
-  .battle {
-    ._app-root ._grid-viewer {
-      flex-direction: column;
-      align-items: center;
-      ._grid-viewer-main {
-        margin-bottom: map_get($spacers, 3);
-        width: 90%;
-      }
-      ._inspector {
-        width: 90%;
-      }
-    }
-  }
-}
-
 .inactive {
   color: grey;
 }
@@ -173,6 +120,10 @@ tbody {
       margin-bottom: map-get($spacers, 2);
     }
   }
+
+  img {
+    width: 400px;
+  }
 }
 
 //// viewCode.html
@@ -204,3 +155,64 @@ tbody {
     background: var(--grey-3);
   }
 }
+
+
+@include media-breakpoint-down(md) {
+  body {
+    font-size: 1rem;
+  }
+
+  .index {
+    img {
+      width: 60vw;
+    }
+  }
+}
+
+@include media-breakpoint-down(sm) {
+  .header {
+    margin: map-get($spacers, 3);
+    flex-direction: column;
+    .links {
+      margin-top: map-get($spacers, 3);
+      flex-direction: column;
+    }
+  }
+
+  .main {
+    margin: map-get($spacers, 5) 0 0;
+
+    h1 {
+      margin-bottom: map-get($spacers, 3);
+    }
+  }
+
+  .footer {
+    font-size: 0.8rem;
+    flex-direction: column;
+    padding: map-get($spacers, 3);
+  }
+
+  tbody {
+    tr {
+      td {
+        padding: map_get($spacers, 1) map_get($spacers, 2) !important;
+      }
+    }
+  }
+
+  .battle {
+    ._app-root ._grid-viewer {
+      flex-direction: column;
+      align-items: center;
+      ._grid-viewer-main {
+        margin-bottom: map_get($spacers, 3);
+        width: 90%;
+      }
+      ._inspector {
+        width: 90%;
+      }
+    }
+  }
+}
+

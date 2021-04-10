@@ -50,7 +50,7 @@ init flags =
                     List.length outputData.turns
 
                 gridViewerModel =
-                    GridViewer.init turnNum flags.team flags.userOwnsOpponent
+                    GridViewer.init turnNum flags.team flags.userOwnsOpponent False
             in
             ( Just
                 (List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel outputData.turns

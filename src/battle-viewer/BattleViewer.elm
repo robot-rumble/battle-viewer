@@ -42,7 +42,7 @@ type RenderState
     | NoRender
     | Initializing Int
     | Render RenderStateVal
-    | InternalError
+    | InternalError GridViewer.Model
 
 
 type alias RenderStateVal =
@@ -111,6 +111,10 @@ update msg model =
                         _ ->
                             model.viewingOpponentSelect
                 , apiError = selectModel.apiError
+
+                -- reset any Internal error messages after new opponent is selected
+                --, renderState = NoRender
+                -- actually, we don't want to do this because worker errors seem to persist
               }
             , Cmd.map GotOpponentSelectMsg selectCmd
             )
@@ -133,7 +137,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team (userOwnsOpponent model)
+                                            GridViewer.init turn model.team (userOwnsOpponent model) False
                                                 |> GridViewer.update (GridViewer.GotErrors output.errors)
                                     in
                                     Render ( turn, viewerState )
@@ -153,7 +157,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team (userOwnsOpponent model)
+                                            GridViewer.init turn model.team (userOwnsOpponent model) False
                                                 |> GridViewer.update (GridViewer.GotTurn progress)
                                     in
                                     Render ( turn, viewerState )
@@ -174,7 +178,11 @@ update msg model =
                             model
 
                 GotInternalError ->
-                    { model | renderState = InternalError }
+                    let
+                        viewerState =
+                            GridViewer.init 0 model.team (userOwnsOpponent model) True
+                    in
+                    { model | renderState = InternalError viewerState }
 
                 _ ->
                     model
@@ -228,6 +236,9 @@ view model =
                 , Html.map GotRenderMsg <|
                     case model.renderState of
                         Render ( _, viewerState ) ->
+                            GridViewer.view (Just viewerState)
+
+                        InternalError viewerState ->
                             GridViewer.view (Just viewerState)
 
                         _ ->
@@ -285,7 +296,10 @@ viewBar model =
                 LoadingRunner ->
                     viewLoadingMessage "Compiling runner..."
 
-                _ ->
+                InternalError _ ->
+                    p [ class "error" ] [ text "Internal error!" ]
+
+                NoRender ->
                     viewButtons ()
             ]
         , div [ class "_winner-section" ]

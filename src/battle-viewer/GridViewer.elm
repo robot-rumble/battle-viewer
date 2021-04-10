@@ -31,15 +31,31 @@ type alias Model =
     }
 
 
-type alias Error =
+type Error
+    = InternalError
+    | GameError ErrorDetails
+
+
+type alias ErrorDetails =
     { error : Data.OutcomeError
     , isOurTeam : Bool
     }
 
 
-init : Int -> Maybe Data.Team -> Bool -> Model
-init turnNum maybeTeam userOwnsOpponent =
-    Model Array.empty turnNum 0 Nothing maybeTeam [] Nothing userOwnsOpponent
+init : Int -> Maybe Data.Team -> Bool -> Bool -> Model
+init turnNum maybeTeam userOwnsOpponent hasErrored =
+    -- hasErrored is for setting the state to display an internal message
+    -- in the case that such a message has been reported 'from the outside'
+    -- through a port. This happens in the case of worker errors.
+    let
+        error =
+            if hasErrored then
+                Just InternalError
+
+            else
+                Nothing
+    in
+    Model Array.empty turnNum 0 Nothing maybeTeam [] error userOwnsOpponent
 
 
 
@@ -186,10 +202,10 @@ update msg model =
                 | error =
                     case model.team |> Maybe.andThen (\team -> Dict.get team errors) of
                         Just error ->
-                            Just <| { error = error, isOurTeam = True }
+                            Just <| GameError { error = error, isOurTeam = True }
 
                         Nothing ->
-                            errors |> Dict.values |> List.head |> Maybe.map (\error -> { error = error, isOurTeam = False })
+                            errors |> Dict.values |> List.head |> Maybe.map (\error -> GameError { error = error, isOurTeam = False })
             }
 
         ChangeTurn dir ->
@@ -451,6 +467,11 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
         ]
 
 
+internalError : Html Msg
+internalError =
+    p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+
+
 viewLogs : Maybe Model -> Html Msg
 viewLogs maybeModel =
     div [ class "_logs box mt-4" ]
@@ -459,25 +480,31 @@ viewLogs maybeModel =
             Just model ->
                 case model.error of
                     Just error ->
-                        div []
-                            [ if not error.isOurTeam then
-                                p [ class "mb-3" ] [ text "Opponent initialization error! This is not your code's fault." ]
+                        case error of
+                            InternalError ->
+                                div []
+                                    [ internalError ]
 
-                              else
-                                div [] []
-                            , case error.error of
-                                Data.InitError errorDetails ->
-                                    div [ style "white-space" "pre", class "error-wrapper mt-2" ]
-                                        [ if model.userOwnsOpponent then
-                                            viewErrorDetails errorDetails
+                            GameError errorDetails ->
+                                div []
+                                    [ if not errorDetails.isOurTeam then
+                                        internalError
 
-                                          else
-                                            div [] []
-                                        ]
+                                      else
+                                        div [] []
+                                    , case errorDetails.error of
+                                        Data.InitError initErrorDetails ->
+                                            div [ style "white-space" "pre", class "error-wrapper mt-2" ]
+                                                [ if model.userOwnsOpponent then
+                                                    viewErrorDetails initErrorDetails
 
-                                _ ->
-                                    p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
-                            ]
+                                                  else
+                                                    div [] []
+                                                ]
+
+                                        _ ->
+                                            p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+                                    ]
 
                     Nothing ->
                         if List.isEmpty model.logs then

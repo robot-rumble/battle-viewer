@@ -170,10 +170,9 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   const runCallback = (data) => {
     if (data.type === 'error') {
-      const error = JSON.parse(data.data)
-      console.log('Worker Error!')
-      captureMessage('Garage worker error', error)
       app.ports.getInternalError.send(null)
+      console.log('Worker Error!')
+      captureMessage('Garage worker error', data.data)
     } else if (data.type in app.ports) {
       if (data.type === 'getOutput') workerRunning = false
 

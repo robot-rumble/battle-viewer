@@ -442,7 +442,7 @@ viewLogs maybeModel =
                                     ]
 
                             _ ->
-                                p [ class "error" ] [ text "Internal error! If you would like to help, please reach out to antonoutkine@gmail.com and explain how you got here." ]
+                                p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
 
                     Nothing ->
                         if List.isEmpty model.logs then

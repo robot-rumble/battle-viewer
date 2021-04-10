@@ -257,7 +257,7 @@
       }
 
       .obj.errored::after,
-      .obj.inspected::after,
+      .obj.located::after,
       .obj.selected::before {
         content: '';
         position: absolute;
@@ -269,7 +269,7 @@
       }
 
       .obj.errored::after,
-      .obj.inspected::after {
+      .obj.located::after {
         height: 80%;
         width: 80%;
         background-size: contain !important;
@@ -283,12 +283,12 @@
         background: url("../images/error.svg");
       }
 
-      .obj.inspected::after,
-      .obj.inspected.errored::after {
+      .obj.located::after,
+      .obj.located.errored::after {
         background: url("../images/star.svg");
       }
 
-      .obj.selected.errored::after, .obj.selected.inspected::after {
+      .obj.selected.errored::after, .obj.selected.located::after {
         // make the image white (in light theme)
         filter: brightness(calc(1 - var(--is-dark-theme)));
       }

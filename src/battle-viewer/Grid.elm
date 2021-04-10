@@ -124,10 +124,10 @@ gameObjs data selectedUnit maybeTeam =
                                             _ ->
                                                 ""
                                     , class <|
-                                        case maybeTeam |> Maybe.andThen (\team -> Dict.get team data.debugInspections) of
-                                            Just inspections ->
-                                                if List.member basic.id inspections then
-                                                    "inspected"
+                                        case maybeTeam |> Maybe.andThen (\team -> Dict.get team data.debugLocateQueries) of
+                                            Just queries ->
+                                                if List.member basic.id queries then
+                                                    "located"
 
                                                 else
                                                     ""

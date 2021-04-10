@@ -217,7 +217,7 @@ errorLocEncoder errorLoc =
         ]
 
 
-type alias DebugTable =
+type alias DebugInspectTable =
     Dict String String
 
 
@@ -229,8 +229,8 @@ type alias ProgressData =
     { state : TurnState
     , logs : Dict Team (List String)
     , robotActions : Dict Id ActionResult
-    , debugTables : Dict Id DebugTable
-    , debugInspections : Dict Team (List Id)
+    , debugInspectTables : Dict Id DebugInspectTable
+    , debugLocateQueries : Dict Team (List Id)
     }
 
 
@@ -245,8 +245,8 @@ progressDataDecoder =
         |> required "state" stateDecoder
         |> required "logs" (dict (list string))
         |> required "robot_actions" (dict (result robotErrorDecoder (nullable actionDecoder)))
-        |> required "debug_tables" (dict (dict string))
-        |> required "debug_inspections" (dict (list string))
+        |> required "debug_inspect_tables" (dict (dict string))
+        |> required "debug_locate_queries" (dict (list string))
 
 
 type RobotError

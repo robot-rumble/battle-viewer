@@ -16,7 +16,7 @@ import Tuple exposing (..)
 
 
 type alias Unit =
-    { isOurTeam : Bool, health : Int, obj : Data.Obj, action : Data.ActionResult, debugTable : Maybe Data.DebugTable }
+    { isOurTeam : Bool, health : Int, obj : Data.Obj, action : Data.ActionResult, debugInspectTable : Maybe Data.DebugInspectTable }
 
 
 type alias Model =
@@ -89,8 +89,8 @@ processLogs maybeTeam turn =
 
 selectUnit : Data.Id -> Maybe Data.Team -> Data.ProgressData -> Maybe Unit
 selectUnit unitId maybeTeam turn =
-    case ( Dict.get unitId turn.state.objs, Dict.get unitId turn.robotActions, Dict.get unitId turn.debugTables ) of
-        ( Just (( basic, details ) as obj), Just action, debugTable ) ->
+    case ( Dict.get unitId turn.state.objs, Dict.get unitId turn.robotActions, Dict.get unitId turn.debugInspectTables ) of
+        ( Just (( basic, details ) as obj), Just action, debugInspectTable ) ->
             case details of
                 Data.UnitDetails unit ->
                     let
@@ -102,7 +102,7 @@ selectUnit unitId maybeTeam turn =
                                 Nothing ->
                                     False
                     in
-                    Just <| Unit isOurTeam unit.health obj action debugTable
+                    Just <| Unit isOurTeam unit.health obj action debugInspectTable
 
                 _ ->
                     Nothing
@@ -390,9 +390,9 @@ viewRobotInspector maybeUnit maybeTeam =
                     , if unit.isOurTeam then
                         let
                             debugPairs =
-                                case unit.debugTable of
-                                    Just debugTable ->
-                                        Dict.toList debugTable
+                                case unit.debugInspectTable of
+                                    Just debugInspectTable ->
+                                        Dict.toList debugInspectTable
 
                                     Nothing ->
                                         []

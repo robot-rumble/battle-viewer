@@ -306,7 +306,7 @@ viewArrows model =
             [ text "←" ]
         , button
             [ onClick (ChangeTurn Next)
-            , disabled (model.currentTurn == Array.length model.turns - 1)
+            , disabled (Array.length model.turns == 0 || model.currentTurn == Array.length model.turns - 1)
             , class "arrow-button"
             ]
             [ text "→" ]

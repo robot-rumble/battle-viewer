@@ -92,7 +92,7 @@ a {
   color: var(--blue) !important;
 }
 
-p img, a img {
+img {
   width: 18px;
   display: inline-block;
 }
@@ -118,6 +118,10 @@ button {
 
 .error {
   color: var(--bright-red) !important;
+}
+
+.error-wrapper {
+  background: var(--grey-3);
 }
 
 .internal-error {

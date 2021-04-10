@@ -1,4 +1,5 @@
 import { Elm } from './Main.elm'
+import { captureMessage } from '../sentry'
 
 import './main.scss'
 
@@ -12,6 +13,16 @@ function init(flags) {
     flags: {
       ...flags,
       team: 'Blue',
+      // todo: set dynamically
+      userId: 0,
+      paths: {
+        getRobotCode: '/getrobotcode',
+        getUserRobots: '/getrobots',
+        // we don't use this, so w/e
+        updateRobotCode: '',
+        viewRobot: '',
+        editRobot: '',
+      },
     },
   })
 
@@ -24,6 +35,11 @@ function init(flags) {
       if (event.type === 'getOutput') eventSource.close()
       app.ports[event.type].send(event.data)
     })
+  })
+
+  app.ports.reportDecodeError.subscribe((error) => {
+    console.log('Decode Error!')
+    captureMessage('Rumblebot web decode error', error)
   })
 }
 

@@ -5,7 +5,6 @@ import BattleViewer
 import Browser
 import Data
 import Dict
-import Grid
 import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -108,10 +107,10 @@ init flags =
                     Settings.default
 
         apiContext =
-            Api.Context flags.user flags.robot flags.robotId flags.apiPaths
+            Api.Context flags.user (Api.UserId flags.userId) flags.robot (Api.RobotId flags.robotId) flags.apiPaths
 
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext flags.paths.assets True flags.robot flags.team
+            BattleViewer.init apiContext flags.paths.assets True flags.team
     in
     ( Model
         flags.paths
@@ -133,6 +132,7 @@ type alias Flags =
     { paths : Paths
     , apiPaths : Api.Paths
     , user : String
+    , userId : Int
     , code : String
     , robot : String
     , robotId : Int
@@ -252,8 +252,18 @@ update msg model =
 
                                 maybeOpponentCode =
                                     case model.battleViewerModel.opponentSelectState.opponent of
-                                        OpponentSelect.Robot ( robot, code ) ->
-                                            code |> Maybe.map (\c -> ( c, robot.lang ))
+                                        OpponentSelect.Robot robotDetails ->
+                                            let
+                                                lang =
+                                                    case robotDetails.robot.details of
+                                                        Api.Site siteRobot ->
+                                                            siteRobot.lang
+
+                                                        -- the CLI stores the language argument on its own
+                                                        Api.Local ->
+                                                            ""
+                                            in
+                                            robotDetails.code |> Maybe.map (\c -> ( c, lang ))
 
                                         OpponentSelect.Itself ->
                                             Just selfCode

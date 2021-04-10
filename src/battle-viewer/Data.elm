@@ -340,11 +340,11 @@ objDecoder : Decoder Obj
 objDecoder =
     basicObjDecoder
         |> andThen
-            (\basic_obj ->
+            (\basicObj ->
                 objDetailsDecoder
                     |> andThen
-                        (\obj_details ->
-                            Json.Decode.succeed ( basic_obj, obj_details )
+                        (\objDetails ->
+                            Json.Decode.succeed ( basicObj, objDetails )
                         )
             )
 

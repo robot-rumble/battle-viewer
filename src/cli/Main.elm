@@ -1,76 +1,126 @@
 port module Main exposing (getOutput, getProgress, main, startEval)
 
 import Api
-import BattleViewer exposing (..)
+import BattleViewer
 import Browser
 import Data
+import Html exposing (..)
+import Html.Attributes exposing (..)
 import Json.Decode as Decode
 import OpponentSelect
 
 
-type alias Flags =
-    { user : String
-    , robot : String
-    , team : Maybe Data.Team
-    }
 
-
-decodeOrInternalErr decodeF msg =
-    \val ->
-        case decodeF val of
-            Ok a ->
-                msg a
-
-            Err _ ->
-                GotInternalError
-
-
-paths : Api.Paths
-paths =
-    { getRobotCode = "/getrobotcode"
-
-    -- we don't use this, so w/e
-    , getUserRobots = "/getrobots"
-    , updateRobotCode = "/updaterobot"
-    }
+-- MAIN
 
 
 main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \{ user, robot, team } -> init (Api.Context user robot 0 paths) "" False robot team
+        { init = init
         , view = view
-        , update =
-            \msg old ->
-                let
-                    ( model, renderCmd ) =
-                        update msg old
-
-                    cmd =
-                        case msg of
-                            Run turns ->
-                                let
-                                    id =
-                                        case model.opponentSelectState.opponent of
-                                            OpponentSelect.Robot ( robot, _ ) ->
-                                                robot.id
-
-                                            OpponentSelect.Itself ->
-                                                0
-                                in
-                                startEval { id = id, turns = turns }
-
-                            _ ->
-                                Cmd.none
-                in
-                ( model, Cmd.batch [ renderCmd, cmd ] )
-        , subscriptions =
-            \_ ->
-                Sub.batch
-                    [ getProgress <| decodeOrInternalErr Data.decodeProgressData GotProgress
-                    , getOutput <| decodeOrInternalErr Data.decodeOutcomeData GotOutput
-                    ]
+        , update = update
+        , subscriptions = subscriptions
         }
+
+
+
+-- MODEL
+
+
+type alias Model =
+    { renderState : BattleViewer.Model
+    , error : Bool
+    }
+
+
+type alias Flags =
+    { user : String
+    , userId : Int
+    , robot : String
+    , team : Maybe Data.Team
+    , paths : Api.Paths
+    }
+
+
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    let
+        apiContext =
+            Api.Context flags.user (Api.UserId flags.userId) flags.robot (Api.RobotId 0) flags.paths
+
+        ( newModel, newCmd ) =
+            BattleViewer.init apiContext "" False flags.team
+    in
+    ( Model newModel False, Cmd.map GotRenderMsg newCmd )
+
+
+
+-- MSG
+
+
+type Msg
+    = GotOutput Decode.Value
+    | GotProgress Decode.Value
+    | GotRenderMsg BattleViewer.Msg
+
+
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+    case msg of
+        GotRenderMsg renderMsg ->
+            let
+                ( renderModel, renderCmd ) =
+                    BattleViewer.update renderMsg model.renderState
+
+                newCmd =
+                    case renderMsg of
+                        BattleViewer.Run turns ->
+                            let
+                                id =
+                                    case model.renderState.opponentSelectState.opponent of
+                                        OpponentSelect.Robot robotDetails ->
+                                            robotDetails.robot.basic.id
+
+                                        OpponentSelect.Itself ->
+                                            Api.RobotId 0
+                            in
+                            startEval { id = Api.unwrapRobotId id, turns = turns }
+
+                        _ ->
+                            Cmd.none
+            in
+            ( { model | renderState = renderModel }, Cmd.batch [ renderCmd |> Cmd.map GotRenderMsg, newCmd ] )
+
+        GotOutput output ->
+            model |> handleDecodeData (Data.decodeOutcomeData output) BattleViewer.GotOutput
+
+        GotProgress progress ->
+            model |> handleDecodeData (Data.decodeProgressData progress) BattleViewer.GotProgress
+
+
+handleDecodeData decodedData msg model =
+    case decodedData of
+        Ok data ->
+            let
+                ( newModel, newCmd ) =
+                    BattleViewer.update (msg data) model.renderState
+            in
+            ( { model | renderState = newModel }, newCmd |> Cmd.map GotRenderMsg )
+
+        Err error ->
+            ( { model | error = True }, reportDecodeError <| Decode.errorToString error )
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions _ =
+    Sub.batch
+        [ getProgress GotProgress
+        , getOutput GotOutput
+        ]
 
 
 port getOutput : (Decode.Value -> msg) -> Sub msg
@@ -80,3 +130,22 @@ port getProgress : (Decode.Value -> msg) -> Sub msg
 
 
 port startEval : { id : Int, turns : Int } -> Cmd msg
+
+
+port reportDecodeError : String -> Cmd msg
+
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+    div [] <|
+        (if model.error then
+            [ div [ class "_error error mt-4 mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
+
+         else
+            []
+        )
+            ++ [ BattleViewer.view model.renderState |> Html.map GotRenderMsg ]

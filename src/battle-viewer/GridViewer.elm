@@ -26,13 +26,20 @@ type alias Model =
     , selectedUnit : Maybe Unit
     , team : Maybe Data.Team
     , logs : List String
-    , error : Maybe Data.OutcomeError
+    , error : Maybe Error
+    , userOwnsOpponent : Bool
     }
 
 
-init : Int -> Maybe Data.Team -> Model
-init turnNum maybeTeam =
-    Model Array.empty turnNum 0 Nothing maybeTeam [] Nothing
+type alias Error =
+    { error : Data.OutcomeError
+    , isOurTeam : Bool
+    }
+
+
+init : Int -> Maybe Data.Team -> Bool -> Model
+init turnNum maybeTeam userOwnsOpponent =
+    Model Array.empty turnNum 0 Nothing maybeTeam [] Nothing userOwnsOpponent
 
 
 
@@ -90,7 +97,7 @@ processLogs maybeTeam turn =
 selectUnit : Data.Id -> Maybe Data.Team -> Data.ProgressData -> Maybe Unit
 selectUnit unitId maybeTeam turn =
     case ( Dict.get unitId turn.state.objs, Dict.get unitId turn.robotActions, Dict.get unitId turn.debugInspectTables ) of
-        ( Just (( basic, details ) as obj), Just action, debugInspectTable ) ->
+        ( Just (( _, details ) as obj), Just action, debugInspectTable ) ->
             case details of
                 Data.UnitDetails unit ->
                     let
@@ -175,7 +182,15 @@ update msg model =
             }
 
         GotErrors errors ->
-            { model | error = model.team |> Maybe.andThen (\team -> Dict.get team errors) }
+            { model
+                | error =
+                    case model.team |> Maybe.andThen (\team -> Dict.get team errors) of
+                        Just error ->
+                            Just <| { error = error, isOurTeam = True }
+
+                        Nothing ->
+                            errors |> Dict.values |> List.head |> Maybe.map (\error -> { error = error, isOurTeam = False })
+            }
 
         ChangeTurn dir ->
             let
@@ -277,6 +292,13 @@ viewMain maybeModel =
             [ viewRobotInspector
                 (maybeModel |> Maybe.andThen (\model -> model.selectedUnit))
                 (maybeModel |> Maybe.andThen (\model -> model.team))
+                (case maybeModel of
+                    Just model ->
+                        model.userOwnsOpponent
+
+                    Nothing ->
+                        False
+                )
             ]
         ]
 
@@ -332,7 +354,7 @@ viewErrorDetails errorDetails =
         [ p [ class "error" ] [ text errorDetails.summary ]
         , case ( errorDetails.details, errorDetails.loc ) of
             ( Just details, _ ) ->
-                p [ class "error mt-2", style "white-space" "pre" ] [ text details ]
+                p [ class "error", style "white-space" "pre" ] [ text details ]
 
             ( Nothing, Just loc ) ->
                 p [ class "error mt-2" ] [ text <| "Line: " ++ String.fromInt (first loc.start) ]
@@ -346,15 +368,15 @@ maxHealth =
     5
 
 
-viewRobotInspector : Maybe Unit -> Maybe Data.Team -> Html Msg
-viewRobotInspector maybeUnit maybeTeam =
+viewRobotInspector : Maybe Unit -> Maybe Data.Team -> Bool -> Html Msg
+viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
     div [ class "box" ]
         [ p [ class "title" ] <|
             [ text "Robot Data" ]
                 ++ (case maybeUnit of
                         Just unit ->
                             if not unit.isOurTeam && maybeTeam /= Nothing then
-                                [ span [ class "text-red" ] [ text " (enemy)" ] ]
+                                [ span [ class "text-red" ] [ text " (opponent)" ] ]
 
                             else
                                 []
@@ -379,16 +401,18 @@ viewRobotInspector maybeUnit maybeTeam =
                                 p [] [ text <| "Next action: pass" ]
 
                             Err robotError ->
-                                if unit.isOurTeam then
-                                    case robotError of
-                                        Data.RuntimeError errorDetails ->
-                                            viewErrorDetails errorDetails
+                                div [ class "mt-3" ]
+                                    [ if unit.isOurTeam || userOwnsOpponent then
+                                        case robotError of
+                                            Data.RuntimeError errorDetails ->
+                                                viewErrorDetails errorDetails
 
-                                        Data.InvalidAction message ->
-                                            p [ class "error" ] [ text message ]
+                                            Data.InvalidAction message ->
+                                                p [ class "error" ] [ text message ]
 
-                                else
-                                    p [ class "error" ] [ text "Errored" ]
+                                      else
+                                        p [ class "error" ] [ text "Errored" ]
+                                    ]
                         ]
                     ]
 
@@ -396,7 +420,7 @@ viewRobotInspector maybeUnit maybeTeam =
                 div [] [ p [ class "info" ] [ text "No unit selected" ] ]
         , case maybeUnit of
             Just unit ->
-                if unit.isOurTeam then
+                if unit.isOurTeam || userOwnsOpponent then
                     div [ class "_table-wrapper" ]
                         [ let
                             debugPairs =
@@ -435,14 +459,25 @@ viewLogs maybeModel =
             Just model ->
                 case model.error of
                     Just error ->
-                        case error of
-                            Data.InitError errorDetails ->
-                                div [ style "white-space" "pre", class "error-wrapper" ]
-                                    [ viewErrorDetails errorDetails
-                                    ]
+                        div []
+                            [ if not error.isOurTeam then
+                                p [ class "mb-3" ] [ text "Opponent initialization error! This is not your code's fault." ]
 
-                            _ ->
-                                p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+                              else
+                                div [] []
+                            , case error.error of
+                                Data.InitError errorDetails ->
+                                    div [ style "white-space" "pre", class "error-wrapper mt-2" ]
+                                        [ if model.userOwnsOpponent then
+                                            viewErrorDetails errorDetails
+
+                                          else
+                                            div [] []
+                                        ]
+
+                                _ ->
+                                    p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so just please tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+                            ]
 
                     Nothing ->
                         if List.isEmpty model.logs then

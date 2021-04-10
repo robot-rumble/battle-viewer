@@ -32,6 +32,8 @@ function createRoutes(user, robot, robotId, assetsPath) {
       getUserRobots: '/api/get-user-robots',
       getRobotCode: '/api/get-robot-code',
       updateRobotCode: '/api/update-robot-code',
+      viewRobot: '/api/view-robot-by-id',
+      editRobot: '/api/edit-robot-by-id',
     },
   }
 }
@@ -47,6 +49,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
     document.querySelector('#root'),
     {
       user: 'asdf',
+      userId: 0,
       robot: 'asdf',
       robotId: 0,
       ...createRoutes('asdf', 'asdf', 0, ''),
@@ -65,18 +68,20 @@ customElements.define(
   class extends HTMLElement {
     connectedCallback() {
       const user = this.getAttribute('user')
+      const userId = parseInt(this.getAttribute('userId'))
       const robot = this.getAttribute('robot')
       const robotId = parseInt(this.getAttribute('robotId'))
       const lang = this.getAttribute('lang')
       const code = this.getAttribute('code')
       const assetsPath = this.getAttribute('assetsPath')
-      if (!user || !robot || !robotId || !lang || !code) {
-        throw new Error('No user|robot|robotId|lang|code attribute found')
+      if (!user || !userId || !robot || !robotId || !lang || !code) {
+        throw new Error('No user|userId|robot|robotId|lang|code attribute found')
       }
       init(
         this,
         {
           user,
+          userId,
           robot,
           robotId,
           ...createRoutes(user, robot, robotId, assetsPath),

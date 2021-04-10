@@ -110,16 +110,7 @@ gameObjs data selectedUnit maybeTeam =
                                     , class <|
                                         case Dict.get basic.id data.robotActions of
                                             Just (Err _) ->
-                                                case maybeTeam of
-                                                    Just team ->
-                                                        if team == unit.team then
-                                                            "errored"
-
-                                                        else
-                                                            ""
-
-                                                    Nothing ->
-                                                        ""
+                                                "errored"
 
                                             _ ->
                                                 ""

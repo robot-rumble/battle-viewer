@@ -3,7 +3,6 @@ module BattleViewer exposing (Model, Msg(..), RenderState(..), init, update, vie
 import Api
 import Array exposing (Array)
 import Data
-import Dict
 import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -28,9 +27,13 @@ type alias Model =
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
     , assetsPath : String
-    , robot : String
     , team : Maybe Data.Team
     }
+
+
+userOwnsOpponent : Model -> Bool
+userOwnsOpponent model =
+    OpponentSelect.userOwnsOpponent model.opponentSelectState model.apiContext.userId
 
 
 type RenderState
@@ -46,8 +49,8 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Api.Context -> String -> Bool -> String -> Maybe Data.Team -> ( Model, Cmd Msg )
-init apiContext assetsPath isRunnerLoading robot team =
+init : Api.Context -> String -> Bool -> Maybe Data.Team -> ( Model, Cmd Msg )
+init apiContext assetsPath isRunnerLoading team =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
@@ -59,7 +62,7 @@ init apiContext assetsPath isRunnerLoading robot team =
             else
                 NoRender
     in
-    ( Model apiContext Nothing Nothing renderState model False assetsPath robot team, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing Nothing renderState model False assetsPath team, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -130,7 +133,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team
+                                            GridViewer.init turn model.team (userOwnsOpponent model)
                                                 |> GridViewer.update (GridViewer.GotErrors output.errors)
                                     in
                                     Render ( turn, viewerState )
@@ -150,7 +153,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team
+                                            GridViewer.init turn model.team (userOwnsOpponent model)
                                                 |> GridViewer.update (GridViewer.GotTurn progress)
                                     in
                                     Render ( turn, viewerState )
@@ -188,14 +191,14 @@ view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ]
             [ p []
-                [ span [ class "text-blue" ] [ text model.robot ]
+                [ span [ class "text-blue" ] [ text model.apiContext.robot ]
                 , text " versus "
                 , span
                     [ class "text-red" ]
                     [ text <|
                         case model.opponentSelectState.opponent of
-                            OpponentSelect.Robot ( robot, _ ) ->
-                                robot.name
+                            OpponentSelect.Robot robotDetails ->
+                                robotDetails.robot.basic.name
 
                             OpponentSelect.Itself ->
                                 "itself"

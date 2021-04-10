@@ -33,6 +33,10 @@ type alias Model =
 port reportDecodeError : String -> Cmd msg
 
 
+type alias Flags =
+    { data : Decode.Value, team : Maybe Data.Team, userOwnsOpponent : Bool }
+
+
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
@@ -46,7 +50,7 @@ init flags =
                     List.length outputData.turns
 
                 gridViewerModel =
-                    GridViewer.init turnNum flags.team
+                    GridViewer.init turnNum flags.team flags.userOwnsOpponent
             in
             ( Just
                 (List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel outputData.turns
@@ -59,10 +63,6 @@ init flags =
             ( Nothing, reportDecodeError <| Decode.errorToString error )
 
 
-type alias Flags =
-    { data : Decode.Value, team : Maybe Data.Team }
-
-
 
 -- MSG
 
@@ -71,6 +71,7 @@ type alias Msg =
     GridViewer.Msg
 
 
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg maybeModel =
     ( Maybe.map (GridViewer.update msg) maybeModel, Cmd.none )
 
@@ -87,13 +88,14 @@ subscriptions _ =
 -- VIEW
 
 
+view : Model -> Html Msg
 view model =
-    div [ class "_app-root align-items-center" ]
-        [ case model of
+    div [ class "_app-root align-items-center" ] <|
+        (case model of
             Just _ ->
-                div [] []
+                []
 
             Nothing ->
-                div [ class "error mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ]
-        , GridViewer.view model
-        ]
+                [ div [ class "error mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
+        )
+            ++ [ GridViewer.view model ]

@@ -5,8 +5,14 @@
   @extend .container;
   height: 100%;
   border: $border-2;
-}
+  padding-left: 0;
+  padding-right: 0;
 
-._app-root {
-  height: 100%;
+  ._error {
+    padding: 0.5rem 1rem;
+  }
+
+  ._app-root {
+    height: 100%;
+  }
 }

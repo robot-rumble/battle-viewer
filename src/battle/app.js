@@ -6,14 +6,15 @@ customElements.define(
   class extends HTMLElement {
     connectedCallback() {
       const data = this.getAttribute('data')
-      const team = this.getAttribute('team') || null
-      if (!data) {
+      const team = this.getAttribute('team')
+      const userOwnsOpponent = this.getAttribute('userOwnsOpponent')
+      if (!data || !team || !userOwnsOpponent) {
         throw new Error('No data attribute found')
       }
 
       const app = Elm.Main.init({
         node: this,
-        flags: { data: JSON.parse(data), team },
+        flags: { data: JSON.parse(data), team, userOwnsOpponent: userOwnsOpponent === 'true' },
       })
 
       app.ports.reportDecodeError.subscribe((error) => {

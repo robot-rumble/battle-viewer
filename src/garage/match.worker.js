@@ -14,6 +14,8 @@ class MatchWorker {
       const logic = await logicPromise
       const startTime = Date.now()
 
+      console.log('Starting battle...')
+
       const makeRunner = async ({ code, lang }) => {
         const langRunner = await fetchRunner(assetsPath, lang, () => {})
         const rawWorker = new Worker(

@@ -19,6 +19,9 @@ export function captureMessage(message, data) {
   // and have the useful bit at the very end, which is truncated by Sentry
   const truncatedData = data.length < 2000 ? data : data.slice(0, 1000) + '\n...TRUNCATED...\n' + data.slice(-1000)
 
+  console.log('The following information has been reported:')
+  console.log(truncatedData)
+
   Sentry.captureEvent({
     message,
     breadcrumbs: [{

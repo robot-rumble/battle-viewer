@@ -92,8 +92,9 @@ a {
   color: var(--blue) !important;
 }
 
-a img {
+p img, a img {
   width: 18px;
+  display: inline-block;
 }
 
 button {

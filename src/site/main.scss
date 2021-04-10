@@ -92,6 +92,10 @@ body {
   }
 }
 
+.inactive {
+  color: grey;
+}
+
 table._battles {
   ._robot {
     background: var(--grey-4);
@@ -110,6 +114,12 @@ table._battles {
       display: inline;
       width: 13px;
       vertical-align: middle;
+    }
+  }
+
+  ._errored {
+    img {
+      width: 13px;
     }
   }
 }

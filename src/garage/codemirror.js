@@ -5,6 +5,8 @@ import 'codemirror/keymap/vim.js'
 import 'codemirror/keymap/emacs.js'
 import 'codemirror/keymap/sublime.js'
 
+import defaultCode from './defaultCode'
+
 function getOptionsFromLang(lang) {
   switch (lang) {
     case 'Javascript':
@@ -30,6 +32,7 @@ customElements.define(
       this.marks = []
       this.errorCounter = 0
       this.previousErrorCount = 0
+      this.settings = null
     }
 
     clearMarks() {
@@ -74,8 +77,20 @@ customElements.define(
       }
     }
 
-    get value() {
-      return this._editor.getValue()
+    set setLang(lang) {
+      this.lang = lang
+      if (this._editor) {
+        for (const [k, v] of Object.entries(getOptionsFromLang(lang))) {
+          this._editor.setOption(k, v)
+        }
+      }
+    }
+
+    set setCode(code) {
+      this.code = code
+      if (this._editor) {
+        this._editor.setValue(code)
+      }
     }
 
     connectedCallback() {
@@ -90,16 +105,20 @@ customElements.define(
       //   initialValue = this.code || localCode || sampleRobot
       // }
 
+      if (!this.lang || !this.settings || !this.code) {
+        throw new Error('Missing properties: lang|settings|code')
+      }
+
       this._editor = CodeMirror(this, {
-        ...getOptionsFromLang(window.lang),
+        ...getOptionsFromLang(this.lang),
         lineNumbers: true,
         matchBrackets: true,
         autoRefresh: true,
         lineWrapping: true,
-        theme: settings.theme === 'Dark' ? 'material-ocean' : 'default',
-        keyMap: settings.keyMap.toLowerCase(),
+        theme: this.settings.theme === 'Dark' ? 'material-ocean' : 'default',
+        keyMap: this.settings.keyMap.toLowerCase(),
         // value: initialValue,
-        value: this.getAttribute('code'),
+        value: this.code,
         extraKeys: {
           Tab: (cm) => cm.execCommand('indentMore'),
           'Shift-Tab': (cm) => cm.execCommand('indentLess'),

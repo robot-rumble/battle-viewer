@@ -1,12 +1,25 @@
-import { Elm } from './Main.elm'
+import * as Comlink from 'comlink'
+import Split from 'split.js'
 
 import './codemirror'
 import { applyTheme } from './themes'
-import * as Comlink from 'comlink'
-
-import Split from 'split.js'
-
+import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
+
+function createApiContext(siteInfo, assetsPath) {
+  return {
+    siteInfo,
+    paths: {
+      getUserRobots: '/api/get-user-robots',
+      getRobotCode: '/api/get-robot-code',
+      updateRobotCode: '/api/update-robot-code',
+      viewRobot: '/api/view-robot-by-id',
+      editRobot: '/api/edit-robot-by-id',
+      publish: '/boards',
+      assets: assetsPath,
+    },
+  }
+}
 
 function loadSettings() {
   let settings
@@ -16,26 +29,12 @@ function loadSettings() {
     settings = null
   }
   if (!settings) {
-    settings = { theme: 'Light', keyMap: 'Default' }
+    settings = {
+      theme: 'Light',
+      keyMap: 'Default',
+    }
   }
   return settings
-}
-
-function createRoutes(user, robot, robotId, assetsPath) {
-  return {
-    paths: {
-      robot: `/${user}/${robot}`,
-      boards: '/boards',
-      assets: assetsPath,
-    },
-    apiPaths: {
-      getUserRobots: '/api/get-user-robots',
-      getRobotCode: '/api/get-robot-code',
-      updateRobotCode: '/api/update-robot-code',
-      viewRobot: '/api/view-robot-by-id',
-      editRobot: '/api/edit-robot-by-id',
-    },
-  }
 }
 
 if (process.env.NODE_ENV !== 'production' && module.hot) {
@@ -47,17 +46,10 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
 
   init(
     document.querySelector('#root'),
-    {
-      user: 'asdf',
-      userId: 0,
-      robot: 'asdf',
-      robotId: 0,
-      ...createRoutes('asdf', 'asdf', 0, ''),
-      code: '',
-    },
-    'dist/worker.js',
-    process.env.BOT_LANG,
     '',
+    'Python',
+    createApiContext(null, ''),
+    'dist/worker.js',
   )
 
   module.hot.addStatusHandler(initSplit)
@@ -71,69 +63,76 @@ customElements.define(
       const userId = parseInt(this.getAttribute('userId'))
       const robot = this.getAttribute('robot')
       const robotId = parseInt(this.getAttribute('robotId'))
-      const lang = this.getAttribute('lang')
-      const code = this.getAttribute('code')
-      const assetsPath = this.getAttribute('assetsPath')
-      if (!user || !userId || !robot || !robotId || !lang || !code) {
-        throw new Error('No user|userId|robot|robotId|lang|code attribute found')
-      }
-      init(
-        this,
-        {
+
+      let siteInfo = null
+      if (user && userId && robot && robotId) {
+        // we're in the normal garage
+        siteInfo = {
           user,
           userId,
           robot,
           robotId,
-          ...createRoutes(user, robot, robotId, assetsPath),
-          code,
-        },
+        }
+      } else if (user || userId || robot || robotId) {
+        throw new Error('Missing some but not all of user|userId|robot|robotId attributes')
+      } else {
+        // we're in demo mode
+      }
+
+      const lang = this.getAttribute('lang') || 'Python'
+      const code = this.getAttribute('code') || ''
+
+      const assetsPath = this.getAttribute('assetsPath')
+      if (!assetsPath) {
+        throw new Error('No assetsPath attribute found')
+      }
+
+      init(
+        this,
+        code,
+        lang,
+        createApiContext(siteInfo, assetsPath),
         // get around the same-origin rule for loading workers through a cloudflare proxy worker
         // that rewrites robotrumble.org/assets to cloudfront
         // this is not necessary anywhere else because normal assets don't have this security rule
         process.env.NODE_ENV === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
-        lang,
-        assetsPath,
       )
     }
   },
 )
 
-function init(node, flags, workerUrl, lang, assetsPath) {
-  // set window vars first so CodeMirror has access to them on init
-  window.lang = lang
-
+function init(node, code, lang, apiContext, workerUrl) {
   const settings = loadSettings()
   applyTheme(settings.theme)
-  window.settings = settings
 
   const app = Elm.Main.init({
     node,
     flags: {
-      ...flags,
-      settings,
+      code,
       lang,
-      code: flags.code,
+      apiContext,
+      settings,
       team: 'Blue',
     },
   })
 
   initSplit()
-  initWorker(workerUrl, app, assetsPath, lang)
+  initWorker(workerUrl, app, apiContext.paths.assets, lang).then()
 
   app.ports.saveSettings.subscribe((settings) => {
     window.localStorage.setItem('settings', JSON.stringify(settings))
   })
 
-  window.savedCode = flags.code
+  window.savedCode = code
   app.ports.savedCode.subscribe((code) => {
     window.savedCode = code
   })
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return "You've made unsaved changes."
+      return 'You\'ve made unsaved changes.'
     }
   }
 }
@@ -148,15 +147,27 @@ function initSplit() {
 }
 
 async function initWorker(workerUrl, app, assetsPath, lang) {
-  const MatchWorker = Comlink.wrap(new Worker(workerUrl))
-  const worker = await new MatchWorker()
-  await worker.init(assetsPath, lang, Comlink.proxy(() => {
-    app.ports.finishedDownloading.send(null)
-  }))
-  app.ports.finishedLoading.send(null)
+  const createWorker = async (lang) => {
+    const rawWorker = new Worker(workerUrl)
+    const MatchWorker = Comlink.wrap(rawWorker)
+    const worker = await new MatchWorker()
+
+    await worker.init(assetsPath, lang, Comlink.proxy(() => {
+      app.ports.finishedDownloading.send(null)
+    }))
+    app.ports.finishedLoading.send(null)
+
+    return [rawWorker, worker]
+  }
+
+  let [rawWorker, worker] = await createWorker(lang)
 
   let workerRunning = false
-  app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
+  app.ports.startEval.subscribe(({
+    code,
+    opponentCode,
+    turnNum,
+  }) => {
     if (!workerRunning) {
       workerRunning = true
       worker.run({
@@ -183,6 +194,14 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
       throw new Error(`Unknown message type ${data.type}`)
     }
   }
+
+  // in the demo, you can select the lang
+  app.ports.selectLang.subscribe(async (lang) => {
+    rawWorker.terminate()
+    const res = await createWorker(lang)
+    rawWorker = res[0]
+    worker = res[1]
+  })
 
   app.ports.reportDecodeError.subscribe((error) => {
     console.log('Decode Error!')

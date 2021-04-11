@@ -1,12 +1,14 @@
 module Api exposing
     ( BasicRobot
     , Context
+    , ContextFlag
     , Paths
     , Result
     , Robot
     , RobotDetails(..)
     , RobotId(..)
     , UserId(..)
+    , contextFlagtoContext
     , errorToString
     , getBuiltinRobots
     , getRobotCode
@@ -15,7 +17,9 @@ module Api exposing
     , unwrapRobotId
     , unwrapUserId
     , updateRobotCode
+    , urlForAsset
     , urlForEditingRobot
+    , urlForPublishing
     , urlForViewingRobot
     )
 
@@ -29,13 +33,49 @@ import Url.Builder exposing (crossOrigin)
 -- CTX
 
 
-type alias Context =
+type alias SiteInfoFlag =
+    { user : String
+    , userId : Int
+    , robot : String
+    , robotId : Int
+    }
+
+
+type alias SiteInfo =
     { user : String
     , userId : UserId
     , robot : String
     , robotId : RobotId
+    }
+
+
+type alias ContextFlag =
+    { siteInfo : Maybe SiteInfoFlag
     , paths : Paths
     }
+
+
+type alias Context =
+    { siteInfo : Maybe SiteInfo
+    , paths : Paths
+    }
+
+
+contextFlagtoContext : ContextFlag -> Context
+contextFlagtoContext contextFlag =
+    let
+        maybeSiteInfo =
+            contextFlag.siteInfo
+                |> Maybe.map
+                    (\siteInfo ->
+                        { user = siteInfo.user
+                        , userId = UserId siteInfo.userId
+                        , robot = siteInfo.robot
+                        , robotId = RobotId siteInfo.robotId
+                        }
+                    )
+    in
+    Context maybeSiteInfo contextFlag.paths
 
 
 
@@ -85,6 +125,8 @@ type alias Paths =
     , updateRobotCode : String
     , viewRobot : String
     , editRobot : String
+    , publish : String
+    , assets : String
     }
 
 
@@ -238,9 +280,9 @@ getRobotCode context robotId =
     Get ( context.paths.getRobotCode, [ String.fromInt (unwrapRobotId robotId) ], string )
 
 
-updateRobotCode : Context -> String -> Request ()
-updateRobotCode context code =
-    Post ( context.paths.updateRobotCode, [ String.fromInt (unwrapRobotId context.robotId) ], succeed () )
+updateRobotCode : Context -> RobotId -> String -> Request ()
+updateRobotCode context robotId code =
+    Post ( context.paths.updateRobotCode, [ String.fromInt (unwrapRobotId robotId) ], succeed () )
         [ stringPart "code" code ]
 
 
@@ -252,3 +294,13 @@ urlForViewingRobot context robotId =
 urlForEditingRobot : Context -> RobotId -> String
 urlForEditingRobot context robotId =
     generateUrl context.paths.editRobot [ String.fromInt (unwrapRobotId robotId) ]
+
+
+urlForPublishing : Context -> String
+urlForPublishing context =
+    generateUrl context.paths.publish []
+
+
+urlForAsset : Context -> String -> String
+urlForAsset context asset =
+    generateUrl context.paths.assets [ asset ]

@@ -35,11 +35,9 @@ type alias Model =
 
 
 type alias Flags =
-    { user : String
-    , userId : Int
-    , robot : String
+    { code : String
     , team : Maybe Data.Team
-    , paths : Api.Paths
+    , apiContext : Api.ContextFlag
     }
 
 
@@ -47,10 +45,10 @@ init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
         apiContext =
-            Api.Context flags.user (Api.UserId flags.userId) flags.robot (Api.RobotId 0) flags.paths
+            Api.contextFlagtoContext flags.apiContext
 
         ( newModel, newCmd ) =
-            BattleViewer.init apiContext "" False flags.team
+            BattleViewer.init apiContext False flags.team
     in
     ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 

@@ -16,6 +16,9 @@ const runnerMap = {
   Javascript: 'jsrunner',
 }
 export default async (assetsPath, lang, finishDownloadCb) => {
+  if (!(lang in runnerMap)) {
+    throw new Error(`Unknown lang: ${lang}`)
+  }
   const name = runnerMap[lang]
   if (name in runnerCache) return runnerCache[name]
   const prom = (async () => {

@@ -517,5 +517,5 @@ viewLogs maybeModel =
                                 [ text <| String.concat model.logs ]
 
             Nothing ->
-                div [] []
+                p [ class "info" ] [ text "nothing here" ]
         ]

@@ -4,6 +4,7 @@ import Api
 import BattleViewer
 import Browser
 import Data
+import DefaultCode exposing (loadDefaultCode)
 import Dict
 import GridViewer
 import Html exposing (..)
@@ -44,8 +45,7 @@ type
 
 
 type alias Model =
-    { paths : Paths
-    , apiContext : Api.Context
+    { apiContext : Api.Context
     , code : String
     , lang : String
     , battleViewerModel : BattleViewer.Model
@@ -83,13 +83,6 @@ errorFromRenderState renderState =
             Nothing
 
 
-type alias Paths =
-    { robot : String
-    , boards : String
-    , assets : String
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
@@ -107,15 +100,25 @@ init flags =
                     Settings.default
 
         apiContext =
-            Api.Context flags.user (Api.UserId flags.userId) flags.robot (Api.RobotId flags.robotId) flags.apiPaths
+            Api.contextFlagtoContext flags.apiContext
 
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext flags.paths.assets True flags.team
+            BattleViewer.init apiContext True flags.team
+
+        -- if in demo, the code will be an empty string
+        -- the default code needs to be stored on the level of elm because ultimately
+        -- elm calls the battle execution and so when the language changes
+        -- elm needs to have the new code
+        code =
+            if String.isEmpty flags.code then
+                loadDefaultCode flags.lang
+
+            else
+                flags.code
     in
     ( Model
-        flags.paths
         apiContext
-        flags.code
+        code
         flags.lang
         battleViewerModel
         Initial
@@ -129,14 +132,9 @@ init flags =
 
 
 type alias Flags =
-    { paths : Paths
-    , apiPaths : Api.Paths
-    , user : String
-    , userId : Int
-    , code : String
-    , robot : String
-    , robotId : Int
+    { code : String
     , lang : String
+    , apiContext : Api.ContextFlag
     , settings : Maybe Encode.Value
     , team : Maybe Data.Team
     }
@@ -161,6 +159,9 @@ port savedCode : String -> Cmd msg
 port saveSettings : Encode.Value -> Cmd msg
 
 
+port selectLang : String -> Cmd msg
+
+
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
@@ -171,6 +172,7 @@ type Msg
     | Saved (Result Http.Error ())
     | ViewSettings
     | CloseSettings
+    | SelectLang String
 
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
@@ -226,8 +228,13 @@ update msg model =
         Save ->
             let
                 codeUpdateCmd =
-                    Api.updateRobotCode model.apiContext model.code
-                        |> Api.makeRequest Saved
+                    case model.apiContext.siteInfo of
+                        Just info ->
+                            Api.updateRobotCode model.apiContext info.robotId model.code
+                                |> Api.makeRequest Saved
+
+                        Nothing ->
+                            Cmd.none
             in
             ( model, Cmd.batch [ codeUpdateCmd, savedCode model.code ] )
 
@@ -351,6 +358,10 @@ update msg model =
         GotSettingsMsg settingsMsg ->
             ( { model | settings = Settings.update settingsMsg model.settings }, Cmd.none )
 
+        -- when the user changes the language the code needs to also change
+        SelectLang lang ->
+            ( { model | lang = lang, code = loadDefaultCode lang }, selectLang lang )
+
 
 
 -- SUBSCRIPTIONS
@@ -410,36 +421,56 @@ viewBar : Model -> Html Msg
 viewBar model =
     div [ class "_bar d-flex justify-content-between align-items-center" ]
         [ div [ class "d-flex align-items-center" ]
-            [ p [] [ text "The Garage -- editing ", a [ href model.paths.robot ] [ text model.apiContext.robot ] ]
-            , button [ class "button ml-4", onClick Save ] [ text "save" ]
-            , p
-                [ class "mx-3"
-                , class <|
-                    "disappearing-"
-                        ++ (case model.saveAnimationPhase of
-                                One ->
-                                    "one"
+            (case model.apiContext.siteInfo of
+                Just info ->
+                    [ p [] [ text "The Garage -- editing ", a [ href <| Api.urlForViewingRobot model.apiContext info.robotId ] [ text info.robot ] ]
+                    , button [ class "button ml-4", onClick Save ] [ text "save" ]
+                    , p
+                        [ class "mx-3"
+                        , class <|
+                            "disappearing-"
+                                ++ (case model.saveAnimationPhase of
+                                        One ->
+                                            "one"
 
-                                Two ->
-                                    "two"
+                                        Two ->
+                                            "two"
 
+                                        Initial ->
+                                            ""
+                                   )
+                        , style "visibility" <|
+                            case model.saveAnimationPhase of
                                 Initial ->
-                                    ""
-                           )
-                , style "visibility" <|
-                    case model.saveAnimationPhase of
-                        Initial ->
-                            "hidden"
+                                    "hidden"
 
-                        _ ->
-                            "visible"
-                ]
-                [ text "saved" ]
-            ]
+                                _ ->
+                                    "visible"
+                        ]
+                        [ text "saved" ]
+                    ]
+
+                Nothing ->
+                    [ p [ class "mr-5" ] [ text "The Garage DEMO" ]
+                    , p [ class "mr-3" ] [ text <| "Change lang (will erase): " ]
+                    , div [ class "d-flex" ]
+                        ([ "Python", "Javascript" ]
+                            |> List.map
+                                (\lang ->
+                                    button [ class "button mr-2", onClick (SelectLang lang) ] [ text lang ]
+                                )
+                        )
+                    ]
+            )
         , div [ class "d-flex" ]
-            [ a [ class "mr-3", href model.paths.boards, target "_blank" ] [ text "publish to a board" ]
+            [ case model.apiContext.siteInfo of
+                Just _ ->
+                    a [ class "mr-3", href <| Api.urlForPublishing model.apiContext, target "_blank" ] [ text "publish to a board" ]
+
+                Nothing ->
+                    div [] []
             , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
-            , button [ onClick ViewSettings ] [ img [ src <| model.paths.assets ++ "/images/settings.svg" ] [] ]
+            , button [ onClick ViewSettings ] [ img [ src <| Api.urlForAsset model.apiContext "/images/settings.svg" ] [] ]
             ]
         ]
 
@@ -458,12 +489,14 @@ viewEditor model =
                     []
     in
     Html.node "code-editor"
-        ([ Html.Events.on "editorChanged" <|
+        ([ class "_editor"
+         , Html.Events.on "editorChanged" <|
             Decode.map CodeChanged <|
                 Decode.at [ "target", "value" ] <|
                     Decode.string
-         , Html.Attributes.attribute "code" model.code
-         , class "_editor"
+         , property "setCode" (Encode.string model.code)
+         , property "setLang" (Encode.string model.lang)
+         , property "settings" (Settings.encodeSettings model.settings)
          ]
             ++ [ property "errorCounter" (Encode.int model.errorCounter) ]
             ++ (case model.error of

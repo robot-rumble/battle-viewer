@@ -10,8 +10,8 @@ import Html.Events exposing (..)
 import OpponentSelect
 
 
-to_perc : Float -> String
-to_perc float =
+to_percent : Float -> String
+to_percent float =
     String.fromFloat float ++ "%"
 
 
@@ -26,14 +26,13 @@ type alias Model =
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
-    , assetsPath : String
     , team : Maybe Data.Team
     }
 
 
 userOwnsOpponent : Model -> Bool
 userOwnsOpponent model =
-    OpponentSelect.userOwnsOpponent model.opponentSelectState model.apiContext.userId
+    OpponentSelect.userOwnsOpponent model.opponentSelectState model.apiContext
 
 
 type RenderState
@@ -49,8 +48,8 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Api.Context -> String -> Bool -> Maybe Data.Team -> ( Model, Cmd Msg )
-init apiContext assetsPath isRunnerLoading team =
+init : Api.Context -> Bool -> Maybe Data.Team -> ( Model, Cmd Msg )
+init apiContext isRunnerLoading team =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
@@ -62,7 +61,7 @@ init apiContext assetsPath isRunnerLoading team =
             else
                 NoRender
     in
-    ( Model apiContext Nothing Nothing renderState model False assetsPath team, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing Nothing renderState model False team, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -90,7 +89,12 @@ update msg model =
               -- in addition to attempting to retrieve robots then, also retrieve them when the user opens
               -- the robot selection menu
             , if not model.viewingOpponentSelect then
-                Api.getUserRobots model.apiContext model.apiContext.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
+                case model.apiContext.siteInfo of
+                    Just info ->
+                        Api.getUserRobots model.apiContext info.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
+
+                    Nothing ->
+                        Cmd.none
 
               else
                 Cmd.none
@@ -199,7 +203,16 @@ view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ]
             [ p []
-                [ span [ class "text-blue" ] [ text model.apiContext.robot ]
+                [ span [ class "text-blue" ]
+                    [ text
+                        (case model.apiContext.siteInfo of
+                            Just info ->
+                                info.robot
+
+                            Nothing ->
+                                "demo robot"
+                        )
+                    ]
                 , text " versus "
                 , span
                     [ class "text-red" ]
@@ -216,13 +229,13 @@ view model =
                 [ p [ class "mr-2" ] [ text "change opponent" ]
                 , img
                     [ src <|
-                        model.assetsPath
-                            ++ (if model.viewingOpponentSelect then
-                                    "/images/close-panel.svg"
+                        Api.urlForAsset model.apiContext
+                            (if model.viewingOpponentSelect then
+                                "/images/close-panel.svg"
 
-                                else
-                                    "/images/open-panel.svg"
-                               )
+                             else
+                                "/images/open-panel.svg"
+                            )
                     ]
                     []
                 ]
@@ -269,7 +282,7 @@ viewBar model =
         viewLoadingMessage message =
             div [ class "d-flex justify-content-center align-items-center" ]
                 [ p [ class "_text mr-2" ] [ text message ]
-                , img [ class "spinner", src <| model.assetsPath ++ "/images/spinner.svg" ] []
+                , img [ class "spinner", src <| Api.urlForAsset model.apiContext "/images/spinner.svg" ] []
                 ]
     in
     div [ class "_run-bar" ]
@@ -282,7 +295,7 @@ viewBar model =
                             Array.length viewerState.turns
                     in
                     if totalTurns /= turn && viewerState.error == Nothing then
-                        div [ class "_progress", style "width" <| to_perc (toFloat totalTurns / toFloat turn * 100) ] []
+                        div [ class "_progress", style "width" <| to_percent (toFloat totalTurns / toFloat turn * 100) ] []
 
                     else
                         viewButtons ()

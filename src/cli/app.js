@@ -1,6 +1,5 @@
 import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
-
 import './main.scss'
 
 fetch('/getflags')
@@ -11,17 +10,26 @@ function init(flags) {
   const app = Elm.Main.init({
     node: document.getElementById('root'),
     flags: {
-      ...flags,
+      code: '',
       team: 'Blue',
-      // todo: set dynamically
-      userId: 0,
-      paths: {
-        getRobotCode: '/getrobotcode',
-        getUserRobots: '/getrobots',
-        // we don't use this, so w/e
-        updateRobotCode: '',
-        viewRobot: '',
-        editRobot: '',
+      apiContext: {
+        paths: {
+          getRobotCode: '/getrobotcode',
+          getUserRobots: '/getrobots',
+
+          // we don't use this, so w/e
+          assets: '',
+          updateRobotCode: '',
+          viewRobot: '',
+          editRobot: '',
+          publish: '',
+        },
+        siteInfo: {
+          user: flags.user,
+          userId: 0,
+          robot: flags.robot,
+          robotId: 0,
+        },
       },
     },
   })

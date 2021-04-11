@@ -30,8 +30,8 @@ type alias RobotDetails =
     }
 
 
-userOwnsOpponent : Model -> Api.UserId -> Bool
-userOwnsOpponent model userId =
+userOwnsOpponent : Model -> Api.Context -> Bool
+userOwnsOpponent model apiContext =
     case model.opponent of
         Itself ->
             True
@@ -39,7 +39,12 @@ userOwnsOpponent model userId =
         Robot opponent ->
             case opponent.robot.details of
                 Api.Site siteRobot ->
-                    siteRobot.userId == userId
+                    case apiContext.siteInfo of
+                        Just info ->
+                            siteRobot.userId == info.userId
+
+                        Nothing ->
+                            False
 
                 Api.Local ->
                     True
@@ -49,7 +54,12 @@ init : Api.Context -> ( Model, Cmd Msg )
 init apiContext =
     let
         getUserRobotsCmd =
-            Api.getUserRobots apiContext apiContext.user |> Api.makeRequest GotUserRobots
+            case apiContext.siteInfo of
+                Just info ->
+                    Api.getUserRobots apiContext info.user |> Api.makeRequest GotUserRobots
+
+                Nothing ->
+                    Cmd.none
 
         getBuiltinRobotsCmd =
             Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
@@ -82,29 +92,35 @@ update msg model =
             )
 
         GotUserRobots result ->
-            ( case result of
-                Ok data ->
-                    { model
-                        | userRobots =
-                            data
-                                |> List.filter
-                                    (\robot ->
-                                        case robot.details of
-                                            -- if a robot does not belong to the user, only show it if it's published
-                                            Api.Site siteRobot ->
-                                                robot.basic.name
-                                                    /= model.apiContext.robot
-                                                    && (siteRobot.userId == model.apiContext.userId || siteRobot.published)
+            case model.apiContext.siteInfo of
+                Just info ->
+                    ( case result of
+                        Ok data ->
+                            { model
+                                | userRobots =
+                                    data
+                                        |> List.filter
+                                            (\robot ->
+                                                case robot.details of
+                                                    -- if a robot does not belong to the user, only show it if it's published
+                                                    Api.Site siteRobot ->
+                                                        robot.basic.name
+                                                            /= info.robot
+                                                            && (siteRobot.userId == info.userId || siteRobot.published)
 
-                                            Api.Local ->
-                                                True
-                                    )
-                    }
+                                                    Api.Local ->
+                                                        True
+                                            )
+                            }
 
-                Err error ->
-                    { model | apiError = Just <| Api.errorToString error }
-            , Cmd.none
-            )
+                        Err error ->
+                            { model | apiError = Just <| Api.errorToString error }
+                    , Cmd.none
+                    )
+
+                -- this Msg can not occur if siteInfo is Nothing
+                Nothing ->
+                    ( model, Cmd.none )
 
         GotBuiltinRobots result ->
             ( case result of
@@ -180,11 +196,16 @@ viewRobotsList apiContext robots =
                             ++ (case robot.details of
                                     Api.Site siteRobot ->
                                         [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ]
-                                        , if siteRobot.userId == apiContext.userId then
-                                            a [ href <| Api.urlForEditingRobot apiContext robot.basic.id, target "_blank" ] [ text "edit" ]
+                                        , case apiContext.siteInfo of
+                                            Just info ->
+                                                if siteRobot.userId == info.userId then
+                                                    a [ href <| Api.urlForEditingRobot apiContext robot.basic.id, target "_blank" ] [ text "edit" ]
 
-                                          else
-                                            div [] []
+                                                else
+                                                    div [] []
+
+                                            Nothing ->
+                                                div [] []
                                         ]
 
                                     Api.Local ->

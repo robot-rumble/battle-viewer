@@ -241,12 +241,22 @@ decodeProgressData =
 
 progressDataDecoder : Decoder ProgressData
 progressDataDecoder =
-    succeed ProgressData
-        |> required "state" stateDecoder
-        |> required "logs" (dict (list string))
-        |> required "robot_actions" (dict (result robotErrorDecoder (nullable actionDecoder)))
-        |> required "debug_inspect_tables" (dict (dict string))
-        |> required "debug_locate_queries" (dict (list string))
+    oneOf
+        [ succeed ProgressData
+            |> required "state" stateDecoder
+            |> required "logs" (dict (list string))
+            |> required "robot_actions" (dict (result robotErrorDecoder (nullable actionDecoder)))
+            |> required "debug_inspect_tables" (dict (dict string))
+            |> required "debug_locate_queries" (dict (list string))
+
+        --  legacy debug naming
+        , succeed ProgressData
+            |> required "state" stateDecoder
+            |> required "logs" (dict (list string))
+            |> required "robot_actions" (dict (result robotErrorDecoder (nullable actionDecoder)))
+            |> required "debug_tables" (dict (dict string))
+            |> required "debug_inspections" (dict (list string))
+        ]
 
 
 type RobotError

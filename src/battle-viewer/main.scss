@@ -3,6 +3,33 @@
   border-bottom: $border-2;
 }
 
+@mixin img($name) {
+  background: url("../images/#{$name}.svg");
+  width: $icon-size;
+  height: $icon-size;
+  background-size: 100%;
+  background-repeat: no-repeat;
+}
+
+._img-settings {
+  @include img("settings");
+}
+
+._img-spinner {
+  @include img("spinner");
+  filter: brightness(var(--is-dark-theme));
+  height: 20px;
+  width: 20px;
+}
+
+._img-close-panel {
+  @include img("close-panel");
+}
+
+._img-open-panel {
+  @include img("open-panel");
+}
+
 ._app-root {
   display: flex;
   flex-direction: column;

@@ -462,7 +462,7 @@ viewBar model =
                         )
                     ]
             )
-        , div [ class "d-flex" ]
+        , div [ class "d-flex align-items-center" ]
             [ case model.apiContext.siteInfo of
                 Just _ ->
                     a [ class "mr-3", href <| Api.urlForPublishing model.apiContext, target "_blank" ] [ text "publish to a board" ]
@@ -470,7 +470,7 @@ viewBar model =
                 Nothing ->
                     div [] []
             , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
-            , button [ onClick ViewSettings ] [ img [ src <| Api.urlForAsset model.apiContext "/images/settings.svg" ] [] ]
+            , div [ class "_img-settings", onClick ViewSettings ] []
             ]
         ]
 

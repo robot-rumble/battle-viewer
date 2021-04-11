@@ -225,17 +225,15 @@ view model =
                                 "itself"
                     ]
                 ]
-            , button [ onClick ToggleOpponentSelect, class "_select-button" ]
+            , button [ onClick ToggleOpponentSelect, class "_select-button d-flex align-items-end" ]
                 [ p [ class "mr-2" ] [ text "change opponent" ]
-                , img
-                    [ src <|
-                        Api.urlForAsset model.apiContext
-                            (if model.viewingOpponentSelect then
-                                "/images/close-panel.svg"
+                , div
+                    [ class <|
+                        if model.viewingOpponentSelect then
+                            "_img-close-panel"
 
-                             else
-                                "/images/open-panel.svg"
-                            )
+                        else
+                            "_img-open-panel"
                     ]
                     []
                 ]
@@ -282,7 +280,7 @@ viewBar model =
         viewLoadingMessage message =
             div [ class "d-flex justify-content-center align-items-center" ]
                 [ p [ class "_text mr-2" ] [ text message ]
-                , img [ class "spinner", src <| Api.urlForAsset model.apiContext "/images/spinner.svg" ] []
+                , div [ class "_img-spinner" ] []
                 ]
     in
     div [ class "_run-bar" ]

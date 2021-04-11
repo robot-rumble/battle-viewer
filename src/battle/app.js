@@ -7,9 +7,9 @@ customElements.define(
     connectedCallback() {
       const data = this.getAttribute('data')
       const team = this.getAttribute('team')
-      const userOwnsOpponent = this.getAttribute('userOwnsOpponent')
-      if (!data || !team || !userOwnsOpponent) {
-        throw new Error('No data attribute found')
+      const userOwnsOpponent = this.getAttribute('user-owns-opponent')
+      if (!data || !userOwnsOpponent) {
+        throw new Error('No data|userOwnsOpponent data attribute found')
       }
 
       const app = Elm.Main.init({

@@ -147,7 +147,36 @@ function initSplit() {
 }
 
 async function initWorker(workerUrl, app, assetsPath, lang) {
+  let workerRunning = false
+  let done = false
+
+  const checkTime = (stage) => {
+    const startTime = Date.now()
+    const checkEvery = 1000
+    const tooLong = 10 * checkEvery
+    done = false
+
+    // tell elm when a process is taking a while
+    // keeps track of whether a task is done with done
+    const cb = () => {
+      console.log(`Loading for: ${(Date.now() - startTime) / 1000} seconds`)
+      if (!done) {
+        if (Date.now() - startTime > tooLong) {
+          captureMessage(`Taking too long at stage: ${stage}`, '')
+          app.ports.getTooLong.send(null)
+        } else {
+          setTimeout(cb, checkEvery)
+        }
+      }
+    }
+
+    setTimeout(cb, checkEvery)
+  }
+
   const createWorker = async (lang) => {
+    // ---- start time check ----
+    checkTime('compilation')
+
     const rawWorker = new Worker(workerUrl)
     const MatchWorker = Comlink.wrap(rawWorker)
     const worker = await new MatchWorker()
@@ -157,12 +186,14 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     }))
     app.ports.finishedLoading.send(null)
 
+    // ---- end time check ----
+    done = true
+
     return [rawWorker, worker]
   }
 
   let [rawWorker, worker] = await createWorker(lang)
 
-  let workerRunning = false
   app.ports.startEval.subscribe(({
     code,
     opponentCode,
@@ -170,6 +201,10 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   }) => {
     if (!workerRunning) {
       workerRunning = true
+
+      // ---- start time check ----
+      checkTime('initialization')
+
       worker.run({
         assetsPath,
         code1: code, // blue
@@ -181,10 +216,16 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   const runCallback = (data) => {
     if (data.type === 'error') {
+      // ---- end time check ----
+      done = true
+      workerRunning = false
+
       app.ports.getInternalError.send(null)
       console.log('Worker Error!')
       captureMessage('Garage worker error', data.data)
     } else if (data.type in app.ports) {
+      // ---- end time check ----
+      done = true
       if (data.type === 'getOutput') workerRunning = false
 
       // we pass all other data, including other errors, to the elm app

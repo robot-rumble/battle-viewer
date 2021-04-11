@@ -27,6 +27,7 @@ type alias Model =
     , opponentSelectState : OpponentSelect.Model
     , viewingOpponentSelect : Bool
     , team : Maybe Data.Team
+    , takingTooLong : Bool
     }
 
 
@@ -61,7 +62,7 @@ init apiContext isRunnerLoading team =
             else
                 NoRender
     in
-    ( Model apiContext Nothing Nothing renderState model False team, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing Nothing renderState model False team False, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -74,6 +75,7 @@ type Msg
     | GotOutput Data.OutcomeData
     | GotProgress Data.ProgressData
     | GotInternalError
+    | GotTooLong
     | Run Int
     | GotRenderMsg GridViewer.Msg
     | GotOpponentSelectMsg OpponentSelect.Msg
@@ -188,6 +190,9 @@ update msg model =
                     in
                     { model | renderState = InternalError viewerState }
 
+                GotTooLong ->
+                    { model | takingTooLong = True }
+
                 _ ->
                     model
             , Cmd.none
@@ -247,13 +252,13 @@ view model =
                 , Html.map GotRenderMsg <|
                     case model.renderState of
                         Render ( _, viewerState ) ->
-                            GridViewer.view (Just viewerState)
+                            GridViewer.view (Just viewerState) False
 
                         InternalError viewerState ->
-                            GridViewer.view (Just viewerState)
+                            GridViewer.view (Just viewerState) False
 
                         _ ->
-                            GridViewer.view Nothing
+                            GridViewer.view Nothing model.takingTooLong
                 ]
         ]
 

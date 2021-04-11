@@ -98,4 +98,4 @@ view model =
             Nothing ->
                 [ div [ class "error mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
         )
-            ++ [ GridViewer.view model ]
+            ++ [ GridViewer.view model False ]

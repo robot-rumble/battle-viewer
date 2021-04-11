@@ -382,12 +382,16 @@ port finishedDownloading : (() -> msg) -> Sub msg
 port finishedLoading : (() -> msg) -> Sub msg
 
 
+port getTooLong : (() -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ getOutput GotOutput
         , getProgress GotProgress
         , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
+        , getTooLong (always <| GotRenderMsg BattleViewer.GotTooLong)
         , finishedDownloading (always <| GotRenderMsg BattleViewer.FinishedDownloadingRunner)
         , finishedLoading (always <| GotRenderMsg BattleViewer.FinishedLoadingRunner)
         ]

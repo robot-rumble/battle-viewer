@@ -256,8 +256,8 @@ update msg model =
 -- VIEW
 
 
-view : Maybe Model -> Html Msg
-view maybeModel =
+view : Maybe Model -> Bool -> Html Msg
+view maybeModel takingTooLong =
     let
         logBoxShown =
             case maybeModel of
@@ -270,7 +270,7 @@ view maybeModel =
     div [ class "_grid-viewer-root" ] <|
         [ viewMain maybeModel ]
             ++ (if logBoxShown then
-                    [ viewLogs maybeModel ]
+                    [ viewLogs maybeModel takingTooLong ]
 
                 else
                     []
@@ -467,13 +467,21 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
         ]
 
 
+internalErrorText =
+    "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If you can't get the battle viewer to work at all, we recommend trying a different browser (Firefox or Chrome are preferred)."
+
+
+tooLongText =
+    "This is taking a while, which probably means that your browser is having trouble loading the battle runner code. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (Firefox or Chrome are preferred)."
+
+
 internalError : Html Msg
 internalError =
-    p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+    p [ class "error" ] [ text internalErrorText ]
 
 
-viewLogs : Maybe Model -> Html Msg
-viewLogs maybeModel =
+viewLogs : Maybe Model -> Bool -> Html Msg
+viewLogs maybeModel takingTooLong =
     div [ class "_logs box mt-4" ]
         [ p [ class "title" ] [ text "Logs" ]
         , case maybeModel of
@@ -503,7 +511,7 @@ viewLogs maybeModel =
                                                 ]
 
                                         _ ->
-                                            p [ class "error" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out. Feel free to reach out to antonoutkine At gmail Dot com with any questions." ]
+                                            internalError
                                     ]
 
                     Nothing ->
@@ -517,5 +525,9 @@ viewLogs maybeModel =
                                 [ text <| String.concat model.logs ]
 
             Nothing ->
-                p [ class "info" ] [ text "nothing here" ]
+                if takingTooLong then
+                    p [ class "error" ] [ text tooLongText ]
+
+                else
+                    p [ class "info" ] [ text "nothing here" ]
         ]

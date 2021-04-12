@@ -455,8 +455,9 @@ viewBar model =
                     ]
 
                 Nothing ->
-                    [ p [ class "mr-5" ] [ text "The Garage DEMO" ]
-                    , p [ class "mr-3" ] [ text <| "Change language (will erase): " ]
+                    [ a [ class "mr-3", href "/" ] [ text "Robot Rumble" ]
+                    , p [ class "mr-5" ] [ text "DEMO" ]
+                    , p [ class "mr-3" ] [ text <| "Change language (will clear code): " ]
                     , div [ class "d-flex" ]
                         ([ "Python", "Javascript" ]
                             |> List.map

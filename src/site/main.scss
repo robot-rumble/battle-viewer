@@ -27,7 +27,10 @@ body {
 
   .links {
     & > * {
-      margin-right: 0.8rem;
+      margin-right: 1.4rem;
+      img {
+        margin-right: -2px;
+      }
     }
   }
 }

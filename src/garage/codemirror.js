@@ -86,13 +86,13 @@ customElements.define(
       }
     }
 
-    // set setCode(code) {
-    //   this.code = code
-    //   if (this._editor) {
-    //     this._editor.setValue(code)
-    //   }
-    // }
-    //
+    set setCode(code) {
+      this.code = code
+      if (this._editor) {
+        this._editor.setValue(code)
+      }
+    }
+
     connectedCallback() {
       // const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
       // const localCode = localSave ? localSave.code : ''

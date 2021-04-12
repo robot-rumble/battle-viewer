@@ -6,7 +6,7 @@ customElements.define(
   class extends HTMLElement {
     connectedCallback() {
       const data = this.getAttribute('data')
-      const team = this.getAttribute('team')
+      const team = this.getAttribute('team') || null
       const userOwnsOpponent = this.getAttribute('user-owns-opponent')
       if (!data || !userOwnsOpponent) {
         throw new Error('No data|userOwnsOpponent data attribute found')

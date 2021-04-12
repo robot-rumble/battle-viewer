@@ -89,7 +89,9 @@ customElements.define(
     set setCode(code) {
       this.code = code
       if (this._editor) {
-        this._editor.setValue(code)
+        if (code !== this._editor.getValue()) {
+          this._editor.setValue(code)
+        }
       }
     }
 
@@ -135,10 +137,11 @@ customElements.define(
           }),
         )
         window.code = this._editor.getValue()
-        this.dispatchEvent(new CustomEvent('editorChanged'))
+
+        this.dispatchEvent(new CustomEvent('editorChanged', { detail: this._editor.getValue() }))
       })
 
-      this.dispatchEvent(new CustomEvent('editorChanged'))
+      this.dispatchEvent(new CustomEvent('editorChanged', { detail: this._editor.getValue() }))
 
       document.fonts.ready.then(() => {
         if (this._editor) this._editor.refresh()

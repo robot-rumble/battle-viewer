@@ -331,6 +331,10 @@ update msg model =
             ( newModel, Cmd.batch [ newCmd, reportApiErrorCmd ] )
 
         CodeChanged code ->
+            let
+                _ =
+                    Debug.log "code" code
+            in
             ( { model | code = code }, Cmd.none )
 
         Saved _ ->
@@ -496,7 +500,7 @@ viewEditor model =
         ([ class "_editor"
          , Html.Events.on "editorChanged" <|
             Decode.map CodeChanged <|
-                Decode.at [ "target", "value" ] <|
+                Decode.at [ "detail" ] <|
                     Decode.string
          , property "setCode" (Encode.string model.code)
          , property "setLang" (Encode.string model.lang)

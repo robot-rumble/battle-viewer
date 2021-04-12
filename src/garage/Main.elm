@@ -331,10 +331,6 @@ update msg model =
             ( newModel, Cmd.batch [ newCmd, reportApiErrorCmd ] )
 
         CodeChanged code ->
-            let
-                _ =
-                    Debug.log "code" code
-            in
             ( { model | code = code }, Cmd.none )
 
         Saved _ ->

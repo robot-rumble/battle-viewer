@@ -1,10 +1,12 @@
 import * as Comlink from 'comlink'
 import Split from 'split.js'
+import Bowser from 'bowser'
 
 import './codemirror'
 import { applyTheme } from './themes'
 import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
+import defaultCode from './defaultCode'
 
 function createApiContext(siteInfo, assetsPath) {
   return {
@@ -79,8 +81,36 @@ customElements.define(
         // we're in demo mode
       }
 
+      const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
+      let compatible = false
+      if (browser.version && (browser.name === 'Chrome' || browser.name === 'Microsoft Edge')) {
+        compatible = parseInt(browser.version.split('.')[0]) >= 85
+      }
+      console.log(browser)
+
       const lang = this.getAttribute('lang') || 'Python'
-      const code = this.getAttribute('code') || ''
+      if (!(lang in defaultCode)) {
+        throw new Error('Unknown lang value: ' + lang)
+      }
+
+      let code = this.getAttribute('code') || ''
+      if (!code) {
+        // this user is new, so let's show him a compatibility warning
+        if (!compatible) {
+          let warning = `
+Unsupported browser type! Robot Rumble currently only officially supports Chrome/Edge 85+
+Your browser is: ${browser.name} ${browser.version}
+Some/all parts of the Garage may still work, but please proceed at your own risk
+
+If you cannot switch to a different browser, consider downloading RumbleBot, our command line tool
+https://rr-docs.readthedocs.io/en/latest/rumblebot.html
+`
+          const comment = { Python: '#', Javascript: '//' }[lang]
+          warning = warning.split('\n').map(line => `${comment} ${line}`).join('\n')
+          code += warning + '\n\n'
+        }
+        code += defaultCode[lang]
+      }
 
       const assetsPath = this.getAttribute('assetsPath')
       if (!assetsPath) {

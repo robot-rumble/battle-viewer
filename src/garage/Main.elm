@@ -462,7 +462,7 @@ viewBar model =
                         ([ "Python", "Javascript" ]
                             |> List.map
                                 (\lang ->
-                                    button [ class "button mr-2", onClick (SelectLang lang) ] [ text lang ]
+                                    button [ class "button mr-2", id <| "select-" ++ lang, onClick (SelectLang lang) ] [ text lang ]
                                 )
                         )
                     ]

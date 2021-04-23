@@ -276,6 +276,7 @@ viewBar model =
                                 button
                                     [ onClick <| Run turn_num
                                     , class "button"
+                                    , id <| "run-" ++ String.fromInt turn_num ++ "-turns"
                                     ]
                                     [ text <| String.fromInt turn_num ++ " Turns" ]
                             )

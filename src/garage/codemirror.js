@@ -141,8 +141,6 @@ customElements.define(
         this.dispatchEvent(new CustomEvent('editorChanged', { detail: this._editor.getValue() }))
       })
 
-      this.dispatchEvent(new CustomEvent('editorChanged', { detail: this._editor.getValue() }))
-
       document.fonts.ready.then(() => {
         if (this._editor) this._editor.refresh()
       })

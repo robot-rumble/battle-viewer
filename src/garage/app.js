@@ -43,7 +43,9 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
   import('./main.scss')
 
   if (!process.env.BOT_LANG) {
-    throw new Error('You must specify the robot language through the "BOT_LANG" env var.')
+    throw new Error(
+      'You must specify the robot language through the "BOT_LANG" env var.',
+    )
   }
 
   init(
@@ -76,15 +78,27 @@ customElements.define(
           robotId,
         }
       } else if (user || userId || robot || robotId) {
-        throw new Error('Missing some but not all of user|userId|robot|robotId attributes')
+        throw new Error(
+          'Missing some but not all of user|userId|robot|robotId attributes',
+        )
       } else {
         // we're in demo mode
       }
 
       const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
       let compatible = false
-      if (browser.version && (browser.name === 'Chrome' || browser.name === 'Microsoft Edge')) {
-        compatible = parseInt(browser.version.split('.')[0]) >= 85
+      if (
+        browser.version &&
+        (browser.name === 'Chrome' ||
+          browser.name === 'Microsoft Edge' ||
+          browser.name === 'Firefox')
+      ) {
+        const version = parseInt(browser.version.split('.')[0])
+        if (browser.name === 'Firefox') {
+          compatible = version >= 84
+        } else {
+          compatible = version >= 85
+        }
       }
       console.log(browser)
 
@@ -98,7 +112,7 @@ customElements.define(
         // this user is new, so let's show him a compatibility warning
         if (!compatible) {
           let warning = `
-Unsupported browser type! Robot Rumble currently only officially supports Chrome/Edge 85+
+Unsupported browser type! Robot Rumble currently only officially supports Chrome/Edge 85+ & Firefox 84+
 Your browser is: ${browser.name} ${browser.version}
 Some/all parts of the Garage may still work, but please proceed at your own risk
 
@@ -106,7 +120,10 @@ If you cannot switch to a different browser, consider downloading RumbleBot, our
 https://rr-docs.readthedocs.io/en/latest/rumblebot.html
 `
           const comment = { Python: '#', Javascript: '//' }[lang]
-          warning = warning.split('\n').map(line => `${comment} ${line}`).join('\n')
+          warning = warning
+            .split('\n')
+            .map((line) => `${comment} ${line}`)
+            .join('\n')
           code += warning + '\n\n'
         }
         code += defaultCode[lang]
@@ -162,7 +179,7 @@ function init(node, code, lang, apiContext, workerUrl) {
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return 'You\'ve made unsaved changes.'
+      return "You've made unsaved changes."
     }
   }
 }
@@ -203,7 +220,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     setTimeout(cb, checkEvery)
   }
 
-  const createWorker = async (lang) => {
+  const createWorker = async(lang) => {
     // ---- start time check ----
     checkTime('compilation')
 
@@ -211,9 +228,13 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     const MatchWorker = Comlink.wrap(rawWorker)
     const worker = await new MatchWorker()
 
-    await worker.init(assetsPath, lang, Comlink.proxy(() => {
-      app.ports.finishedDownloading.send(null)
-    }))
+    await worker.init(
+      assetsPath,
+      lang,
+      Comlink.proxy(() => {
+        app.ports.finishedDownloading.send(null)
+      }),
+    )
     app.ports.finishedLoading.send(null)
 
     // ---- end time check ----
@@ -224,23 +245,22 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   let [rawWorker, worker] = await createWorker(lang)
 
-  app.ports.startEval.subscribe(({
-    code,
-    opponentCode,
-    turnNum,
-  }) => {
+  app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
     if (!workerRunning) {
       workerRunning = true
 
       // ---- start time check ----
       checkTime('initialization')
 
-      worker.run({
-        assetsPath,
-        code1: code, // blue
-        code2: opponentCode, // red
-        turnNum,
-      }, Comlink.proxy(runCallback))
+      worker.run(
+        {
+          assetsPath,
+          code1: code, // blue
+          code2: opponentCode, // red
+          turnNum,
+        },
+        Comlink.proxy(runCallback),
+      )
     }
   })
 
@@ -267,7 +287,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   }
 
   // in the demo, you can select the lang
-  app.ports.selectLang.subscribe(async (lang) => {
+  app.ports.selectLang.subscribe(async(lang) => {
     rawWorker.terminate()
     const res = await createWorker(lang)
     rawWorker = res[0]

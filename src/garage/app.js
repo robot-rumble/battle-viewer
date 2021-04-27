@@ -112,9 +112,10 @@ customElements.define(
         // this user is new, so let's show him a compatibility warning
         if (!compatible) {
           let warning = `
-Unsupported browser type! Robot Rumble currently only officially supports Chrome/Edge 85+ & Firefox 84+
+Unsupported browser type! The Garage officially supports Chrome/Edge 85+ & Firefox 84+
+The Garage DOES NOT support Safari
 Your browser is: ${browser.name} ${browser.version}
-Some/all parts of the Garage may still work, but please proceed at your own risk
+Some parts of this page may still work, but please proceed at your own risk
 
 If you cannot switch to a different browser, consider downloading RumbleBot, our command line tool
 https://rr-docs.readthedocs.io/en/latest/rumblebot.html

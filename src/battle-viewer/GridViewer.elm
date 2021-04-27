@@ -468,11 +468,11 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
 
 
 internalErrorText =
-    "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support most versions of Firefox, Edge, and Chrome, but NOT Safari), or downloading Rumlebot, our CLI tool (see the docs)."
+    "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs)."
 
 
 tooLongText =
-    "This is taking longer than it should... We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (we support most versions of Firefox, Edge, and Chrome, but NOT Safari), or downloading Rumlebot, our CLI tool (see the docs)."
+    "This is taking longer than it should... We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs)."
 
 
 internalError : Html Msg

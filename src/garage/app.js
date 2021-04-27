@@ -60,6 +60,13 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
   module.hot.addStatusHandler(initSplit)
 }
 
+const supportedBrowsers = {
+  'Chrome': 85,
+  'Microsoft Edge': 85,
+  'Firefox': 78,
+  'Opera': 71,
+}
+
 customElements.define(
   'garage-el',
   class extends HTMLElement {
@@ -88,21 +95,9 @@ customElements.define(
 
       const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
       let compatible = false
-      let unsupported = false
-      if (
-        browser.version &&
-        (browser.name === 'Chrome' ||
-          browser.name === 'Microsoft Edge' ||
-          browser.name === 'Firefox')
-      ) {
+      if (browser.version && browser.name in supportedBrowsers) {
         const version = parseInt(browser.version.split('.')[0])
-        if (browser.name === 'Firefox') {
-          compatible = version >= 84
-        } else {
-          compatible = version >= 85
-        }
-      } else if (browser.name === 'Safari') {
-        unsupported = true
+        compatible = version >= supportedBrowsers[browser.name]
       }
 
       const lang = this.getAttribute('lang') || 'Python'
@@ -114,11 +109,12 @@ customElements.define(
       if (!code) {
         // this user is new, so let's show him a compatibility warning
         if (!compatible) {
+          const supportString = Object.entries(supportedBrowsers).map(([name, version]) => `${name} ${version}+`).join(', ')
           let warning = `
-Unsupported browser type! The Garage officially supports Chrome/Edge 85+ & Firefox 84+
+Unsupported browser type! 
+The Garage officially supports ${supportString}
+The Garage DOES NOT support Safari
 Your browser is: ${browser.name} ${browser.version}
-Some parts of this page may still work, but please proceed at your own risk
-Note that the Garage DOES NOT support Safari
 
 If you cannot switch to a different browser, consider downloading RumbleBot, our command line tool
 https://rr-docs.readthedocs.io/en/latest/rumblebot.html
@@ -152,7 +148,7 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         process.env.NODE_ENV === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
-        unsupported,
+        !compatible,
       )
     }
   },
@@ -174,8 +170,11 @@ function init(node, code, lang, apiContext, workerUrl, unsupported) {
     },
   })
 
+  if (!unsupported) {
+    initWorker(workerUrl, app, apiContext.paths.assets, lang).then()
+  }
+
   initSplit()
-  initWorker(workerUrl, app, apiContext.paths.assets, lang).then()
 
   app.ports.saveSettings.subscribe((settings) => {
     window.localStorage.setItem('settings', JSON.stringify(settings))

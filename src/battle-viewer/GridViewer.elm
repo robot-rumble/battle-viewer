@@ -468,11 +468,11 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
 
 
 internalErrorText =
-    "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If you can't get the battle viewer to work at all, we recommend trying a different browser (Firefox or Chrome are preferred)."
+    "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support most versions of Firefox, Edge, and Chrome, but NOT Safari), or downloading Rumlebot, our CLI tool (see the docs)."
 
 
 tooLongText =
-    "This is taking a while, which probably means that your browser is having trouble loading the battle runner code. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (Firefox or Chrome are preferred)."
+    "This is taking longer than it should... We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (we support most versions of Firefox, Edge, and Chrome, but NOT Safari), or downloading Rumlebot, our CLI tool (see the docs)."
 
 
 internalError : Html Msg

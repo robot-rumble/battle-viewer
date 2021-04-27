@@ -201,7 +201,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   const checkTime = (stage) => {
     const startTime = Date.now()
     const checkEvery = 1000
-    const tooLong = 10 * checkEvery
+    const tooLong = 15 * checkEvery
     done = false
 
     // tell elm when a process is taking a while

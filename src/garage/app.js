@@ -54,6 +54,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
     'Python',
     createApiContext(null, ''),
     'dist/worker.js',
+    false,
   )
 
   module.hot.addStatusHandler(initSplit)
@@ -87,6 +88,7 @@ customElements.define(
 
       const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
       let compatible = false
+      let unsupported = false
       if (
         browser.version &&
         (browser.name === 'Chrome' ||
@@ -99,8 +101,9 @@ customElements.define(
         } else {
           compatible = version >= 85
         }
+      } else if (browser.name === 'Safari') {
+        unsupported = true
       }
-      console.log(browser)
 
       const lang = this.getAttribute('lang') || 'Python'
       if (!(lang in defaultCode)) {
@@ -113,14 +116,17 @@ customElements.define(
         if (!compatible) {
           let warning = `
 Unsupported browser type! The Garage officially supports Chrome/Edge 85+ & Firefox 84+
-The Garage DOES NOT support Safari
 Your browser is: ${browser.name} ${browser.version}
 Some parts of this page may still work, but please proceed at your own risk
+Note that the Garage DOES NOT support Safari
 
 If you cannot switch to a different browser, consider downloading RumbleBot, our command line tool
 https://rr-docs.readthedocs.io/en/latest/rumblebot.html
 `
-          const comment = { Python: '#', Javascript: '//' }[lang]
+          const comment = {
+            Python: '#',
+            Javascript: '//',
+          }[lang]
           warning = warning
             .split('\n')
             .map((line) => `${comment} ${line}`)
@@ -146,12 +152,13 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         process.env.NODE_ENV === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
+        unsupported,
       )
     }
   },
 )
 
-function init(node, code, lang, apiContext, workerUrl) {
+function init(node, code, lang, apiContext, workerUrl, unsupported) {
   const settings = loadSettings()
   applyTheme(settings.theme)
 
@@ -163,6 +170,7 @@ function init(node, code, lang, apiContext, workerUrl) {
       apiContext,
       settings,
       team: 'Blue',
+      unsupported,
     },
   })
 
@@ -180,7 +188,7 @@ function init(node, code, lang, apiContext, workerUrl) {
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return "You've made unsaved changes."
+      return 'You\'ve made unsaved changes.'
     }
   }
 }
@@ -221,7 +229,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     setTimeout(cb, checkEvery)
   }
 
-  const createWorker = async(lang) => {
+  const createWorker = async (lang) => {
     // ---- start time check ----
     checkTime('compilation')
 
@@ -246,7 +254,11 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   let [rawWorker, worker] = await createWorker(lang)
 
-  app.ports.startEval.subscribe(({ code, opponentCode, turnNum }) => {
+  app.ports.startEval.subscribe(({
+    code,
+    opponentCode,
+    turnNum,
+  }) => {
     if (!workerRunning) {
       workerRunning = true
 
@@ -288,7 +300,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   }
 
   // in the demo, you can select the lang
-  app.ports.selectLang.subscribe(async(lang) => {
+  app.ports.selectLang.subscribe(async (lang) => {
     rawWorker.terminate()
     const res = await createWorker(lang)
     rawWorker = res[0]

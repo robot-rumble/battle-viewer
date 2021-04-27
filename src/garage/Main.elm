@@ -58,6 +58,7 @@ type alias Model =
     , settings : Settings.Model
     , viewingSettings : Bool
     , team : Maybe Data.Team
+    , unsupported : Bool
     }
 
 
@@ -103,7 +104,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext True flags.team
+            BattleViewer.init apiContext True flags.team flags.unsupported
 
         -- if in demo, the code will be an empty string
         -- the default code needs to be stored on the level of elm because ultimately
@@ -127,6 +128,7 @@ init flags =
         settings
         False
         flags.team
+        flags.unsupported
     , Cmd.map GotRenderMsg battleViewerCmd
     )
 
@@ -137,6 +139,7 @@ type alias Flags =
     , apiContext : Api.ContextFlag
     , settings : Maybe Encode.Value
     , team : Maybe Data.Team
+    , unsupported : Bool
     }
 
 

@@ -28,6 +28,7 @@ type alias Model =
     , viewingOpponentSelect : Bool
     , team : Maybe Data.Team
     , takingTooLong : Bool
+    , unsupported : Bool
     }
 
 
@@ -49,8 +50,8 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Api.Context -> Bool -> Maybe Data.Team -> ( Model, Cmd Msg )
-init apiContext isRunnerLoading team =
+init : Api.Context -> Bool -> Maybe Data.Team -> Bool -> ( Model, Cmd Msg )
+init apiContext isRunnerLoading team unsupported =
     let
         ( model, cmd ) =
             OpponentSelect.init apiContext
@@ -62,7 +63,7 @@ init apiContext isRunnerLoading team =
             else
                 NoRender
     in
-    ( Model apiContext Nothing Nothing renderState model False team False, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model apiContext Nothing Nothing renderState model False team False unsupported, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -292,32 +293,36 @@ viewBar model =
     div [ class "_run-bar" ]
         [ div [ class "_progress-outline" ] []
         , div [ class "_battle-section" ]
-            [ case model.renderState of
-                Render ( turn, viewerState ) ->
-                    let
-                        totalTurns =
-                            Array.length viewerState.turns
-                    in
-                    if totalTurns /= turn && viewerState.error == Nothing then
-                        div [ class "_progress", style "width" <| to_percent (toFloat totalTurns / toFloat turn * 100) ] []
+            [ if model.unsupported then
+                p [ class "error" ] [ text "Unsupported browser type!" ]
 
-                    else
+              else
+                case model.renderState of
+                    Render ( turn, viewerState ) ->
+                        let
+                            totalTurns =
+                                Array.length viewerState.turns
+                        in
+                        if totalTurns /= turn && viewerState.error == Nothing then
+                            div [ class "_progress", style "width" <| to_percent (toFloat totalTurns / toFloat turn * 100) ] []
+
+                        else
+                            viewButtons ()
+
+                    Initializing _ ->
+                        p [ class "_text" ] [ text "Initializing..." ]
+
+                    DownloadingRunner ->
+                        viewLoadingMessage "Loading runner..."
+
+                    LoadingRunner ->
+                        viewLoadingMessage "Compiling runner..."
+
+                    InternalError _ ->
+                        p [ class "error" ] [ text "Internal error!" ]
+
+                    NoRender ->
                         viewButtons ()
-
-                Initializing _ ->
-                    p [ class "_text" ] [ text "Initializing..." ]
-
-                DownloadingRunner ->
-                    viewLoadingMessage "Loading runner..."
-
-                LoadingRunner ->
-                    viewLoadingMessage "Compiling runner..."
-
-                InternalError _ ->
-                    p [ class "error" ] [ text "Internal error!" ]
-
-                NoRender ->
-                    viewButtons ()
             ]
         , div [ class "_winner-section" ]
             [ p [ class "mr-2" ] [ text "winner: " ]

@@ -116,7 +116,7 @@ The Garage officially supports ${supportString}
 The Garage DOES NOT support Safari
 Your browser is: ${browser.name} ${browser.version}
 
-If you cannot switch to a different browser, consider downloading RumbleBot, our command line tool
+If you cannot switch to a different browser, consider downloading Rumblebot, our command line tool
 https://rr-docs.readthedocs.io/en/latest/rumblebot.html
 `
           const comment = {

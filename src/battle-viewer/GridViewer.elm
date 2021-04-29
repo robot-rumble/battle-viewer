@@ -99,13 +99,13 @@ processLogs maybeTeam turn =
             \logs ->
                 let
                     headingStart =
-                        if turn.state.turn == 1 then
+                        if turn.state.turn == 0 then
                             "Turn "
 
                         else
                             "\nTurn "
                 in
-                (headingStart ++ String.fromInt turn.state.turn ++ "\n") :: logs
+                (headingStart ++ String.fromInt (turn.state.turn + 1) ++ "\n") :: logs
     in
     Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
 

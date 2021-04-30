@@ -1,20 +1,25 @@
 import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
 
+import { Buffer } from 'buffer'
+import decompress from 'brotli/decompress'
+
 customElements.define(
   'battle-el',
   class extends HTMLElement {
     connectedCallback() {
-      const data = this.getAttribute('data')
+      const rawData = this.getAttribute('data')
       const team = this.getAttribute('team') || null
       const userOwnsOpponent = this.getAttribute('user-owns-opponent')
-      if (!data || !userOwnsOpponent) {
+      if (!rawData || !userOwnsOpponent) {
         throw new Error('No data|userOwnsOpponent data attribute found')
       }
 
+      const data = JSON.parse(Buffer.from(decompress(Buffer.from(rawData, 'base64'))).toString('utf8'))
+
       const app = Elm.Main.init({
         node: this,
-        flags: { data: JSON.parse(data), team, userOwnsOpponent: userOwnsOpponent === 'true' },
+        flags: { data, team, userOwnsOpponent: userOwnsOpponent === 'true' },
       })
 
       app.ports.reportDecodeError.subscribe((error) => {

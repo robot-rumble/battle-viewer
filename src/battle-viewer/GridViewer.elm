@@ -99,13 +99,13 @@ processLogs maybeTeam turn =
             \logs ->
                 let
                     headingStart =
-                        if turn.state.turn == 0 then
+                        if turn.state.turn == 1 then
                             "Turn "
 
                         else
                             "\nTurn "
                 in
-                (headingStart ++ String.fromInt (turn.state.turn + 1) ++ "\n") :: logs
+                (headingStart ++ String.fromInt turn.state.turn ++ "\n") :: logs
     in
     Maybe.withDefault [] (Maybe.map addTurnHeading turnLogs)
 
@@ -324,7 +324,7 @@ viewGameBar maybeModel =
     div [ class "_grid-viewer-controls" ] <|
         case maybeModel of
             Just model ->
-                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
+                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt model.currentTurn ]
                 , viewArrows model
                 , viewSlider model
                 ]

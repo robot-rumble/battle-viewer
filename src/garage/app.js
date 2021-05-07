@@ -16,6 +16,7 @@ function createApiContext(siteInfo, assetsPath) {
       getRobotCode: '/api/get-robot-code',
       updateRobotCode: '/api/update-robot-code',
       viewRobot: '/api/view-robot-by-id',
+      viewUser: '',
       editRobot: '/api/edit-robot-by-id',
       publish: '/boards',
       assets: assetsPath,

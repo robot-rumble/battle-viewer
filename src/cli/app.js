@@ -21,6 +21,7 @@ function init(flags) {
           assets: '',
           updateRobotCode: '',
           viewRobot: '',
+          viewUser: '',
           editRobot: '',
           publish: '',
         },

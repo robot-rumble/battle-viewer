@@ -430,7 +430,10 @@ viewBar model =
         [ div [ class "d-flex align-items-center" ]
             (case model.apiContext.siteInfo of
                 Just info ->
-                    [ p [] [ text "The Garage -- editing ", a [ href <| Api.urlForViewingRobot model.apiContext info.robotId ] [ text info.robot ] ]
+                    [ div [ class "d-flex" ]
+                        [ p [ class "mr-3" ] [ text "The Garage -- editing" ]
+                        , a [ href <| Api.urlForViewingRobot model.apiContext info.robotId, target "_blank" ] [ text info.robot ]
+                        ]
                     , button [ class "button ml-4", onClick Save ] [ text "save" ]
                     , p
                         [ class "mx-3"
@@ -470,16 +473,22 @@ viewBar model =
                         )
                     ]
             )
-        , div [ class "d-flex align-items-center" ]
-            [ case model.apiContext.siteInfo of
-                Just _ ->
-                    a [ class "mr-3", href <| Api.urlForPublishing model.apiContext, target "_blank" ] [ text "publish to a board" ]
+        , div [ class "d-flex align-items-center" ] <|
+            (case model.apiContext.siteInfo of
+                Just info ->
+                    [ a [ class "mr-4", href <| Api.urlForViewingUser model.apiContext info.user, target "_blank" ]
+                        [ text "your robots" ]
+                    , a
+                        [ class "mr-4", href <| Api.urlForPublishing model.apiContext, target "_blank" ]
+                        [ text "publish to a board" ]
+                    ]
 
                 Nothing ->
-                    div [] []
-            , a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
-            , div [ class "_img-settings", onClick ViewSettings ] []
-            ]
+                    []
+            )
+                ++ [ a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
+                   , div [ class "_img-settings", onClick ViewSettings ] []
+                   ]
         ]
 
 

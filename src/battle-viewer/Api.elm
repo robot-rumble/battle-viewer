@@ -21,6 +21,7 @@ module Api exposing
     , urlForEditingRobot
     , urlForPublishing
     , urlForViewingRobot
+    , urlForViewingUser
     )
 
 import Http exposing (Part, stringPart)
@@ -124,6 +125,7 @@ type alias Paths =
     , getRobotCode : String
     , updateRobotCode : String
     , viewRobot : String
+    , viewUser : String
     , editRobot : String
     , publish : String
     , assets : String
@@ -289,6 +291,11 @@ updateRobotCode context robotId code =
 urlForViewingRobot : Context -> RobotId -> String
 urlForViewingRobot context robotId =
     generateUrl context.paths.viewRobot [ String.fromInt (unwrapRobotId robotId) ]
+
+
+urlForViewingUser : Context -> String -> String
+urlForViewingUser context user =
+    generateUrl context.paths.viewUser [ user ]
 
 
 urlForEditingRobot : Context -> RobotId -> String

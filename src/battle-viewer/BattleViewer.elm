@@ -50,11 +50,11 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Api.Context -> Bool -> Maybe Data.Team -> Bool -> ( Model, Cmd Msg )
-init apiContext isRunnerLoading team unsupported =
+init : Api.Context -> Bool -> Maybe Data.Team -> Bool -> Bool -> ( Model, Cmd Msg )
+init apiContext isRunnerLoading team unsupported cli =
     let
         ( model, cmd ) =
-            OpponentSelect.init apiContext
+            OpponentSelect.init apiContext cli
 
         renderState =
             if isRunnerLoading then

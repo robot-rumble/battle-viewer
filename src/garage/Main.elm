@@ -104,7 +104,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext True flags.team flags.unsupported
+            BattleViewer.init apiContext True flags.team flags.unsupported False
 
         -- if in demo, the code will be an empty string
         -- the default code needs to be stored on the level of elm because ultimately

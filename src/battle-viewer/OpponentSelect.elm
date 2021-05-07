@@ -24,6 +24,7 @@ type alias Model =
     , apiError : Maybe String
     , searchUser : String
     , searchResult : Maybe (Result String (List Api.Robot))
+    , cli : Bool
     }
 
 
@@ -58,8 +59,8 @@ userOwnsOpponent model apiContext =
                     True
 
 
-init : Api.Context -> ( Model, Cmd Msg )
-init apiContext =
+init : Api.Context -> Bool -> ( Model, Cmd Msg )
+init apiContext cli =
     let
         getUserRobotsCmd =
             case apiContext.siteInfo of
@@ -72,7 +73,7 @@ init apiContext =
         getBuiltinRobotsCmd =
             Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
     in
-    ( Model apiContext Itself [] [] Nothing "" Nothing, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
+    ( Model apiContext Itself [] [] Nothing "" Nothing cli, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
 
 
 
@@ -215,7 +216,14 @@ view model =
             ++ (case model.apiContext.siteInfo of
                     Just _ ->
                         [ div []
-                            [ p [ class "mb-2" ] [ text "Your robots" ]
+                            [ p [ class "mb-2" ]
+                                [ text <|
+                                    if model.cli then
+                                        "Selected robots"
+
+                                    else
+                                        "Your robots"
+                                ]
                             , viewRobotsList model.apiContext model.userRobots
                             ]
                         ]
@@ -223,27 +231,32 @@ view model =
                     Nothing ->
                         []
                )
-            ++ [ div []
-                    [ p [ class "mb-2" ] [ text "Built-in robots" ]
-                    , viewRobotsList model.apiContext model.builtinRobots
-                    ]
-               , div []
-                    [ p [ class "mb-2" ] [ text "Search robot" ]
-                    , div [ class "d-flex mb-3" ]
-                        [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
-                        , button [ class "button", onClick Search ] [ text "find" ]
+            ++ (if model.cli then
+                    []
+
+                else
+                    [ div []
+                        [ p [ class "mb-2" ] [ text "Built-in robots" ]
+                        , viewRobotsList model.apiContext model.builtinRobots
                         ]
-                    , case model.searchResult of
-                        Just (Ok robots) ->
-                            viewRobotsList model.apiContext robots
+                    , div []
+                        [ p [ class "mb-2" ] [ text "Search robot" ]
+                        , div [ class "d-flex mb-3" ]
+                            [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
+                            , button [ class "button", onClick Search ] [ text "find" ]
+                            ]
+                        , case model.searchResult of
+                            Just (Ok robots) ->
+                                viewRobotsList model.apiContext robots
 
-                        Just (Err err) ->
-                            div [ class "error" ] [ text err ]
+                            Just (Err err) ->
+                                div [ class "error" ] [ text err ]
 
-                        Nothing ->
-                            div [] []
+                            Nothing ->
+                                div [] []
+                        ]
                     ]
-               ]
+               )
 
 
 viewRobotsList : Api.Context -> List Api.Robot -> Html Msg

@@ -12,6 +12,7 @@ module Api exposing
     , errorToString
     , getBuiltinRobots
     , getRobotCode
+    , getRobotCodeSearch
     , getUserRobots
     , makeRequest
     , unwrapRobotId
@@ -123,6 +124,7 @@ type alias Endpoint val =
 type alias Paths =
     { getUserRobots : String
     , getRobotCode : String
+    , getRobotCodeSearch : String
     , updateRobotCode : String
     , viewRobot : String
     , viewUser : String
@@ -280,6 +282,11 @@ getBuiltinRobots context =
 getRobotCode : Context -> RobotId -> Request String
 getRobotCode context robotId =
     Get ( context.paths.getRobotCode, [ String.fromInt (unwrapRobotId robotId) ], string )
+
+
+getRobotCodeSearch : Context -> String -> String -> Request String
+getRobotCodeSearch context user robot =
+    Get ( context.paths.getRobotCode, [ user, robot ], string )
 
 
 updateRobotCode : Context -> RobotId -> String -> Request ()

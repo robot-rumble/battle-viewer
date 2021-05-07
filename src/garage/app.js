@@ -14,6 +14,7 @@ function createApiContext(siteInfo, assetsPath) {
     paths: {
       getUserRobots: '/api/get-user-robots',
       getRobotCode: '/api/get-robot-code',
+      getRobotCodeSearch: '/api/get-robot-code-search',
       updateRobotCode: '/api/update-robot-code',
       viewRobot: '/api/view-robot-by-id',
       viewUser: '',

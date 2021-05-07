@@ -4,6 +4,12 @@ import Api
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
+import Json.Decode as Decode
+
+
+onKeyDown : (Int -> msg) -> Attribute msg
+onKeyDown msg =
+    on "keydown" (Decode.map msg keyCode)
 
 
 
@@ -16,6 +22,8 @@ type alias Model =
     , userRobots : List Api.Robot
     , builtinRobots : List Api.Robot
     , apiError : Maybe String
+    , searchUser : String
+    , searchResult : Maybe (Result String (List Api.Robot))
     }
 
 
@@ -64,7 +72,7 @@ init apiContext =
         getBuiltinRobotsCmd =
             Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
     in
-    ( Model apiContext Itself [] [] Nothing, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
+    ( Model apiContext Itself [] [] Nothing "" Nothing, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
 
 
 
@@ -76,13 +84,17 @@ type Msg
     | GotUserRobots (Api.Result (List Api.Robot))
     | GotBuiltinRobots (Api.Result (List Api.Robot))
     | GotCode (Api.Result String)
+    | ChangeSearchUser String
+    | Search
+    | KeyDown Int
+    | GotSearchUserRobots (Api.Result (List Api.Robot))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         SelectOpponent opponent ->
-            ( { model | opponent = opponent }
+            ( { model | opponent = opponent, searchResult = Nothing }
             , case opponent of
                 Robot robotDetails ->
                     Api.getRobotCode model.apiContext robotDetails.robot.basic.id |> Api.makeRequest GotCode
@@ -150,6 +162,40 @@ update msg model =
             , Cmd.none
             )
 
+        ChangeSearchUser user ->
+            ( { model | searchUser = user }, Cmd.none )
+
+        KeyDown key ->
+            if key == 13 then
+                search model
+
+            else
+                ( model, Cmd.none )
+
+        Search ->
+            search model
+
+        GotSearchUserRobots result ->
+            ( case result of
+                Ok data ->
+                    { model | searchResult = Just (Ok data) }
+
+                Err _ ->
+                    { model | searchResult = Just (Err "User not found") }
+            , Cmd.none
+            )
+
+
+search : Model -> ( Model, Cmd Msg )
+search model =
+    ( { model | searchResult = Nothing }
+    , if not <| String.isEmpty model.searchUser then
+        Api.getUserRobots model.apiContext model.searchUser |> Api.makeRequest GotSearchUserRobots
+
+      else
+        Cmd.none
+    )
+
 
 
 -- VIEW
@@ -165,14 +211,37 @@ view model =
             Nothing ->
                 []
         )
-            ++ [ button [ class "button", onClick <| SelectOpponent Itself ] [ text "Itself" ]
-               , div []
-                    [ p [ class "mb-2" ] [ text "Your robots" ]
-                    , viewRobotsList model.apiContext model.userRobots
-                    ]
-               , div []
+            ++ [ button [ class "button", onClick <| SelectOpponent Itself ] [ text "Itself" ] ]
+            ++ (case model.apiContext.siteInfo of
+                    Just _ ->
+                        [ div []
+                            [ p [ class "mb-2" ] [ text "Your robots" ]
+                            , viewRobotsList model.apiContext model.userRobots
+                            ]
+                        ]
+
+                    Nothing ->
+                        []
+               )
+            ++ [ div []
                     [ p [ class "mb-2" ] [ text "Built-in robots" ]
                     , viewRobotsList model.apiContext model.builtinRobots
+                    ]
+               , div []
+                    [ p [ class "mb-2" ] [ text "Search robot" ]
+                    , div [ class "d-flex mb-3" ]
+                        [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
+                        , button [ class "button", onClick Search ] [ text "find" ]
+                        ]
+                    , case model.searchResult of
+                        Just (Ok robots) ->
+                            viewRobotsList model.apiContext robots
+
+                        Just (Err err) ->
+                            div [ class "error" ] [ text err ]
+
+                        Nothing ->
+                            div [] []
                     ]
                ]
 

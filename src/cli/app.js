@@ -24,6 +24,7 @@ function init(flags) {
           viewUser: '',
           editRobot: '',
           publish: '',
+          getRobotCodeSearch: '',
         },
         siteInfo: {
           user: flags.user,

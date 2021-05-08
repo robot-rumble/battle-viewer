@@ -14,7 +14,6 @@ function init(flags) {
       team: 'Blue',
       apiContext: {
         paths: {
-          getRobotCode: '/getrobotcode',
           getUserRobots: '/getrobots',
 
           // we don't use this, so w/e
@@ -24,7 +23,8 @@ function init(flags) {
           viewUser: '',
           editRobot: '',
           publish: '',
-          getRobotCodeSearch: '',
+          getDevCode: '',
+          getPublishedCode: '',
         },
         siteInfo: {
           user: flags.user,

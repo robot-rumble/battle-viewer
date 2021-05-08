@@ -81,7 +81,7 @@ init apiContext cli =
 
 
 type Msg
-    = SelectOpponent Opponent
+    = SelectOpponent ( Bool, Opponent )
     | GotUserRobots (Api.Result (List Api.Robot))
     | GotBuiltinRobots (Api.Result (List Api.Robot))
     | GotCode (Api.Result String)
@@ -94,14 +94,18 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        SelectOpponent opponent ->
+        SelectOpponent ( isDev, opponent ) ->
             ( { model | opponent = opponent, searchResult = Nothing }
-            , case opponent of
-                Robot robotDetails ->
-                    Api.getRobotCode model.apiContext robotDetails.robot.basic.id |> Api.makeRequest GotCode
+            , if not model.cli then
+                case opponent of
+                    Robot robotDetails ->
+                        Api.getRobotCode model.apiContext isDev robotDetails.robot.basic.id |> Api.makeRequest GotCode
 
-                _ ->
-                    Cmd.none
+                    Itself ->
+                        Cmd.none
+
+              else
+                Cmd.none
             )
 
         GotUserRobots result ->
@@ -212,7 +216,7 @@ view model =
             Nothing ->
                 []
         )
-            ++ [ button [ class "button", onClick <| SelectOpponent Itself ] [ text "Itself" ] ]
+            ++ [ button [ class "button", onClick <| SelectOpponent ( True, Itself ) ] [ text "Itself" ] ]
             ++ (case model.apiContext.siteInfo of
                     Just _ ->
                         [ div []
@@ -222,9 +226,9 @@ view model =
                                         "Selected robots"
 
                                     else
-                                        "Your robots"
+                                        "Your robot drafts"
                                 ]
-                            , viewRobotsList model.apiContext model.userRobots
+                            , viewRobotsList model.apiContext model.userRobots True
                             ]
                         ]
 
@@ -237,17 +241,17 @@ view model =
                 else
                     [ div []
                         [ p [ class "mb-2" ] [ text "Built-in robots" ]
-                        , viewRobotsList model.apiContext model.builtinRobots
+                        , viewRobotsList model.apiContext model.builtinRobots True
                         ]
                     , div []
-                        [ p [ class "mb-2" ] [ text "Search robot" ]
+                        [ p [ class "mb-2" ] [ text "Search published robots" ]
                         , div [ class "d-flex mb-3" ]
                             [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
                             , button [ class "button", onClick Search ] [ text "find" ]
                             ]
                         , case model.searchResult of
                             Just (Ok robots) ->
-                                viewRobotsList model.apiContext robots
+                                viewRobotsList model.apiContext robots False
 
                             Just (Err err) ->
                                 div [ class "error" ] [ text err ]
@@ -259,8 +263,8 @@ view model =
                )
 
 
-viewRobotsList : Api.Context -> List Api.Robot -> Html Msg
-viewRobotsList apiContext robots =
+viewRobotsList : Api.Context -> List Api.Robot -> Bool -> Html Msg
+viewRobotsList apiContext robots isDev =
     if List.isEmpty robots then
         p [ class "font-italic" ] [ text "nothing here" ]
 
@@ -271,7 +275,7 @@ viewRobotsList apiContext robots =
                     div [ class "d-flex" ] <|
                         [ button
                             [ class "mb-2 mr-3 button"
-                            , onClick <| SelectOpponent (Robot { robot = robot, code = Nothing })
+                            , onClick <| SelectOpponent ( isDev, Robot { robot = robot, code = Nothing } )
                             ]
                             [ text robot.basic.name ]
                         ]

@@ -276,23 +276,37 @@ viewRobotsList apiContext robots isDev =
                         [ button
                             [ class "mb-2 mr-3 button"
                             , onClick <| SelectOpponent ( isDev, Robot { robot = robot, code = Nothing } )
+                            , disabled
+                                (case robot.details of
+                                    Api.Site siteRobot ->
+                                        not siteRobot.openSource
+
+                                    Api.Local ->
+                                        False
+                                )
                             ]
                             [ text robot.basic.name ]
                         ]
                             ++ (case robot.details of
                                     Api.Site siteRobot ->
-                                        [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ]
-                                        , case apiContext.siteInfo of
-                                            Just info ->
-                                                if siteRobot.userId == info.userId then
-                                                    a [ href <| Api.urlForEditingRobot apiContext robot.basic.id, target "_blank" ] [ text "edit" ]
+                                        (if siteRobot.openSource then
+                                            []
 
-                                                else
-                                                    div [] []
+                                         else
+                                            [ p [ class "mr-3", class "text-grey" ] [ text "(closed source)" ] ]
+                                        )
+                                            ++ [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ] ]
+                                            ++ (case apiContext.siteInfo of
+                                                    Just info ->
+                                                        if siteRobot.userId == info.userId then
+                                                            [ a [ href <| Api.urlForEditingRobot apiContext robot.basic.id, target "_blank" ] [ text "edit" ] ]
 
-                                            Nothing ->
-                                                div [] []
-                                        ]
+                                                        else
+                                                            []
+
+                                                    Nothing ->
+                                                        []
+                                               )
 
                                     Api.Local ->
                                         []

@@ -114,8 +114,8 @@ button {
   padding: 0 0.5rem;
 
   &:disabled {
-    border-color: var(--light-blue);
-    color: var(--blue);
+    box-shadow: inset 0 0 0 2px var(--grey-1);
+    color: var(--grey-1);
   }
 }
 

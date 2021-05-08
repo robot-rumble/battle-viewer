@@ -238,6 +238,7 @@ type alias SiteRobot =
     { userId : UserId
     , published : Bool
     , lang : String
+    , openSource : Bool
     }
 
 
@@ -252,6 +253,7 @@ siteRobotDecoder =
         |> required "userId" (id |> map UserId)
         |> required "published" bool
         |> required "lang" string
+        |> required "openSource" bool
         |> map Site
 
 

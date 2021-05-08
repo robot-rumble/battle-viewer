@@ -97,6 +97,12 @@ table._battles {
   }
 }
 
+.actions {
+  white-space: nowrap;
+  & > * {
+    margin-right: map-get($spacers, 4);
+  }
+}
 
 //// tables
 
@@ -139,15 +145,6 @@ tbody {
   }
 }
 
-//// robot/view.html
-.robot-page {
-  .actions {
-    white-space: nowrap;
-    & > * {
-      margin-right: map-get($spacers, 4);
-    }
-  }
-}
 
 //// robot/battle.html
 .battle {

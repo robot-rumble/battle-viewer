@@ -174,7 +174,7 @@ update msg model =
                     }
 
                 Run turnNum ->
-                    { model | renderState = Initializing turnNum }
+                    { model | renderState = Initializing turnNum, winner = Nothing }
 
                 GotRenderMsg renderMsg ->
                     case model.renderState of

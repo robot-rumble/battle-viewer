@@ -241,7 +241,7 @@ view model =
                 else
                     [ div []
                         [ p [ class "mb-2" ] [ text "Built-in robots" ]
-                        , viewRobotsList model.apiContext model.builtinRobots True
+                        , viewRobotsList model.apiContext model.builtinRobots False
                         ]
                     , div []
                         [ p [ class "mb-2" ] [ text "Search published robots" ]

@@ -72,7 +72,6 @@ function createConfigBase(dist, additional) {
       new MiniCssExtractPlugin(),
       new webpack.EnvironmentPlugin({
         NODE_ENV: 'development',
-        DOCKER: process.env.DOCKER || 0,
         BOT_LANG: process.env.BOT_LANG || 'Python',
         SENTRY_DSN: process.env.SENTRY_DSN || null,
       }),

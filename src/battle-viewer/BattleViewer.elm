@@ -1,6 +1,5 @@
 module BattleViewer exposing (Model, Msg(..), RenderState(..), init, update, view)
 
-import Api
 import Array exposing (Array)
 import Data
 import GridViewer
@@ -20,8 +19,7 @@ to_percent float =
 
 
 type alias Model =
-    { apiContext : Api.Context
-    , apiError : Maybe String
+    { apiError : Maybe String
     , winner : Maybe (Maybe Data.Team)
     , renderState : RenderState
     , opponentSelectState : OpponentSelect.Model
@@ -34,7 +32,7 @@ type alias Model =
 
 userOwnsOpponent : Model -> Bool
 userOwnsOpponent model =
-    OpponentSelect.userOwnsOpponent model.opponentSelectState model.apiContext
+    OpponentSelect.userOwnsOpponent model.opponentSelectState
 
 
 type RenderState
@@ -50,11 +48,11 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Api.Context -> Bool -> Maybe Data.Team -> Bool -> Bool -> ( Model, Cmd Msg )
-init apiContext isRunnerLoading team unsupported cli =
+init : Bool -> Maybe Data.Team -> Bool -> OpponentSelect.Flags -> ( Model, Cmd Msg )
+init isRunnerLoading team unsupported opponentSelectFlags =
     let
         ( model, cmd ) =
-            OpponentSelect.init apiContext cli
+            OpponentSelect.init opponentSelectFlags
 
         renderState =
             if isRunnerLoading then
@@ -63,7 +61,7 @@ init apiContext isRunnerLoading team unsupported cli =
             else
                 NoRender
     in
-    ( Model apiContext Nothing Nothing renderState model False team False unsupported, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model Nothing Nothing renderState model False team False unsupported, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -91,16 +89,17 @@ update msg model =
               -- dirty fix for a problem where the very first `init` Cmd Http request simply does not go through
               -- in addition to attempting to retrieve robots then, also retrieve them when the user opens
               -- the robot selection menu
-            , if not model.viewingOpponentSelect then
-                case model.apiContext.siteInfo of
-                    Just info ->
-                        Api.getUserRobots model.apiContext info.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
-
-                    Nothing ->
-                        Cmd.none
-
-              else
-                Cmd.none
+              --, if not model.viewingOpponentSelect then
+              --    case model.apiContext.siteInfo of
+              --        Just info ->
+              --            Api.getUserRobots model.apiContext info.user |> Api.makeRequest (OpponentSelect.GotUserRobots >> GotOpponentSelectMsg)
+              --
+              --        Nothing ->
+              --            Cmd.none
+              --
+              --  else
+              --    Cmd.none
+            , Cmd.none
             )
 
         GotOpponentSelectMsg selectMsg ->
@@ -115,9 +114,18 @@ update msg model =
                         OpponentSelect.SelectOpponent _ ->
                             False
 
+                        OpponentSelect.SelectChapter _ ->
+                            False
+
                         _ ->
                             model.viewingOpponentSelect
-                , apiError = selectModel.apiError
+                , apiError =
+                    case selectModel of
+                        OpponentSelect.Normal normalModel ->
+                            normalModel.apiError
+
+                        OpponentSelect.Tutorial _ ->
+                            Nothing
 
                 -- reset any Internal error messages after new opponent is selected
                 --, renderState = NoRender
@@ -210,29 +218,23 @@ view model =
         [ div [ class "_bar" ]
             [ p []
                 [ span [ class "text-blue" ]
-                    [ text
-                        (case model.apiContext.siteInfo of
-                            Just info ->
-                                info.robot
-
-                            Nothing ->
-                                "demo robot"
-                        )
+                    [ text <| OpponentSelect.robotName model.opponentSelectState
                     ]
                 , text " versus "
                 , span
                     [ class "text-red" ]
-                    [ text <|
-                        case model.opponentSelectState.opponent of
-                            OpponentSelect.Robot robotDetails ->
-                                robotDetails.robot.basic.name
-
-                            OpponentSelect.Itself ->
-                                "itself"
+                    [ text <| OpponentSelect.opponentName model.opponentSelectState
                     ]
                 ]
             , button [ onClick ToggleOpponentSelect, class "_select-button d-flex align-items-end" ]
-                [ p [ class "mr-2" ] [ text "change opponent" ]
+                [ p [ class "mr-2" ]
+                    [ case model.opponentSelectState of
+                        OpponentSelect.Normal _ ->
+                            text "change opponent"
+
+                        OpponentSelect.Tutorial _ ->
+                            text "change chapter"
+                    ]
                 , div
                     [ class <|
                         if model.viewingOpponentSelect then

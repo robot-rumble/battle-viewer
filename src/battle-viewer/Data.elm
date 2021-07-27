@@ -1,5 +1,6 @@
 module Data exposing (..)
 
+import Array exposing (Array)
 import Dict exposing (Dict)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (required)
@@ -426,3 +427,78 @@ terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
         |> required "type" (union [ ( "Wall", Wall ) ])
+
+
+
+-- TUTORIAL
+
+
+type alias Tutorial =
+    { title : String
+    , chapters : Array Chapter
+    , startingCode : Maybe String
+    }
+
+
+defaultTutorial : Tutorial
+defaultTutorial =
+    { title = ""
+    , chapters = Array.empty
+    , startingCode = Nothing
+    }
+
+
+tutorialDecoder : Decoder Tutorial
+tutorialDecoder =
+    succeed Tutorial
+        |> required "title" string
+        |> required "chapters" (array chapterDecoder)
+        |> required "startingCode" (nullable string)
+
+
+decodeTutorial : Value -> Result Json.Decode.Error Tutorial
+decodeTutorial =
+    decodeValue tutorialDecoder
+
+
+type alias Chapter =
+    { title : String
+    , body : String
+    , opponentCode : String
+    , opponentLang : String
+    , simulationSettings : SimulationSettings
+    }
+
+
+chapterDecoder : Decoder Chapter
+chapterDecoder =
+    succeed Chapter
+        |> required "title" string
+        |> required "body" string
+        |> required "opponentCode" string
+        |> required "opponentLang" string
+        |> required "simulationSettings" simulationSettingsDecoder
+
+
+type alias SimulationSettings =
+    { initialUnitNum : Int
+    , recurrentUnitNum : Int
+    , spawnEvery : Int
+    }
+
+
+simulationSettingsDecoder : Decoder SimulationSettings
+simulationSettingsDecoder =
+    succeed SimulationSettings
+        |> required "initialUnitNum" int
+        |> required "recurrentUnitNum" int
+        |> required "spawnEvery" int
+
+
+simulationSettingsEncoder : SimulationSettings -> E.Value
+simulationSettingsEncoder simulationSettings =
+    E.object
+        [ ( "initialUnitNum", E.int simulationSettings.initialUnitNum )
+        , ( "recurrentUnitNum", E.int simulationSettings.recurrentUnitNum )
+        , ( "spawnEvery", E.int simulationSettings.spawnEvery )
+        ]

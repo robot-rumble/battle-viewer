@@ -8,6 +8,8 @@ import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
 import defaultCode from './defaultCode'
 
+import yaml, { YAMLException } from 'js-yaml'
+
 function createApiContext(siteInfo, assetsPath) {
   return {
     siteInfo,
@@ -57,6 +59,7 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
     createApiContext(null, ''),
     'dist/worker.js',
     false,
+    null,
   )
 
   module.hot.addStatusHandler(initSplit)
@@ -72,7 +75,7 @@ const supportedBrowsers = {
 customElements.define(
   'garage-el',
   class extends HTMLElement {
-    connectedCallback() {
+    async connectedCallback() {
       const user = this.getAttribute('user')
       const userId = parseInt(this.getAttribute('userId'))
       const robot = this.getAttribute('robot')
@@ -92,7 +95,7 @@ customElements.define(
           'Missing some but not all of user|userId|robot|robotId attributes',
         )
       } else {
-        // we're in demo mode
+        // we're in demo or tutorial mode
       }
 
       const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
@@ -139,6 +142,36 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         throw new Error('No assetsPath attribute found')
       }
 
+      let tutorial = null
+      if (this.getAttribute('tutorial')) {
+        const urlSearchParams = new URLSearchParams(window.location.search)
+        const uri = urlSearchParams.get('source')
+        if (uri) {
+          await fetch(uri)
+            .then(async res => {
+              if (res.ok) {
+                const text = await res.text()
+                try {
+                  tutorial = yaml.load(text, { json: true })
+                } catch (e) {
+                  code = 'Error! Check the console.'
+                  console.error(e)
+                }
+              } else {
+                code = 'Error! Check the console.'
+                console.error(`Tutorial load failed at uri "${uri}"`)
+              }
+            })
+            .catch(() => {
+              code = 'Error! Check the console.'
+              console.error(`Tutorial load failed at uri "${uri}"`)
+            })
+        } else {
+          code = 'Error! Check the console.'
+          console.error('No tutorial URL specified (no "source" query parameter found)')
+        }
+      }
+
       init(
         this,
         code,
@@ -151,12 +184,13 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
         !compatible,
+        tutorial,
       )
     }
   },
 )
 
-function init(node, code, lang, apiContext, workerUrl, unsupported) {
+function init(node, code, lang, apiContext, workerUrl, unsupported, tutorial) {
   const settings = loadSettings()
   applyTheme(settings.theme)
 
@@ -169,6 +203,7 @@ function init(node, code, lang, apiContext, workerUrl, unsupported) {
       settings,
       team: 'Blue',
       unsupported,
+      tutorial,
     },
   })
 
@@ -176,7 +211,7 @@ function init(node, code, lang, apiContext, workerUrl, unsupported) {
     initWorker(workerUrl, app, apiContext.paths.assets, lang).then()
   }
 
-  initSplit()
+  initSplit(tutorial)
 
   app.ports.saveSettings.subscribe((settings) => {
     window.localStorage.setItem('settings', JSON.stringify(settings))
@@ -187,6 +222,16 @@ function init(node, code, lang, apiContext, workerUrl, unsupported) {
     window.savedCode = code
   })
 
+  app.ports.reportDecodeError.subscribe((error) => {
+    console.log('Decode Error!')
+    captureMessage('Garage decode error', error)
+  })
+
+  app.ports.reportApiError.subscribe((error) => {
+    console.log('Api Error!')
+    captureMessage('Garage Api error', error)
+  })
+
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
       return 'You\'ve made unsaved changes.'
@@ -194,13 +239,30 @@ function init(node, code, lang, apiContext, workerUrl, unsupported) {
   }
 }
 
-function initSplit() {
-  Split(['._ui', '._viewer'], {
-    sizes: [60, 40],
-    minSize: [600, 400],
-    gutterSize: 5,
-    gutter: () => document.querySelector('.gutter'),
-  })
+function initSplit(tutorial) {
+  // we need to make sure that the tutorial loaded successfully
+  if (tutorial && document.querySelector('._tutorial')) {
+    Split(['._tutorial', '._ui'], {
+      sizes: [25, 40],
+      minSize: [300, 600],
+      gutterSize: 5,
+      gutter: () => document.querySelector('.gutter-1'),
+    })
+
+    Split(['._ui', '._viewer'], {
+      sizes: [40, 35],
+      minSize: [600, 600],
+      gutterSize: 5,
+      gutter: () => document.querySelector('.gutter-2'),
+    })
+  } else {
+    Split(['._ui', '._viewer'], {
+      sizes: [60, 40],
+      minSize: [600, 600],
+      gutterSize: 5,
+      gutter: () => document.querySelector('.gutter-2'),
+    })
+  }
 }
 
 async function initWorker(workerUrl, app, assetsPath, lang) {
@@ -256,9 +318,10 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
   let [rawWorker, worker] = await createWorker(lang)
 
   app.ports.startEval.subscribe(({
-    code,
-    opponentCode,
+    evalInfo,
+    opponentEvalInfo,
     turnNum,
+    settings,
   }) => {
     if (!workerRunning) {
       workerRunning = true
@@ -269,9 +332,10 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
       worker.run(
         {
           assetsPath,
-          code1: code, // blue
-          code2: opponentCode, // red
+          evalInfo1: evalInfo, // blue
+          evalInfo2: opponentEvalInfo, // red
           turnNum,
+          settings,
         },
         Comlink.proxy(runCallback),
       )
@@ -306,15 +370,5 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
     const res = await createWorker(lang)
     rawWorker = res[0]
     worker = res[1]
-  })
-
-  app.ports.reportDecodeError.subscribe((error) => {
-    console.log('Decode Error!')
-    captureMessage('Garage decode error', error)
-  })
-
-  app.ports.reportApiError.subscribe((error) => {
-    console.log('Api Error!')
-    captureMessage('Garage Api error', error)
   })
 }

@@ -9,7 +9,7 @@ class MatchWorker {
     return fetchRunner(assetsPath, lang, finishDownloadCb)
   }
 
-  async run({ assetsPath, code1, code2, turnNum }, cb) {
+  async run({ assetsPath, evalInfo1, evalInfo2, turnNum, settings }, cb) {
     try {
       const logic = await logicPromise
       const startTime = Date.now()
@@ -33,15 +33,19 @@ class MatchWorker {
       }
 
       const [[runner1, worker1], [runner2, worker2]] = await Promise.all([
-        makeRunner(code1),
-        makeRunner(code2),
+        makeRunner(evalInfo1),
+        makeRunner(evalInfo2),
       ])
+
+      const logicSettings =
+        settings ? new logic.Settings(settings.initialUnitNum, settings.recurrentUnitNum, settings.spawnEvery) : null
 
       const finalState = await logic.run(
         runner1,
         runner2,
         turnCallback,
         turnNum,
+        logicSettings,
       )
 
       worker1.terminate()

@@ -13,6 +13,8 @@ import Html.Events exposing (..)
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
+import Markdown.Parser
+import Markdown.Renderer
 import OpponentSelect
 import Settings
 
@@ -90,12 +92,8 @@ init flags =
         settings =
             case flags.settings of
                 Just encodedSettings ->
-                    case Settings.decodeSettings encodedSettings of
-                        Ok ok ->
-                            ok
-
-                        Err _ ->
-                            Settings.default
+                    Settings.decodeSettings encodedSettings
+                        |> Result.withDefault Settings.default
 
                 Nothing ->
                     Settings.default
@@ -103,19 +101,49 @@ init flags =
         apiContext =
             Api.contextFlagtoContext flags.apiContext
 
+        tutorialROption =
+            Maybe.map
+                (\tutorial ->
+                    Data.decodeTutorial tutorial
+                )
+                flags.tutorial
+
+        tutorialOption =
+            tutorialROption |> Maybe.map (Result.withDefault Data.defaultTutorial)
+
+        reportTutorialDecodeError =
+            case tutorialROption of
+                Just (Err err) ->
+                    reportDecodeError <| Decode.errorToString err
+
+                _ ->
+                    Cmd.none
+
+        opponentSelectFlags =
+            case tutorialOption of
+                Just tutorial ->
+                    OpponentSelect.TutorialF (OpponentSelect.TutorialFlags tutorial)
+
+                Nothing ->
+                    OpponentSelect.NormalF (OpponentSelect.NormalFlags apiContext False)
+
         ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init apiContext True flags.team flags.unsupported False
+            BattleViewer.init True flags.team flags.unsupported opponentSelectFlags
 
         -- if in demo, the code will be an empty string
         -- the default code needs to be stored on the level of elm because ultimately
         -- elm calls the battle execution and so when the language changes
         -- elm needs to have the new code
         code =
-            if String.isEmpty flags.code then
-                loadDefaultCode flags.lang
+            tutorialOption
+                |> Maybe.andThen (\tutorial -> tutorial.startingCode)
+                |> Maybe.withDefault
+                    (if String.isEmpty flags.code then
+                        loadDefaultCode flags.lang
 
-            else
-                flags.code
+                     else
+                        flags.code
+                    )
     in
     ( Model
         apiContext
@@ -129,7 +157,7 @@ init flags =
         False
         flags.team
         flags.unsupported
-    , Cmd.map GotRenderMsg battleViewerCmd
+    , Cmd.batch [ Cmd.map GotRenderMsg battleViewerCmd, reportTutorialDecodeError ]
     )
 
 
@@ -140,6 +168,7 @@ type alias Flags =
     , settings : Maybe Encode.Value
     , team : Maybe Data.Team
     , unsupported : Bool
+    , tutorial : Maybe Encode.Value
     }
 
 
@@ -251,41 +280,27 @@ update msg model =
                     case renderMsg of
                         BattleViewer.Run turnNum ->
                             let
-                                encodeCode ( code, lang ) =
+                                encodeEvalInfo ( code, lang ) =
                                     Encode.object
                                         [ ( "code", Encode.string code )
                                         , ( "lang", Encode.string lang )
                                         ]
 
-                                selfCode =
+                                selfEvalInfo =
                                     ( model.code, model.lang )
 
-                                maybeOpponentCode =
-                                    case model.battleViewerModel.opponentSelectState.opponent of
-                                        OpponentSelect.Robot robotDetails ->
-                                            let
-                                                lang =
-                                                    case robotDetails.robot.details of
-                                                        Api.Site siteRobot ->
-                                                            siteRobot.lang
-
-                                                        -- the CLI stores the language argument on its own
-                                                        Api.Local ->
-                                                            ""
-                                            in
-                                            robotDetails.code |> Maybe.map (\c -> ( c, lang ))
-
-                                        OpponentSelect.Itself ->
-                                            Just selfCode
+                                maybeEvalInfoAndSettings =
+                                    OpponentSelect.evalInfo model.battleViewerModel.opponentSelectState selfEvalInfo
                             in
-                            case maybeOpponentCode of
-                                Just opponentCode ->
+                            case maybeEvalInfoAndSettings of
+                                Just ( opponentEvalInfo, maybeSettings ) ->
                                     ( { model | battleViewerModel = newBattleViewerModel, error = Nothing }
                                     , startEval <|
                                         Encode.object
-                                            [ ( "code", encodeCode selfCode )
-                                            , ( "opponentCode", encodeCode opponentCode )
+                                            [ ( "evalInfo", encodeEvalInfo selfEvalInfo )
+                                            , ( "opponentEvalInfo", encodeEvalInfo opponentEvalInfo )
                                             , ( "turnNum", Encode.int turnNum )
+                                            , ( "settings", Data.encodeNull Data.simulationSettingsEncoder maybeSettings )
                                             ]
                                     )
 
@@ -406,22 +421,36 @@ subscriptions _ =
 
 view : Model -> Html Msg
 view model =
-    div [ class "_root-app-root d-flex" ]
-        [ div [ class "_ui" ] <|
-            if model.viewingSettings then
-                [ Settings.view model.settings |> Html.map GotSettingsMsg
-                , button [ class "button align-self-center", onClick CloseSettings ] [ text "done" ]
-                ]
+    div [ class "_root-app-root d-flex" ] <|
+        (case model.battleViewerModel.opponentSelectState of
+            OpponentSelect.Tutorial tutorial ->
+                case OpponentSelect.currentChapter tutorial of
+                    Just chapter ->
+                        [ div [ class "_tutorial" ] [ viewTutorial chapter ]
+                        , div [ class "gutter gutter-1" ] []
+                        ]
 
-            else
-                [ viewBar model
-                , viewEditor model
-                ]
-        , div [ class "gutter" ] []
-        , div [ class "_viewer" ]
-            [ Html.map GotRenderMsg <| BattleViewer.view model.battleViewerModel
-            ]
-        ]
+                    Nothing ->
+                        []
+
+            OpponentSelect.Normal _ ->
+                []
+        )
+            ++ [ div [ class "_ui" ] <|
+                    if model.viewingSettings then
+                        [ Settings.view model.settings |> Html.map GotSettingsMsg
+                        , button [ class "button align-self-center", onClick CloseSettings ] [ text "done" ]
+                        ]
+
+                    else
+                        [ viewBar model
+                        , viewEditor model
+                        ]
+               , div [ class "gutter gutter-2" ] []
+               , div [ class "_viewer" ]
+                    [ Html.map GotRenderMsg <| BattleViewer.view model.battleViewerModel
+                    ]
+               ]
 
 
 viewBar : Model -> Html Msg
@@ -528,3 +557,24 @@ viewEditor model =
                )
         )
         []
+
+
+viewTutorial : Data.Chapter -> Html Msg
+viewTutorial chapter =
+    div []
+        [ h2 [] [ text chapter.title ]
+        , div [] <|
+            case
+                Markdown.Parser.parse chapter.body
+            of
+                Ok okAst ->
+                    case Markdown.Renderer.render Markdown.Renderer.defaultHtmlRenderer okAst of
+                        Ok rendered ->
+                            rendered
+
+                        Err errors ->
+                            [ text errors ]
+
+                Err err ->
+                    [ text (err |> List.map Markdown.Parser.deadEndToString |> String.join "\n") ]
+        ]

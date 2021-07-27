@@ -48,7 +48,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( newModel, newCmd ) =
-            BattleViewer.init apiContext False flags.team False True
+            BattleViewer.init False flags.team False (OpponentSelect.NormalF (OpponentSelect.NormalFlags apiContext True))
     in
     ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 
@@ -76,11 +76,16 @@ update msg model =
                         BattleViewer.Run turns ->
                             let
                                 id =
-                                    case model.renderState.opponentSelectState.opponent of
-                                        OpponentSelect.Robot robotDetails ->
-                                            robotDetails.robot.basic.id
+                                    case model.renderState.opponentSelectState of
+                                        OpponentSelect.Normal state ->
+                                            case state.opponent of
+                                                OpponentSelect.Robot robotDetails ->
+                                                    robotDetails.robot.basic.id
 
-                                        OpponentSelect.Itself ->
+                                                OpponentSelect.Itself ->
+                                                    Api.RobotId 0
+
+                                        OpponentSelect.Tutorial _ ->
                                             Api.RobotId 0
                             in
                             startEval { id = Api.unwrapRobotId id, turns = turns }

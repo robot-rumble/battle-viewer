@@ -244,21 +244,21 @@ function initSplit(tutorial) {
   if (tutorial && document.querySelector('._tutorial')) {
     Split(['._tutorial', '._ui'], {
       sizes: [25, 40],
-      minSize: [300, 600],
+      minSize: [300, 650],
       gutterSize: 5,
       gutter: () => document.querySelector('.gutter-1'),
     })
 
     Split(['._ui', '._viewer'], {
       sizes: [40, 35],
-      minSize: [600, 600],
+      minSize: [650, 650],
       gutterSize: 5,
       gutter: () => document.querySelector('.gutter-2'),
     })
   } else {
     Split(['._ui', '._viewer'], {
       sizes: [60, 40],
-      minSize: [600, 600],
+      minSize: [650, 650],
       gutterSize: 5,
       gutter: () => document.querySelector('.gutter-2'),
     })

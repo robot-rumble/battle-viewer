@@ -366,9 +366,13 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   // in the demo, you can select the lang
   app.ports.selectLang.subscribe(async (lang) => {
-    rawWorker.terminate()
-    const res = await createWorker(lang)
-    rawWorker = res[0]
-    worker = res[1]
+    if (confirm('Are you sure? This will clear your code.')) {
+      app.ports.confirmSelectLang.send(lang)
+
+      rawWorker.terminate()
+      const res = await createWorker(lang)
+      rawWorker = res[0]
+      worker = res[1]
+    }
   })
 }

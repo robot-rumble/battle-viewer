@@ -205,6 +205,7 @@ type Msg
     | ViewSettings
     | CloseSettings
     | SelectLang String
+    | ConfirmSelectLang String
 
 
 handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
@@ -378,7 +379,10 @@ update msg model =
 
         -- when the user changes the language the code needs to also change
         SelectLang lang ->
-            ( { model | lang = lang, code = loadDefaultCode lang }, selectLang lang )
+            ( model, selectLang lang )
+
+        ConfirmSelectLang lang ->
+            ( { model | lang = lang, code = loadDefaultCode lang }, Cmd.none )
 
 
 
@@ -403,6 +407,9 @@ port finishedLoading : (() -> msg) -> Sub msg
 port getTooLong : (() -> msg) -> Sub msg
 
 
+port confirmSelectLang : (String -> msg) -> Sub msg
+
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
@@ -412,6 +419,7 @@ subscriptions _ =
         , getTooLong (always <| GotRenderMsg BattleViewer.GotTooLong)
         , finishedDownloading (always <| GotRenderMsg BattleViewer.FinishedDownloadingRunner)
         , finishedLoading (always <| GotRenderMsg BattleViewer.FinishedLoadingRunner)
+        , confirmSelectLang ConfirmSelectLang
         ]
 
 
@@ -491,8 +499,7 @@ viewBar model =
 
                 Nothing ->
                     [ a [ class "mr-3", href "/" ] [ text "Robot Rumble" ]
-                    , p [ class "mr-5" ] [ text "DEMO" ]
-                    , p [ class "mr-3" ] [ text <| "Change language (will clear code): " ]
+                    , p [ class "mr-3" ] [ text <| "Choose lang: " ]
                     , div [ class "d-flex" ]
                         ([ "Python", "Javascript" ]
                             |> List.map

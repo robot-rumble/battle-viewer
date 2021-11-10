@@ -116,7 +116,7 @@ customElements.define(
         if (!compatible) {
           const supportString = Object.entries(supportedBrowsers).map(([name, version]) => `${name} ${version}+`).join(', ')
           let warning = `
-Unsupported browser type! 
+Unsupported browser type!
 The Garage officially supports ${supportString}
 The Garage DOES NOT support Safari
 Your browser is: ${browser.name} ${browser.version}
@@ -366,7 +366,7 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   // in the demo, you can select the lang
   app.ports.selectLang.subscribe(async (lang) => {
-    if (confirm('Are you sure? This will clear your code.')) {
+    if (confirm('Are you sure that you want to switch the robot language? This will clear your code.')) {
       app.ports.confirmSelectLang.send(lang)
 
       rawWorker.terminate()

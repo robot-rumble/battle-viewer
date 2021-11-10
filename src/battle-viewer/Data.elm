@@ -152,12 +152,10 @@ outcomeErrorDecoder =
                         "NoData" ->
                             succeed NoData
 
-                        "Timeout" ->
-                            succeed Timeout
-
                         _ ->
                             succeed InternalError
                 )
+        , field "Timeout" |> (\_ -> succeed Timeout)
         , field "InitError" errorDecoder |> map InitError
         , field "DataError" string |> map DataError
         , field "IO" string |> map IOError

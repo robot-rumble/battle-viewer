@@ -107,7 +107,7 @@ opponentName baseModel =
                     "itself"
 
         Tutorial model ->
-            "Chapter " ++ String.fromInt model.selectedChapter
+            "Chapter " ++ String.fromInt (model.selectedChapter + 1)
 
 
 currentChapter : TutorialModel -> Maybe Data.Chapter

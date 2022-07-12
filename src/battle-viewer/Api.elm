@@ -109,8 +109,8 @@ errorToString error =
         Http.BadStatus 400 ->
             "Verify your information and try again"
 
-        Http.BadStatus _ ->
-            "Unknown error"
+        Http.BadStatus code ->
+            "HTTP error code " ++ String.fromInt code
 
         Http.BadBody errorMessage ->
             errorMessage

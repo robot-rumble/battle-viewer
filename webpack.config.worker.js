@@ -1,7 +1,10 @@
 const path = require('path')
 const CopyPlugin = require('copy-webpack-plugin')
 
-const { createConfigBase, loaders } = require('./webpack.common.js')
+const {
+  createConfigBase,
+  loaders,
+} = require('./webpack.common.js')
 
 const dist =
   process.env.NODE_ENV === 'production'
@@ -29,11 +32,14 @@ module.exports = createConfigBase(dist, {
   plugins:
     process.env.NODE_ENV !== 'production'
       ? [
-          new CopyPlugin({
-            patterns: [
-              { from: path.join(logicWasmDist, 'lang-runners'), to: dist },
-            ],
-          }),
-        ]
+        new CopyPlugin({
+          patterns: [
+            {
+              from: path.join(logicWasmDist, 'lang-runners'),
+              to: dist,
+            },
+          ],
+        }),
+      ]
       : [],
 })

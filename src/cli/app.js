@@ -3,7 +3,7 @@ import { captureMessage } from '../sentry'
 import './main.scss'
 
 fetch('/getflags')
-  .then(r => r.json())
+  .then((r) => r.json())
   .then(init)
 
 function init(flags) {
@@ -52,4 +52,3 @@ function init(flags) {
     captureMessage('Rumblebot web decode error', error)
   })
 }
-

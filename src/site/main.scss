@@ -28,6 +28,7 @@ body {
   .links {
     & > * {
       margin-right: 1.4rem;
+
       img {
         margin-right: -2px;
       }
@@ -77,21 +78,26 @@ table._battles {
 
 ._table {
   display: inline-block;
+
   ._header, ._footer {
     justify-content: space-between;
     border: $border-2;
     display: flex;
+
     & > * {
       padding: map_get($spacers, 1) map_get($spacers, 3);
     }
   }
+
   ._header {
     margin-bottom: -2px;
     background: var(--grey-3);
   }
+
   ._footer {
     margin-top: -2px;
   }
+
   ._body {
     width: 100%;
   }
@@ -99,6 +105,7 @@ table._battles {
 
 .actions {
   white-space: nowrap;
+
   & > * {
     margin-right: map-get($spacers, 4);
   }
@@ -108,11 +115,14 @@ table._battles {
 
 tbody {
   white-space: nowrap;
+
   tr {
     border: $border-2;
+
     td {
       padding: map_get($spacers, 1) map_get($spacers, 3);
     }
+
     td:last-child {
       border-right: 0;
     }
@@ -180,6 +190,7 @@ tbody {
   .header {
     margin: map-get($spacers, 3);
     flex-direction: column;
+
     .links {
       margin-top: map-get($spacers, 3);
       flex-direction: column;
@@ -212,10 +223,12 @@ tbody {
     ._app-root ._grid-viewer {
       flex-direction: column;
       align-items: center;
+
       ._grid-viewer-main {
         margin-bottom: map_get($spacers, 3);
         width: 90%;
       }
+
       ._inspector {
         width: 90%;
       }

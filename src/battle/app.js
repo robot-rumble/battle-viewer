@@ -15,11 +15,19 @@ customElements.define(
         throw new Error('No data|userOwnsOpponent data attribute found')
       }
 
-      const data = JSON.parse(Buffer.from(decompress(Buffer.from(rawData, 'base64'))).toString('utf8'))
+      const data = JSON.parse(
+        Buffer.from(decompress(Buffer.from(rawData, 'base64'))).toString(
+          'utf8',
+        ),
+      )
 
       const app = Elm.Main.init({
         node: this,
-        flags: { data, team, userOwnsOpponent: userOwnsOpponent === 'true' },
+        flags: {
+          data,
+          team,
+          userOwnsOpponent: userOwnsOpponent === 'true',
+        },
       })
 
       app.ports.reportDecodeError.subscribe((error) => {

@@ -8,7 +8,7 @@ import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
 import defaultCode from './defaultCode'
 
-import yaml, { YAMLException } from 'js-yaml'
+import yaml from 'js-yaml'
 
 function createApiContext(siteInfo, assetsPath) {
   return {
@@ -66,10 +66,10 @@ if (process.env.NODE_ENV !== 'production' && module.hot) {
 }
 
 const supportedBrowsers = {
-  'Chrome': 85,
+  Chrome: 85,
   'Microsoft Edge': 85,
-  'Firefox': 78,
-  'Opera': 71,
+  Firefox: 78,
+  Opera: 71,
 }
 
 customElements.define(
@@ -114,7 +114,9 @@ customElements.define(
       if (!code) {
         // this user is new, so let's show him a compatibility warning
         if (!compatible) {
-          const supportString = Object.entries(supportedBrowsers).map(([name, version]) => `${name} ${version}+`).join(', ')
+          const supportString = Object.entries(supportedBrowsers)
+            .map(([name, version]) => `${name} ${version}+`)
+            .join(', ')
           let warning = `
 Unsupported browser type!
 The Garage officially supports ${supportString}
@@ -148,7 +150,7 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         const uri = urlSearchParams.get('source')
         if (uri) {
           await fetch(uri)
-            .then(async res => {
+            .then(async (res) => {
               if (res.ok) {
                 const text = await res.text()
                 try {
@@ -168,7 +170,9 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
             })
         } else {
           code = 'Error! Check the console.'
-          console.error('No tutorial URL specified (no "source" query parameter found)')
+          console.error(
+            'No tutorial URL specified (no "source" query parameter found)',
+          )
         }
       }
 
@@ -234,7 +238,7 @@ function init(node, code, lang, apiContext, workerUrl, unsupported, tutorial) {
 
   window.onbeforeunload = () => {
     if (window.code && window.code !== window.savedCode) {
-      return 'You\'ve made unsaved changes.'
+      return "You've made unsaved changes."
     }
   }
 }
@@ -317,30 +321,27 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   let [rawWorker, worker] = await createWorker(lang)
 
-  app.ports.startEval.subscribe(({
-    evalInfo,
-    opponentEvalInfo,
-    turnNum,
-    settings,
-  }) => {
-    if (!workerRunning) {
-      workerRunning = true
+  app.ports.startEval.subscribe(
+    ({ evalInfo, opponentEvalInfo, turnNum, settings }) => {
+      if (!workerRunning) {
+        workerRunning = true
 
-      // ---- start time check ----
-      checkTime('initialization')
+        // ---- start time check ----
+        checkTime('initialization')
 
-      worker.run(
-        {
-          assetsPath,
-          evalInfo1: evalInfo, // blue
-          evalInfo2: opponentEvalInfo, // red
-          turnNum,
-          settings,
-        },
-        Comlink.proxy(runCallback),
-      )
-    }
-  })
+        worker.run(
+          {
+            assetsPath,
+            evalInfo1: evalInfo, // blue
+            evalInfo2: opponentEvalInfo, // red
+            turnNum,
+            settings,
+          },
+          Comlink.proxy(runCallback),
+        )
+      }
+    },
+  )
 
   const runCallback = (data) => {
     if (data.type === 'error') {
@@ -366,7 +367,11 @@ async function initWorker(workerUrl, app, assetsPath, lang) {
 
   // in the demo, you can select the lang
   app.ports.selectLang.subscribe(async (lang) => {
-    if (confirm('Are you sure that you want to switch the robot language? This will clear your code.')) {
+    if (
+      confirm(
+        'Are you sure that you want to switch the robot language? This will clear your code.',
+      )
+    ) {
       app.ports.confirmSelectLang.send(lang)
 
       rawWorker.terminate()

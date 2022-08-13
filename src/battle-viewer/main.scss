@@ -327,6 +327,7 @@
       .obj.selected {
         border: none;
       }
+
       .obj.selected::before {
         z-index: 1;
         box-shadow: 0 0 0 7px rgba(0, 0, 0, .3);

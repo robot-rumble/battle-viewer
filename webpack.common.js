@@ -19,7 +19,11 @@ const loaders = {
         presets: [
           [
             '@babel/preset-env',
-            { useBuiltIns: 'entry', corejs: 3, browserslistEnv },
+            {
+              useBuiltIns: 'entry',
+              corejs: 3,
+              browserslistEnv,
+            },
           ],
         ],
       },
@@ -92,4 +96,9 @@ function createDevServerConfig(base) {
   }
 }
 
-module.exports = { dist, loaders, createConfigBase, createDevServerConfig }
+module.exports = {
+  dist,
+  loaders,
+  createConfigBase,
+  createDevServerConfig,
+}

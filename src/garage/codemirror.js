@@ -5,8 +5,6 @@ import 'codemirror/keymap/vim.js'
 import 'codemirror/keymap/emacs.js'
 import 'codemirror/keymap/sublime.js'
 
-import defaultCode from './defaultCode'
-
 function getOptionsFromLang(lang) {
   switch (lang) {
     case 'Javascript':
@@ -33,11 +31,6 @@ customElements.define(
       this.errorCounter = 0
       this.previousErrorCount = 0
       this.settings = null
-    }
-
-    clearMarks() {
-      this.marks.forEach((mark) => mark.clear())
-      this.marks = []
     }
 
     set errorLoc(errorLoc) {
@@ -95,6 +88,11 @@ customElements.define(
       }
     }
 
+    clearMarks() {
+      this.marks.forEach((mark) => mark.clear())
+      this.marks = []
+    }
+
     connectedCallback() {
       // const localSave = JSON.parse(localStorage.getItem('code_' + this.name))
       // const localCode = localSave ? localSave.code : ''
@@ -138,7 +136,9 @@ customElements.define(
         )
         window.code = this._editor.getValue()
 
-        this.dispatchEvent(new CustomEvent('editorChanged', { detail: this._editor.getValue() }))
+        this.dispatchEvent(
+          new CustomEvent('editorChanged', { detail: this._editor.getValue() }),
+        )
       })
 
       document.fonts.ready.then(() => {

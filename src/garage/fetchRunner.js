@@ -22,9 +22,10 @@ export default async (assetsPath, lang, finishDownloadCb) => {
   const name = runnerMap[lang]
   if (name in runnerCache) return runnerCache[name]
   const prom = (async () => {
-    const path = process.env.NODE_ENV === 'production'
-      ? assetsPath + `/lang-runners/${name}.wasm`
-      : assetsPath + `/dist/${name}.wasm`
+    const path =
+      process.env.NODE_ENV === 'production'
+        ? assetsPath + `/lang-runners/${name}.wasm`
+        : assetsPath + `/dist/${name}.wasm`
     const res = await fetch(path)
     finishDownloadCb()
     let wasm = await res.arrayBuffer()

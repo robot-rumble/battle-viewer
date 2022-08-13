@@ -7,13 +7,12 @@
 /*  font-style: italic;*/
 /*}*/
 @font-face {
-  font-family: Fantasque;
-  src: url('FantasqueSansMono-Regular.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */
-       url('FantasqueSansMono-Regular.ttf') format('truetype'); /* Safari, Android, iOS */
-
-  font-weight: 400;
-  font-style: normal;
+    font-family: Fantasque;
+    src: url('FantasqueSansMono-Regular.woff') format('woff'), /* Firefox >= 3.6, any other modern browser */ url('FantasqueSansMono-Regular.ttf') format('truetype'); /* Safari, Android, iOS */
+    font-weight: 400;
+    font-style: normal;
 }
+
 /*@font-face {*/
 /*  font-family: Fantasque;*/
 /*  src: url('FantasqueSansMono-BoldItalic.woff') format('woff'), !* Firefox >= 3.6, any other modern browser *!*/

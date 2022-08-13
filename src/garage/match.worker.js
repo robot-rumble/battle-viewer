@@ -29,7 +29,10 @@ class MatchWorker {
       }
 
       const turnCallback = (turnState) => {
-        cb({ type: 'getProgress', data: turnState })
+        cb({
+          type: 'getProgress',
+          data: turnState,
+        })
       }
 
       const [[runner1, worker1], [runner2, worker2]] = await Promise.all([
@@ -37,8 +40,13 @@ class MatchWorker {
         makeRunner(evalInfo2),
       ])
 
-      const logicSettings =
-        settings ? new logic.Settings(settings.initialUnitNum, settings.recurrentUnitNum, settings.spawnEvery) : null
+      const logicSettings = settings
+        ? new logic.Settings(
+            settings.initialUnitNum,
+            settings.recurrentUnitNum,
+            settings.spawnEvery,
+          )
+        : null
 
       const finalState = await logic.run(
         runner1,
@@ -52,14 +60,20 @@ class MatchWorker {
       worker2.terminate()
 
       console.log(`Time taken: ${(Date.now() - startTime) / 1000}s`)
-      cb({ type: 'getOutput', data: finalState })
+      cb({
+        type: 'getOutput',
+        data: finalState,
+      })
     } catch (e) {
       console.error('Error in worker', e, e && e.stack)
       // can't pass error object directly because of:
       // DataCloneError: The object could not be cloned.
       // so we stringify the error object, but there's a nuance to doing this
       // https://stackoverflow.com/a/50738205
-      cb({ type: 'error', data: JSON.stringify(e, Object.getOwnPropertyNames(e)) })
+      cb({
+        type: 'error',
+        data: JSON.stringify(e, Object.getOwnPropertyNames(e)),
+      })
     }
   }
 }

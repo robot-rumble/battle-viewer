@@ -1,11 +1,17 @@
 module.exports = {
-  root: true,
   env: {
-    node: true,
     browser: true,
+    es2021: true,
+    node: true,
+  },
+  extends: ['standard', 'plugin:lodash/recommended'],
+  parser: '@babel/eslint-parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+    requireConfigFile: false,
   },
   plugins: ['lodash'],
-  extends: ['standard', 'plugin:lodash/recommended'],
   rules: {
     'space-before-function-paren': ['error', 'never'],
 
@@ -18,8 +24,5 @@ module.exports = {
     'lodash/prefer-lodash-method': 'off',
     // ignore lodash variable
     'no-unused-vars': ['error', { varsIgnorePattern: '^_*' }],
-  },
-  parserOptions: {
-    parser: 'babel-eslint',
   },
 }

@@ -1,6 +1,6 @@
 {
   "repository": {},
-  "license": "MIT",
+  "license": "GPL-3.0",
   "scripts": {
     "dev": "npm run build",
     "dev-worker": "npm run build-worker",

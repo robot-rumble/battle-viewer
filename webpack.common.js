@@ -55,11 +55,11 @@ const loaders = {
   }),
   file: {
     test: /\.(woff|woff2|ttf)$/,
-    use: 'file-loader',
+    type: 'asset/resource',
   },
   url: {
     test: /\.svg$/,
-    use: 'url-loader',
+    type: 'asset/inline',
   },
 }
 

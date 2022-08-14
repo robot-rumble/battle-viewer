@@ -8,6 +8,7 @@ module.exports = {
     'standard',
     'plugin:@typescript-eslint/recommended',
     'plugin:lodash/recommended',
+    'prettier',
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -15,7 +16,7 @@ module.exports = {
     sourceType: 'module',
     requireConfigFile: false,
   },
-  plugins: ['lodash', '@typescript-eslint'],
+  plugins: ['lodash', '@typescript-eslint', 'prettier'],
   rules: {
     'space-before-function-paren': [
       'error',

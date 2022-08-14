@@ -25,10 +25,16 @@ const loaders = {
               browserslistEnv,
             },
           ],
+          'babel-preset-solid',
+          '@babel/preset-typescript',
         ],
       },
     },
   }),
+  ts: {
+    test: /\.tsx?$/,
+    use: 'ts-loader',
+  },
   css: {
     test: /\.(sa|sc|c)ss$/,
     use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],

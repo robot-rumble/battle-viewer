@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "lib": [
+      "es2019",
+      "dom"
+    ],
+    "target": "es6",
+    "importHelpers": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "paths": {
+      "*": [
+        "./types/*"
+      ]
+    }
+  }
+}

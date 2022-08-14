@@ -4,16 +4,27 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  extends: ['standard', 'plugin:lodash/recommended'],
-  parser: '@babel/eslint-parser',
+  extends: [
+    'standard',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:lodash/recommended',
+  ],
+  parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
     requireConfigFile: false,
   },
-  plugins: ['lodash'],
+  plugins: ['lodash', '@typescript-eslint'],
   rules: {
-    'space-before-function-paren': ['error', 'never'],
+    'space-before-function-paren': [
+      'error',
+      {
+        anonymous: 'always',
+        named: 'never',
+        asyncArrow: 'always',
+      },
+    ],
 
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',

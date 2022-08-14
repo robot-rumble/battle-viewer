@@ -7,6 +7,7 @@ module.exports = {
   extends: [
     'standard',
     'plugin:@typescript-eslint/recommended',
+    'plugin:solid/typescript',
     'plugin:lodash/recommended',
     'prettier',
   ],
@@ -14,9 +15,8 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
-    requireConfigFile: false,
   },
-  plugins: ['lodash', '@typescript-eslint', 'prettier'],
+  plugins: ['lodash', '@typescript-eslint', 'solid', 'prettier'],
   rules: {
     'space-before-function-paren': [
       'error',

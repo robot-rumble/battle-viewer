@@ -9,6 +9,15 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../backend/public/dist')
 
+const babelPresetEnv = (browserslistEnv) => [
+  '@babel/preset-env',
+  {
+    useBuiltIns: 'entry',
+    corejs: 3,
+    browserslistEnv,
+  },
+]
+
 const loaders = {
   js: (browserslistEnv) => ({
     test: /\.js$/,
@@ -16,24 +25,24 @@ const loaders = {
     use: {
       loader: 'babel-loader',
       options: {
-        presets: [
-          [
-            '@babel/preset-env',
-            {
-              useBuiltIns: 'entry',
-              corejs: 3,
-              browserslistEnv,
-            },
-          ],
-          'babel-preset-solid',
-          '@babel/preset-typescript',
-        ],
+        cacheDirectory: true,
+        presets: [babelPresetEnv(browserslistEnv)],
       },
     },
   }),
   ts: {
     test: /\.tsx?$/,
-    use: 'ts-loader',
+    exclude: /node_modules/,
+    use: [
+      {
+        loader: 'babel-loader',
+        options: {
+          cacheDirectory: true,
+          presets: [babelPresetEnv(babelPresetEnv), 'solid'],
+        },
+      },
+      'ts-loader',
+    ],
   },
   css: {
     test: /\.(sa|sc|c)ss$/,

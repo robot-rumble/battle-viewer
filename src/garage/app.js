@@ -8,6 +8,9 @@ import { Elm } from './Main.elm'
 import { captureMessage } from '../sentry'
 import defaultCode from './defaultCode'
 
+import { render } from 'solid-js/web'
+import Main from './Main.tsx'
+
 import yaml from 'js-yaml'
 
 function createApiContext(siteInfo, assetsPath) {
@@ -176,23 +179,29 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         }
       }
 
-      init(
-        this,
-        code,
-        lang,
-        createApiContext(siteInfo, assetsPath),
-        // get around the same-origin rule for loading workers through a cloudflare proxy worker
-        // that rewrites robotrumble.org/assets to cloudfront
-        // this is not necessary anywhere else because normal assets don't have this security rule
-        process.env.NODE_ENV === 'production'
-          ? 'https://robotrumble.org/assets/worker-assets/worker.js'
-          : assetsPath + '/dist/worker.js',
-        !compatible,
-        tutorial,
-      )
+      initSolid(this)
+
+      // init(
+      //   this,
+      //   code,
+      //   lang,
+      //   createApiContext(siteInfo, assetsPath),
+      //   // get around the same-origin rule for loading workers through a cloudflare proxy worker
+      //   // that rewrites robotrumble.org/assets to cloudfront
+      //   // this is not necessary anywhere else because normal assets don't have this security rule
+      //   process.env.NODE_ENV === 'production'
+      //     ? 'https://robotrumble.org/assets/worker-assets/worker.js'
+      //     : assetsPath + '/dist/worker.js',
+      //   !compatible,
+      //   tutorial,
+      // )
     }
   },
 )
+
+function initSolid(node) {
+  render(Main, node)
+}
 
 function init(node, code, lang, apiContext, workerUrl, unsupported, tutorial) {
   const settings = loadSettings()

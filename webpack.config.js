@@ -17,6 +17,7 @@ function createConfig(module) {
     module: {
       rules: [
         loaders.js(module),
+        loaders.ts,
         loaders.css,
         loaders.elm(module),
         loaders.file,

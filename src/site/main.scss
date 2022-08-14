@@ -85,7 +85,7 @@ table._battles {
     display: flex;
 
     & > * {
-      padding: map_get($spacers, 1) map_get($spacers, 3);
+      padding: map-get($spacers, 1) map-get($spacers, 3);
     }
   }
 
@@ -120,7 +120,7 @@ tbody {
     border: $border-2;
 
     td {
-      padding: map_get($spacers, 1) map_get($spacers, 3);
+      padding: map-get($spacers, 1) map-get($spacers, 3);
     }
 
     td:last-child {
@@ -214,7 +214,7 @@ tbody {
   tbody {
     tr {
       td {
-        padding: map_get($spacers, 1) map_get($spacers, 2) !important;
+        padding: map-get($spacers, 1) map-get($spacers, 2) !important;
       }
     }
   }
@@ -225,7 +225,7 @@ tbody {
       align-items: center;
 
       ._grid-viewer-main {
-        margin-bottom: map_get($spacers, 3);
+        margin-bottom: map-get($spacers, 3);
         width: 90%;
       }
 

@@ -55,7 +55,7 @@ $spacers: map-merge((
 
 @each $color, $value in $colors {
   .text-#{$color} {
-    color: map_get($colors, $color) !important;
+    color: map-get($colors, $color) !important;
   }
 }
 
@@ -77,16 +77,16 @@ h6 {
 }
 
 h1 {
-  margin-bottom: map_get($spacers, 4);
+  margin-bottom: map-get($spacers, 4);
 }
 
 h2 {
-  margin-bottom: map_get($spacers, 3);
+  margin-bottom: map-get($spacers, 3);
 }
 
 input,
 select {
-  padding: 0 map_get($spacers, 1);
+  padding: 0 map-get($spacers, 1);
   border: $border-1;
 }
 

@@ -1,6 +1,4 @@
 const path = require('path')
-const _ = require('lodash')
-const CopyPlugin = require('copy-webpack-plugin')
 
 const {
   createConfigBase,

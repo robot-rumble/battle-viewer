@@ -34,6 +34,7 @@ module.exports = {
     'object-curly-spacing': ['error', 'always'],
 
     'lodash/prefer-lodash-method': 'off',
+    'lodash/prefer-noop': 'off',
     // ignore lodash variable
     'no-unused-vars': ['error', { varsIgnorePattern: '^_*' }],
   },

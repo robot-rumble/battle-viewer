@@ -131,7 +131,6 @@ function initSolid(
           code={code}
           lang={lang}
           siteInfo={siteInfo}
-          assetsPath={assetsPath}
           workerUrl={workerUrl}
         />
       </Provider>

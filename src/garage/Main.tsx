@@ -34,7 +34,6 @@ interface MainProps {
   code: string
   lang: Lang
   siteInfo: SiteInfo | null
-  assetsPath: string
   workerUrl: string
 }
 
@@ -80,7 +79,6 @@ const Main = (props: MainProps) => {
       props.code,
       props.lang,
       props.siteInfo,
-      props.assetsPath,
       props.workerUrl,
     )
   })
@@ -102,15 +100,14 @@ function init(
   code: string,
   lang: Lang,
   siteInfo: SiteInfo | null,
-  assetsPath: string,
   workerUrl: string,
 ) {
-  const [, actions] = useStore()
+  const [state, actions] = useStore()
 
   const settings = loadSettings()
   applyTheme(settings.theme)
 
-  const apiContext = createApiContext(siteInfo, assetsPath)
+  const apiContext = createApiContext(siteInfo, state.assetsPath)
 
   const [compatible, incompatibilityWarning] = checkCompatibility(lang)
 
@@ -181,13 +178,12 @@ function init(
 
   app.ports.startEval.subscribe(
     ({ evalInfo, opponentEvalInfo, turnNum, settings }) => {
-      actions.startWorker({
-        assetsPath,
-        evalInfo1: evalInfo, // blue
-        evalInfo2: opponentEvalInfo, // red
+      actions.startWorker(
+        evalInfo, // blue
+        opponentEvalInfo, // red
         turnNum,
         settings,
-      })
+      )
     },
   )
 

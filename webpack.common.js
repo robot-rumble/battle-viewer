@@ -9,24 +9,23 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../backend/public/dist')
 
-const babelPresetEnv = (browserslistEnv) => [
+const babelPresetEnv = () => [
   '@babel/preset-env',
   {
     useBuiltIns: 'entry',
     corejs: 3,
-    browserslistEnv,
   },
 ]
 
 const loaders = {
-  js: (browserslistEnv) => ({
+  js: () => ({
     test: /\.js$/,
     exclude: /node_modules/,
     use: {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        presets: [babelPresetEnv(browserslistEnv)],
+        presets: [babelPresetEnv()],
       },
     },
   }),
@@ -38,7 +37,7 @@ const loaders = {
         loader: 'babel-loader',
         options: {
           cacheDirectory: true,
-          presets: [babelPresetEnv(babelPresetEnv), 'solid'],
+          presets: [babelPresetEnv(), 'solid'],
         },
       },
       'ts-loader',
@@ -86,6 +85,9 @@ function createConfigBase(dist, additional) {
       publicPath: 'auto',
       path: dist,
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js'],
+    },
     devtool: 'source-map',
     plugins: [
       new MiniCssExtractPlugin(),
@@ -104,9 +106,10 @@ function createConfigBase(dist, additional) {
 
 function createDevServerConfig(base) {
   return {
-    contentBase: base,
+    static: {
+      directory: base,
+    },
     historyApiFallback: true,
-    stats: 'minimal',
     host: '0.0.0.0',
   }
 }

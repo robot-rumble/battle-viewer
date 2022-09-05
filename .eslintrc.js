@@ -8,7 +8,6 @@ module.exports = {
     'standard',
     'plugin:@typescript-eslint/recommended',
     'plugin:solid/typescript',
-    'plugin:lodash/recommended',
     'prettier',
   ],
   parser: '@typescript-eslint/parser',
@@ -16,7 +15,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
   },
-  plugins: ['lodash', '@typescript-eslint', 'solid', 'prettier'],
+  plugins: ['@typescript-eslint', 'solid', 'prettier'],
   rules: {
     'space-before-function-paren': [
       'error',
@@ -33,9 +32,14 @@ module.exports = {
     'comma-dangle': ['error', 'always-multiline'],
     'object-curly-spacing': ['error', 'always'],
 
-    'lodash/prefer-lodash-method': 'off',
-    'lodash/prefer-noop': 'off',
-    // ignore lodash variable
-    'no-unused-vars': ['error', { varsIgnorePattern: '^_*' }],
+    'no-useless-constructor': 'off',
+    'dot-notation': 'off',
+
+    // https://stackoverflow.com/a/71641475/6643726
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { varsIgnorePattern: '^_*' },
+    ],
   },
 }

@@ -14,7 +14,7 @@ module.exports = createConfigBase(dist, {
   entry: './src/cli/app.js',
   module: {
     rules: [
-      loaders.js('cli'),
+      loaders.js(),
       loaders.css,
       loaders.elm('cli'),
       loaders.file,

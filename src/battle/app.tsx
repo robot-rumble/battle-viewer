@@ -1,4 +1,6 @@
+// @ts-ignore
 import { Elm } from './Main.elm'
+// @ts-ignore
 import { captureMessage } from '../sentry'
 
 import { Buffer } from 'buffer'
@@ -30,10 +32,10 @@ customElements.define(
         },
       })
 
-      app.ports.reportDecodeError.subscribe((error) => {
+      app.ports.reportDecodeError.subscribe((error: string) => {
         console.log('Decode Error!')
         // don't do console.log or else Sentry will pick that up as a breadcrumb
-        captureMessage('Battle viewer decode error', error)
+        captureMessage('Battle viewer decode error: ' + error)
       })
     }
   },

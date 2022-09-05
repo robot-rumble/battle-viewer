@@ -19,7 +19,7 @@ module.exports = createConfigBase(dist, {
   },
   target: 'webworker',
   module: {
-    rules: [loaders.js('worker')],
+    rules: [loaders.js()],
   },
   resolve: {
     alias: {

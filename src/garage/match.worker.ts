@@ -1,34 +1,64 @@
 import * as Comlink from 'comlink'
 
 import fetchRunner from './fetchRunner'
+import { Lang } from './types'
 
+// @ts-ignore
 const logicPromise = import('logic')
 
-class MatchWorker {
-  async init(assetsPath, lang, finishDownloadCb) {
+export interface EvalInfo {
+  code: string
+  lang: Lang
+}
+
+export interface SimulationSettings {
+  initialUnitNum: number
+  recurrentUnitNum: number
+  spawnEvery: number
+}
+
+export interface RunParams {
+  assetsPath: string
+  evalInfo1: EvalInfo
+  evalInfo2: EvalInfo
+  turnNum: number
+  settings: SimulationSettings | null
+}
+
+export interface CallbackParams {
+  type: 'getProgress' | 'getOutput' | 'error'
+  data: any
+}
+
+export class MatchWorker {
+  async init(assetsPath: string, lang: Lang, finishDownloadCb: () => void) {
     return fetchRunner(assetsPath, lang, finishDownloadCb)
   }
 
-  async run({ assetsPath, evalInfo1, evalInfo2, turnNum, settings }, cb) {
+  async run(
+    { assetsPath, evalInfo1, evalInfo2, turnNum, settings }: RunParams,
+    cb: (params: CallbackParams) => void,
+  ) {
     try {
       const logic = await logicPromise
       const startTime = Date.now()
 
       console.log('Starting battle...')
 
-      const makeRunner = async ({ code, lang }) => {
+      const makeRunner = async ({ code, lang }: EvalInfo) => {
         const langRunner = await fetchRunner(assetsPath, lang, () => {})
         const rawWorker = new Worker(
           new URL('./wasi.worker.js', import.meta.url),
         )
         const WasiWorker = Comlink.wrap(rawWorker)
+        // @ts-ignore
         const runner = await new WasiWorker(langRunner)
         await runner.setup()
         await runner.init(new TextEncoder().encode(code))
         return [runner, rawWorker]
       }
 
-      const turnCallback = (turnState) => {
+      const turnCallback = (turnState: any) => {
         cb({
           type: 'getProgress',
           data: turnState,
@@ -64,7 +94,7 @@ class MatchWorker {
         type: 'getOutput',
         data: finalState,
       })
-    } catch (e) {
+    } catch (e: any) {
       console.error('Error in worker', e, e && e.stack)
       // can't pass error object directly because of:
       // DataCloneError: The object could not be cloned.

@@ -34,6 +34,8 @@ module.exports = {
 
     'no-useless-constructor': 'off',
     'dot-notation': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
+    'n/no-callback-literal': 'off',
 
     // https://stackoverflow.com/a/71641475/6643726
     'no-unused-vars': 'off',

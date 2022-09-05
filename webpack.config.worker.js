@@ -15,11 +15,11 @@ const logicWasmDist =
 
 module.exports = createConfigBase(dist, {
   entry: {
-    worker: ['./src/polyfill.js', './src/garage/match.worker.js'],
+    worker: ['./src/polyfill.js', './src/garage/match.worker.ts'],
   },
   target: 'webworker',
   module: {
-    rules: [loaders.js()],
+    rules: [loaders.ts()],
   },
   resolve: {
     alias: {

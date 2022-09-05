@@ -8,6 +8,7 @@ import { applyTheme } from './themes'
 import { captureMessage } from '@sentry/browser'
 import { checkCompatibility } from './checkCompatibility'
 import { Lang } from './types'
+import { EvalInfo, MatchWorker, SimulationSettings } from './match.worker'
 
 export const THEMES = ['light', 'dark'] as const
 export type Theme = typeof THEMES[number]
@@ -45,17 +46,6 @@ interface Subscription<T> {
   subscribe: (cb: (params: T) => void) => void
 }
 
-interface EvalInfo {
-  code: string
-  lang: Lang
-}
-
-interface SimulationSettings {
-  initialUnitNum: number
-  recurrentUnitNumber: number
-  spawnEvery: number
-}
-
 interface ElmAppPorts {
   getOutput: Command<any>
   getProgress: Command<any>
@@ -79,23 +69,6 @@ interface ElmAppPorts {
 
 interface ElmApp {
   ports: ElmAppPorts
-}
-
-interface RunParams {
-  assetsPath: string
-  evalInfo1: any
-  evalInfo2: any
-  turnNum: number
-  settings: SimulationSettings | null
-}
-
-interface MatchWorker {
-  init: (assetsPath: string, lang: Lang, finishDownloadCb: () => void) => any
-
-  run: (
-    { assetsPath, evalInfo1, evalInfo2, turnNum, settings }: RunParams,
-    cb: (data: any) => void,
-  ) => any
 }
 
 const Main = (props: MainProps) => {

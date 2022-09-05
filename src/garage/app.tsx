@@ -1,11 +1,10 @@
-import Bowser from 'bowser'
-
 import './codemirror'
 // @ts-ignore
 import defaultCode from './defaultCode'
 
 import { render } from 'solid-js/web'
-import Main, { initSplit, Lang, SiteInfo } from './Main'
+import Main, { initSplit, SiteInfo } from './Main'
+import { Lang } from './types'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {
   // @ts-ignore
@@ -24,17 +23,9 @@ if (process.env['NODE_ENV'] !== 'production' && module.hot) {
     null,
     '',
     'dist/worker.js',
-    false,
   )
 
   module.hot.addStatusHandler(() => initSplit(false))
-}
-
-const supportedBrowsers = {
-  Chrome: 85,
-  'Microsoft Edge': 85,
-  Firefox: 78,
-  Opera: 71,
 }
 
 customElements.define(
@@ -63,47 +54,12 @@ customElements.define(
         // we're in demo or tutorial mode
       }
 
-      const browser = Bowser.getParser(window.navigator.userAgent).getBrowser()
-      let compatible = false
-      if (browser.version && browser.name! in supportedBrowsers) {
-        const version = parseInt(browser.version.split('.')[0])
-        // @ts-ignore
-        compatible = version >= supportedBrowsers[browser.name!]
-      }
-
       const lang = this.getAttribute('lang') || 'Python'
       if (!(lang in defaultCode)) {
         throw new Error('Unknown lang value: ' + lang)
       }
 
-      let code = this.getAttribute('code') || ''
-      if (!code) {
-        // this user is new, so let's show him a compatibility warning
-        if (!compatible) {
-          const supportString = Object.entries(supportedBrowsers)
-            .map(([name, version]) => `${name} ${version}+`)
-            .join(', ')
-          let warning = `
-Unsupported browser type!
-The Garage officially supports ${supportString}
-The Garage DOES NOT support Safari
-Your browser is: ${browser.name} ${browser.version}
-
-If you cannot switch to a different browser, consider downloading Rumblebot, our command line tool
-https://rr-docs.readthedocs.io/en/latest/rumblebot.html
-`
-          const comment = {
-            Python: '#',
-            Javascript: '//',
-          }[lang]
-          warning = warning
-            .split('\n')
-            .map((line) => `${comment} ${line}`)
-            .join('\n')
-          code += warning + '\n\n'
-        }
-        code += defaultCode[lang]
-      }
+      const code = this.getAttribute('code') || defaultCode[lang]
 
       const assetsPath = this.getAttribute('assetsPath')
       if (!assetsPath) {
@@ -154,7 +110,6 @@ https://rr-docs.readthedocs.io/en/latest/rumblebot.html
         process.env['NODE_ENV'] === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
-        !compatible,
       )
     }
   },
@@ -167,7 +122,6 @@ function initSolid(
   siteInfo: SiteInfo | null,
   assetsPath: string,
   workerUrl: string,
-  unsupported: boolean,
 ) {
   render(
     () => (
@@ -177,7 +131,6 @@ function initSolid(
         siteInfo={siteInfo}
         assetsPath={assetsPath}
         workerUrl={workerUrl}
-        unsupported={unsupported}
       />
     ),
     node,

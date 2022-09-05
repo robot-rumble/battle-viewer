@@ -2,13 +2,13 @@ import { onMount } from 'solid-js'
 // @ts-ignore
 import { Elm } from './Main.elm'
 import Split from 'split.js'
-import * as Comlink from 'comlink'
 // @ts-ignore
 import { applyTheme } from './themes'
 import { captureMessage } from '@sentry/browser'
 import { checkCompatibility } from './checkCompatibility'
 import { Lang } from './types'
-import { EvalInfo, MatchWorker, SimulationSettings } from './match.worker'
+import { CallbackParams, EvalInfo, SimulationSettings } from './match.worker'
+import { useStore } from './store'
 
 export const THEMES = ['light', 'dark'] as const
 export type Theme = typeof THEMES[number]
@@ -88,6 +88,8 @@ const Main = (props: MainProps) => {
   return <div ref={battleViewerRef!} />
 }
 
+export default Main
+
 declare global {
   interface Window {
     savedCode: string
@@ -103,6 +105,8 @@ function init(
   assetsPath: string,
   workerUrl: string,
 ) {
+  const [, actions] = useStore()
+
   const settings = loadSettings()
   applyTheme(settings.theme)
 
@@ -128,7 +132,23 @@ function init(
   }) as ElmApp
 
   if (compatible) {
-    initWorker(workerUrl, app, apiContext.paths.assets, lang).then()
+    const workerCb = (params: CallbackParams) => {
+      if (params.type === 'error') {
+        app.ports.getInternalError.send(null)
+        console.log('Worker Error!')
+        captureMessage('Garage worker error' + params.data)
+      } else {
+        app.ports[params.type].send(params.data)
+      }
+    }
+
+    actions.initWorker(
+      () => app.ports.finishedDownloading.send(null),
+      () => app.ports.finishedLoading.send(null),
+      () => app.ports.getTooLong.send(null),
+      workerCb,
+      workerUrl,
+    )
   }
 
   initSplit(false)
@@ -158,6 +178,29 @@ function init(
     }
     return undefined
   }
+
+  app.ports.startEval.subscribe(
+    ({ evalInfo, opponentEvalInfo, turnNum, settings }) => {
+      actions.startWorker({
+        assetsPath,
+        evalInfo1: evalInfo, // blue
+        evalInfo2: opponentEvalInfo, // red
+        turnNum,
+        settings,
+      })
+    },
+  )
+
+  app.ports.selectLang.subscribe(async (lang) => {
+    if (
+      confirm(
+        'Are you sure that you want to switch the robot language? This will clear your code.',
+      )
+    ) {
+      app.ports.confirmSelectLang.send(lang)
+      actions.changeLang(lang)
+    }
+  })
 }
 
 function createApiContext(siteInfo: SiteInfo | null, assetsPath: string) {
@@ -218,125 +261,3 @@ export function initSplit(tutorial: boolean) {
     })
   }
 }
-
-async function initWorker(
-  workerUrl: string,
-  app: ElmApp,
-  assetsPath: string,
-  lang: Lang,
-) {
-  let workerRunning = false
-  let done = false
-
-  const checkTime = (stage: string) => {
-    const startTime = Date.now()
-    const checkEvery = 1000
-    const tooLong = 15 * checkEvery
-    done = false
-
-    // tell elm when a process is taking a while
-    // keeps track of whether a task is done with done
-    const cb = () => {
-      console.log(`Loading for: ${(Date.now() - startTime) / 1000} seconds`)
-      if (!done) {
-        if (Date.now() - startTime > tooLong) {
-          captureMessage(`Taking too long at stage: ${stage}`)
-          app.ports.getTooLong.send(null)
-        } else {
-          setTimeout(cb, checkEvery)
-        }
-      }
-    }
-
-    setTimeout(cb, checkEvery)
-  }
-
-  const createWorker = async (lang: Lang): Promise<[Worker, MatchWorker]> => {
-    // ---- start time check ----
-    checkTime('compilation')
-
-    const rawWorker = new Worker(workerUrl)
-    const MatchWorker = Comlink.wrap(rawWorker)
-    // @ts-ignore
-    const worker = (await new MatchWorker()) as MatchWorker
-
-    await worker.init(
-      assetsPath,
-      lang,
-      Comlink.proxy(() => {
-        app.ports.finishedDownloading.send(null)
-      }),
-    )
-    app.ports.finishedLoading.send(null)
-
-    // ---- end time check ----
-    done = true
-
-    return [rawWorker, worker]
-  }
-
-  let [rawWorker, worker] = await createWorker(lang)
-
-  app.ports.startEval.subscribe(
-    ({ evalInfo, opponentEvalInfo, turnNum, settings }) => {
-      if (!workerRunning) {
-        workerRunning = true
-
-        // ---- start time check ----
-        checkTime('initialization')
-
-        worker.run(
-          {
-            assetsPath,
-            evalInfo1: evalInfo, // blue
-            evalInfo2: opponentEvalInfo, // red
-            turnNum,
-            settings,
-          },
-          Comlink.proxy(runCallback),
-        )
-      }
-    },
-  )
-
-  const runCallback = (data: any) => {
-    if (data.type === 'error') {
-      // ---- end time check ----
-      done = true
-      workerRunning = false
-
-      app.ports.getInternalError.send(null)
-      console.log('Worker Error!')
-      captureMessage('Garage worker error', data.data)
-    } else if (data.type in app.ports) {
-      // ---- end time check ----
-      done = true
-      if (data.type === 'getOutput') workerRunning = false
-
-      // we pass all other data, including other errors, to the elm app
-      console.log(data)
-      // @ts-ignore
-      app.ports[data.type].send(data.data)
-    } else {
-      throw new Error(`Unknown message type ${data.type}`)
-    }
-  }
-
-  // in the demo, you can select the lang
-  app.ports.selectLang.subscribe(async (lang) => {
-    if (
-      confirm(
-        'Are you sure that you want to switch the robot language? This will clear your code.',
-      )
-    ) {
-      app.ports.confirmSelectLang.send(lang)
-
-      rawWorker.terminate()
-      const res = await createWorker(lang)
-      rawWorker = res[0]
-      worker = res[1]
-    }
-  })
-}
-
-export default Main

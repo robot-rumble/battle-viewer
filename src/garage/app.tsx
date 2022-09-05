@@ -5,6 +5,7 @@ import defaultCode from './defaultCode'
 import { render } from 'solid-js/web'
 import Main, { initSplit, SiteInfo } from './Main'
 import { Lang } from './types'
+import { Provider } from './store'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {
   // @ts-ignore
@@ -125,13 +126,15 @@ function initSolid(
 ) {
   render(
     () => (
-      <Main
-        code={code}
-        lang={lang}
-        siteInfo={siteInfo}
-        assetsPath={assetsPath}
-        workerUrl={workerUrl}
-      />
+      <Provider assetsPath={assetsPath}>
+        <Main
+          code={code}
+          lang={lang}
+          siteInfo={siteInfo}
+          assetsPath={assetsPath}
+          workerUrl={workerUrl}
+        />
+      </Provider>
     ),
     node,
   )

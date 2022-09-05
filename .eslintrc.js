@@ -35,6 +35,7 @@ module.exports = {
     'no-useless-constructor': 'off',
     'dot-notation': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': false }],
     'n/no-callback-literal': 'off',
 
     // https://stackoverflow.com/a/71641475/6643726

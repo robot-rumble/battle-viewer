@@ -9,27 +9,28 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../backend/public/dist')
 
-const babelPresetEnv = () => [
+const babelPresetEnv = (browserslistEnv) => [
   '@babel/preset-env',
   {
     useBuiltIns: 'entry',
     corejs: 3,
+    browserslistEnv,
   },
 ]
 
 const loaders = {
-  js: () => ({
+  js: (module) => ({
     test: /\.js$/,
     exclude: /node_modules/,
     use: {
       loader: 'babel-loader',
       options: {
         cacheDirectory: true,
-        presets: [babelPresetEnv()],
+        presets: [babelPresetEnv(module)],
       },
     },
   }),
-  ts: {
+  ts: (module) => ({
     test: /\.tsx?$/,
     exclude: /node_modules/,
     use: [
@@ -37,12 +38,12 @@ const loaders = {
         loader: 'babel-loader',
         options: {
           cacheDirectory: true,
-          presets: [babelPresetEnv(), 'solid'],
+          presets: [babelPresetEnv(module), 'solid'],
         },
       },
       'ts-loader',
     ],
-  },
+  }),
   css: {
     test: /\.(sa|sc|c)ss$/,
     use: [MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader'],
@@ -79,6 +80,7 @@ function mergeCustomizer(objValue, srcValue) {
 
 function createConfigBase(dist, additional) {
   const common = {
+    target: 'web',
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
     output: {

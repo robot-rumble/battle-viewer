@@ -3,7 +3,6 @@ import { createStore, SetStoreFunction } from 'solid-js/store'
 import { WorkerWrapper } from './workerWrapper'
 import { Lang } from './types'
 import { CallbackParams, EvalInfo, SimulationSettings } from './match.worker'
-import { EditorView } from '@codemirror/view'
 import { KeyMap, loadSettings, saveSettings, Settings, Theme } from './settings'
 import { applyTheme } from './themes'
 import { checkCompatibility } from './checkCompatibility'
@@ -20,7 +19,6 @@ export interface SiteInfo {
 
 interface State {
   workerWrapper: WorkerWrapper | null
-  view: EditorView | null
   code: string
   savedCode: string
   lang: Lang
@@ -62,7 +60,6 @@ const initialState = ({
     workerUrl,
     workerWrapper: null,
     lang,
-    view: null,
     code,
     savedCode: code,
     settings,
@@ -104,9 +101,6 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
   },
   toggleSettingsMenu() {
     setState({ viewingSettings: !state.viewingSettings })
-  },
-  setView(view: EditorView) {
-    setState({ view })
   },
   setKeyMap(keyMap: KeyMap) {
     setState('settings', { keyMap })

@@ -109,6 +109,7 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
   setTheme(theme: Theme) {
     setState('settings', { theme })
     saveSettings(state.settings)
+    applyTheme(theme)
   },
 
   initWorker(

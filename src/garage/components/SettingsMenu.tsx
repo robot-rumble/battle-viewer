@@ -35,9 +35,6 @@ export const SettingsMenu = () => {
           {createSelect(THEMES, state.settings.theme, actions.setTheme)}
         </div>
       </div>
-      <p class="mt-3">
-        Please reload the page in order for these changes to take effect.
-      </p>
       <button class="button" onClick={actions.toggleSettingsMenu}>
         close
       </button>

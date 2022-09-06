@@ -18,6 +18,9 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@codemirror/basic-setup": "^0.20.0",
+    "@codemirror/lang-javascript": "^6.0.2",
+    "@codemirror/lang-python": "^6.0.1",
     "@sentry/browser": "^7.2.0",
     "@sentry/tracing": "^7.2.0",
     "@wasmer/wasi": "0.12.0",

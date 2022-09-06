@@ -1,3 +1,5 @@
+import { Theme } from './settings'
+
 const darkTheme = {
   white: 'black',
   black: 'white',
@@ -10,11 +12,11 @@ const darkTheme = {
   'grey-2': '#383838',
   'grey-3': '#262626',
   'grey-4': '#171717',
-  'is-dark-theme': 1,
+  'is-dark-theme': '1',
 }
 
-export function applyTheme(theme) {
-  if (theme === 'Dark') {
+export function applyTheme(theme: Theme) {
+  if (theme === 'dark') {
     for (const [key, val] of Object.entries(darkTheme)) {
       document.documentElement.style.setProperty(`--${key}`, val)
     }

@@ -1,22 +1,14 @@
 port module Main exposing (..)
 
-import Api
+import Api exposing (unwrapRobotId)
 import BattleViewer
 import Browser
 import Data
-import DefaultCode exposing (loadDefaultCode)
-import Dict
-import GridViewer
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (..)
-import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Markdown.Parser
-import Markdown.Renderer
 import OpponentSelect
-import Settings
 
 
 
@@ -37,246 +29,49 @@ main =
 -- MODEL
 
 
-type
-    SaveAnimationPhase
-    -- hacky way to get the disappearing animation to restart on every save
-    -- by alternating between two different but equal animations
-    = Initial
-    | One
-    | Two
-
-
 type alias Model =
-    { apiContext : Api.Context
-    , code : String
-    , lang : String
-    , battleViewerModel : BattleViewer.Model
-    , saveAnimationPhase : SaveAnimationPhase
-    , error : Maybe Data.Error
-
-    -- increased every time `error` is set to a new value, used to check when to re-draw the error editor marks
-    -- a manual check is necessary because `errorLoc` is set many times as Elm updates
-    , errorCounter : Int
-    , settings : Settings.Model
-    , viewingSettings : Bool
-    , team : Maybe Data.Team
-    , unsupported : Bool
+    { renderState : BattleViewer.Model
+    , error : Bool
     }
 
 
-errorFromRenderState renderState =
-    case renderState of
-        BattleViewer.Render ( _, viewerState ) ->
-            viewerState.selectedUnit
-                |> Maybe.andThen
-                    (\unit ->
-                        case unit.action of
-                            Ok _ ->
-                                Nothing
-
-                            Err err ->
-                                if unit.isOurTeam then
-                                    Just (Data.RobotErrorType err)
-
-                                else
-                                    Nothing
-                    )
-
-        _ ->
-            Nothing
+type alias Flags =
+    { team : Maybe Data.Team
+    , apiContext : Api.ContextFlag
+    , unsupported : Bool
+    }
 
 
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        settings =
-            case flags.settings of
-                Just encodedSettings ->
-                    Settings.decodeSettings encodedSettings
-                        |> Result.withDefault Settings.default
-
-                Nothing ->
-                    Settings.default
-
         apiContext =
             Api.contextFlagtoContext flags.apiContext
 
-        tutorialROption =
-            Maybe.map
-                (\tutorial ->
-                    Data.decodeTutorial tutorial
-                )
-                flags.tutorial
-
-        tutorialOption =
-            tutorialROption |> Maybe.map (Result.withDefault Data.defaultTutorial)
-
-        reportTutorialDecodeError =
-            case tutorialROption of
-                Just (Err err) ->
-                    reportDecodeError <| Decode.errorToString err
-
-                _ ->
-                    Cmd.none
-
-        opponentSelectFlags =
-            case tutorialOption of
-                Just tutorial ->
-                    OpponentSelect.TutorialF (OpponentSelect.TutorialFlags tutorial)
-
-                Nothing ->
-                    OpponentSelect.NormalF (OpponentSelect.NormalFlags apiContext False)
-
-        ( battleViewerModel, battleViewerCmd ) =
-            BattleViewer.init True flags.team flags.unsupported opponentSelectFlags
-
-        -- if in demo, the code will be an empty string
-        -- the default code needs to be stored on the level of elm because ultimately
-        -- elm calls the battle execution and so when the language changes
-        -- elm needs to have the new code
-        code =
-            tutorialOption
-                |> Maybe.andThen (\tutorial -> tutorial.startingCode)
-                |> Maybe.withDefault
-                    (if String.isEmpty flags.code then
-                        loadDefaultCode flags.lang
-
-                     else
-                        flags.code
-                    )
+        ( newModel, newCmd ) =
+            BattleViewer.init True flags.team flags.unsupported (OpponentSelect.NormalF (OpponentSelect.NormalFlags apiContext True))
     in
-    ( Model
-        apiContext
-        code
-        flags.lang
-        battleViewerModel
-        Initial
-        (errorFromRenderState battleViewerModel.renderState)
-        1
-        settings
-        False
-        flags.team
-        flags.unsupported
-    , Cmd.batch [ Cmd.map GotRenderMsg battleViewerCmd, reportTutorialDecodeError ]
-    )
-
-
-type alias Flags =
-    { code : String
-    , lang : String
-    , apiContext : Api.ContextFlag
-    , settings : Maybe Encode.Value
-    , team : Maybe Data.Team
-    , unsupported : Bool
-    , tutorial : Maybe Encode.Value
-    }
+    ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 
 
 
--- UPDATE
-
-
-port startEval : Encode.Value -> Cmd msg
-
-
-port reportDecodeError : String -> Cmd msg
-
-
-port reportApiError : String -> Cmd msg
-
-
-port savedCode : String -> Cmd msg
-
-
-port saveSettings : Encode.Value -> Cmd msg
-
-
-port selectLang : String -> Cmd msg
+-- MSG
 
 
 type Msg
     = GotOutput Decode.Value
     | GotProgress Decode.Value
     | GotRenderMsg BattleViewer.Msg
-    | GotSettingsMsg Settings.Msg
-    | CodeChanged String
-    | Save
-    | Saved (Result Http.Error ())
-    | ViewSettings
-    | CloseSettings
-    | SelectLang String
-    | ConfirmSelectLang String
-
-
-handleDecodeError : Model -> Decode.Error -> ( Model, Cmd.Cmd msg )
-handleDecodeError model error =
-    let
-        ( newModel, _ ) =
-            update (GotRenderMsg BattleViewer.GotInternalError) model
-    in
-    ( newModel, reportDecodeError <| Decode.errorToString error )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotOutput output ->
-            case Data.decodeOutcomeData output of
-                Ok data ->
-                    let
-                        ( newModel, _ ) =
-                            update (GotRenderMsg (BattleViewer.GotOutput data)) model
-
-                        maybeOutcomeError =
-                            model.team |> Maybe.andThen (\team -> data.errors |> Dict.get team |> Maybe.map Data.OutcomeErrorType)
-                    in
-                    let
-                        error =
-                            case model.error of
-                                -- if there is already a runtime error being displayed, don't overwrite it
-                                Just oldError ->
-                                    Just oldError
-
-                                Nothing ->
-                                    maybeOutcomeError
-                    in
-                    ( { newModel
-                        | error = error
-                        , errorCounter = model.errorCounter + 1
-                      }
-                    , Cmd.none
-                    )
-
-                Err error ->
-                    handleDecodeError model error
-
-        GotProgress progress ->
-            case Data.decodeProgressData progress of
-                Ok data ->
-                    update (GotRenderMsg (BattleViewer.GotProgress data)) model
-
-                Err error ->
-                    handleDecodeError model error
-
-        Save ->
-            let
-                codeUpdateCmd =
-                    case model.apiContext.siteInfo of
-                        Just info ->
-                            Api.updateRobotCode model.apiContext info.robotId model.code
-                                |> Api.makeRequest Saved
-
-                        Nothing ->
-                            Cmd.none
-            in
-            ( model, Cmd.batch [ codeUpdateCmd, savedCode model.code ] )
-
         GotRenderMsg renderMsg ->
             let
-                ( newBattleViewerModel, renderCmd ) =
-                    BattleViewer.update renderMsg model.battleViewerModel
-            in
-            let
+                ( renderModel, renderCmd ) =
+                    BattleViewer.update renderMsg model.renderState
+
                 ( newModel, newCmd ) =
                     case renderMsg of
                         BattleViewer.Run turnNum ->
@@ -287,112 +82,100 @@ update msg model =
                                         , ( "lang", Encode.string lang )
                                         ]
 
-                                selfEvalInfo =
-                                    ( model.code, model.lang )
-
                                 maybeEvalInfoAndSettings =
-                                    OpponentSelect.evalInfo model.battleViewerModel.opponentSelectState selfEvalInfo
+                                    OpponentSelect.evalInfo model.renderState.opponentSelectState ( "", "" )
+
+                                id =
+                                    case model.renderState.opponentSelectState of
+                                        OpponentSelect.Normal state ->
+                                            case state.opponent of
+                                                OpponentSelect.Robot robotDetails ->
+                                                    robotDetails.robot.basic.id
+
+                                                OpponentSelect.Itself ->
+                                                    Api.RobotId 0
+
+                                        OpponentSelect.Tutorial _ ->
+                                            Api.RobotId 0
                             in
                             case maybeEvalInfoAndSettings of
                                 Just ( opponentEvalInfo, maybeSettings ) ->
-                                    ( { model | battleViewerModel = newBattleViewerModel, error = Nothing }
+                                    ( { model | renderState = renderModel, error = False }
                                     , startEval <|
                                         Encode.object
-                                            [ ( "evalInfo", encodeEvalInfo selfEvalInfo )
-                                            , ( "opponentEvalInfo", encodeEvalInfo opponentEvalInfo )
-                                            , ( "turnNum", Encode.int turnNum )
+                                            [ ( "opponentEvalInfo", encodeEvalInfo opponentEvalInfo )
+                                            , ( "turns", Encode.int turnNum )
                                             , ( "settings", Data.encodeNull Data.simulationSettingsEncoder maybeSettings )
+                                            , ( "id", Encode.int <| unwrapRobotId id )
                                             ]
                                     )
 
                                 Nothing ->
-                                    ( { model | battleViewerModel = newBattleViewerModel }, Cmd.none )
+                                    ( { model | renderState = renderModel }, Cmd.none )
 
-                        other ->
-                            ( case other of
-                                BattleViewer.GotRenderMsg GridViewer.ResetSelectedUnit ->
-                                    { model
-                                        | battleViewerModel = newBattleViewerModel
-                                        , error = Nothing
-                                    }
-
-                                -- an error can be set on a turn/slider change or unit selection
-                                BattleViewer.GotRenderMsg _ ->
-                                    { model
-                                        | battleViewerModel = newBattleViewerModel
-                                        , error = errorFromRenderState newBattleViewerModel.renderState
-                                        , errorCounter = model.errorCounter + 1
-                                    }
-
-                                -- an error can also be set automatically on an initial load if one of the robots in the
-                                -- first turn has a runtime exception
-                                BattleViewer.GotProgress _ ->
-                                    { model
-                                        | battleViewerModel = newBattleViewerModel
-                                        , error = errorFromRenderState newBattleViewerModel.renderState
-                                        , errorCounter = model.errorCounter + 1
-                                    }
-
-                                _ ->
-                                    { model | battleViewerModel = newBattleViewerModel }
-                            , Cmd.map GotRenderMsg renderCmd
-                            )
+                        _ ->
+                            ( { model | renderState = renderModel }, Cmd.none )
             in
             let
                 reportApiErrorCmd =
-                    case newBattleViewerModel.apiError of
+                    case renderModel.apiError of
                         Just error ->
                             reportApiError error
 
                         Nothing ->
                             Cmd.none
             in
-            ( newModel, Cmd.batch [ newCmd, reportApiErrorCmd ] )
+            ( newModel, Cmd.batch [ renderCmd |> Cmd.map GotRenderMsg, newCmd, reportApiErrorCmd ] )
 
-        CodeChanged code ->
-            ( { model | code = code }, Cmd.none )
+        GotOutput output ->
+            model |> handleDecodeData (Data.decodeOutcomeData output) BattleViewer.GotOutput
 
-        Saved _ ->
-            ( { model
-                | saveAnimationPhase =
-                    case model.saveAnimationPhase of
-                        Initial ->
-                            One
+        GotProgress progress ->
+            model |> handleDecodeData (Data.decodeProgressData progress) BattleViewer.GotProgress
 
-                        One ->
-                            Two
 
-                        Two ->
-                            One
-              }
-            , Cmd.none
-            )
+handleDecodeData decodedData msg model =
+    case decodedData of
+        Ok data ->
+            let
+                ( newModel, newCmd ) =
+                    BattleViewer.update (msg data) model.renderState
+            in
+            ( { model | renderState = newModel }, newCmd |> Cmd.map GotRenderMsg )
 
-        ViewSettings ->
-            ( { model | viewingSettings = True }, Cmd.none )
-
-        CloseSettings ->
-            ( { model | viewingSettings = False }, saveSettings (Settings.encodeSettings model.settings) )
-
-        GotSettingsMsg settingsMsg ->
-            ( { model | settings = Settings.update settingsMsg model.settings }, Cmd.none )
-
-        -- when the user changes the language the code needs to also change
-        SelectLang lang ->
-            ( model, selectLang lang )
-
-        ConfirmSelectLang lang ->
-            ( { model | lang = lang, code = loadDefaultCode lang }, Cmd.none )
+        Err error ->
+            ( { model | error = True }, reportDecodeError <| Decode.errorToString error )
 
 
 
 -- SUBSCRIPTIONS
 
 
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.batch
+        [ getOutput GotOutput
+        , getProgress GotProgress
+        , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
+        , getTooLong (always <| GotRenderMsg BattleViewer.GotTooLong)
+        , finishedDownloading (always <| GotRenderMsg BattleViewer.FinishedDownloadingRunner)
+        , finishedLoading (always <| GotRenderMsg BattleViewer.FinishedLoadingRunner)
+        ]
+
+
 port getOutput : (Decode.Value -> msg) -> Sub msg
 
 
 port getProgress : (Decode.Value -> msg) -> Sub msg
+
+
+port startEval : Encode.Value -> Cmd msg
+
+
+port reportDecodeError : String -> Cmd msg
+
+
+port reportApiError : String -> Cmd msg
 
 
 port getInternalError : (() -> msg) -> Sub msg
@@ -407,181 +190,17 @@ port finishedLoading : (() -> msg) -> Sub msg
 port getTooLong : (() -> msg) -> Sub msg
 
 
-port confirmSelectLang : (String -> msg) -> Sub msg
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.batch
-        [ getOutput GotOutput
-        , getProgress GotProgress
-        , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
-        , getTooLong (always <| GotRenderMsg BattleViewer.GotTooLong)
-        , finishedDownloading (always <| GotRenderMsg BattleViewer.FinishedDownloadingRunner)
-        , finishedLoading (always <| GotRenderMsg BattleViewer.FinishedLoadingRunner)
-        , confirmSelectLang ConfirmSelectLang
-        ]
-
-
 
 -- VIEW
 
 
 view : Model -> Html Msg
 view model =
-    div [ class "_root-app-root d-flex" ] <|
-        (case model.battleViewerModel.opponentSelectState of
-            OpponentSelect.Tutorial tutorial ->
-                case OpponentSelect.currentChapter tutorial of
-                    Just chapter ->
-                        [ div [ class "_tutorial" ] [ viewTutorial chapter ]
-                        , div [ class "gutter gutter-1" ] []
-                        ]
+    div [] <|
+        (if model.error then
+            [ div [ class "_error error mt-4 mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
 
-                    Nothing ->
-                        []
-
-            OpponentSelect.Normal _ ->
-                []
+         else
+            []
         )
-            ++ [ div [ class "_ui" ] <|
-                    if model.viewingSettings then
-                        [ Settings.view model.settings |> Html.map GotSettingsMsg
-                        , button [ class "button align-self-center", onClick CloseSettings ] [ text "done" ]
-                        ]
-
-                    else
-                        [ viewBar model
-                        , viewEditor model
-                        ]
-               , div [ class "gutter gutter-2" ] []
-               , div [ class "_viewer" ]
-                    [ Html.map GotRenderMsg <| BattleViewer.view model.battleViewerModel
-                    ]
-               ]
-
-
-viewBar : Model -> Html Msg
-viewBar model =
-    div [ class "_bar d-flex justify-content-between align-items-center" ]
-        [ div [ class "d-flex align-items-center" ]
-            (case model.apiContext.siteInfo of
-                Just info ->
-                    [ div [ class "d-flex" ]
-                        [ p [ class "mr-3" ] [ text "The Garage -- editing" ]
-                        , a [ href <| Api.urlForViewingRobot model.apiContext info.robotId, target "_blank" ] [ text info.robot ]
-                        ]
-                    , button [ class "button ml-4", onClick Save ] [ text "save" ]
-                    , p
-                        [ class "mx-3"
-                        , class <|
-                            "disappearing-"
-                                ++ (case model.saveAnimationPhase of
-                                        One ->
-                                            "one"
-
-                                        Two ->
-                                            "two"
-
-                                        Initial ->
-                                            ""
-                                   )
-                        , style "visibility" <|
-                            case model.saveAnimationPhase of
-                                Initial ->
-                                    "hidden"
-
-                                _ ->
-                                    "visible"
-                        ]
-                        [ text "saved" ]
-                    ]
-
-                Nothing ->
-                    [ a [ class "mr-3", href "/" ] [ text "Robot Rumble" ]
-                    , p [ class "mr-3" ] [ text <| "Choose lang: " ]
-                    , div [ class "d-flex" ]
-                        ([ "Python", "Javascript" ]
-                            |> List.map
-                                (\lang ->
-                                    button [ class "button mr-2", id <| "select-" ++ lang, onClick (SelectLang lang) ] [ text lang ]
-                                )
-                        )
-                    ]
-            )
-        , div [ class "d-flex align-items-center" ] <|
-            (case model.apiContext.siteInfo of
-                Just info ->
-                    [ a [ class "mr-4", href <| Api.urlForViewingUser model.apiContext info.user, target "_blank" ]
-                        [ text "your robots" ]
-                    , a
-                        [ class "mr-4", href <| Api.urlForPublishing model.apiContext, target "_blank" ]
-                        [ text "publish to a board" ]
-                    ]
-
-                Nothing ->
-                    []
-            )
-                ++ [ a [ class "mr-4", href "https://rr-docs.readthedocs.io/en/latest/", target "_blank" ] [ text "docs" ]
-                   , div [ class "_img-settings", onClick ViewSettings ] []
-                   ]
-        ]
-
-
-viewEditor : Model -> Html Msg
-viewEditor model =
-    let
-        errorAttribute errorDetails =
-            case errorDetails.loc of
-                Just loc ->
-                    [ property "errorLoc" <|
-                        Data.errorLocEncoder loc
-                    ]
-
-                Nothing ->
-                    []
-    in
-    Html.node "code-editor"
-        ([ class "_editor"
-         , Html.Events.on "editorChanged" <|
-            Decode.map CodeChanged <|
-                Decode.at [ "detail" ] <|
-                    Decode.string
-         , property "setCode" (Encode.string model.code)
-         , property "setLang" (Encode.string model.lang)
-         , property "settings" (Settings.encodeSettings model.settings)
-         ]
-            ++ [ property "errorCounter" (Encode.int model.errorCounter) ]
-            ++ (case model.error of
-                    Just (Data.OutcomeErrorType (Data.InitError errorDetails)) ->
-                        errorAttribute errorDetails
-
-                    Just (Data.RobotErrorType (Data.RuntimeError errorDetails)) ->
-                        errorAttribute errorDetails
-
-                    _ ->
-                        []
-               )
-        )
-        []
-
-
-viewTutorial : Data.Chapter -> Html Msg
-viewTutorial chapter =
-    div []
-        [ h2 [] [ text chapter.title ]
-        , div [] <|
-            case
-                Markdown.Parser.parse chapter.body
-            of
-                Ok okAst ->
-                    case Markdown.Renderer.render Markdown.Renderer.defaultHtmlRenderer okAst of
-                        Ok rendered ->
-                            rendered
-
-                        Err errors ->
-                            [ text errors ]
-
-                Err err ->
-                    [ text (err |> List.map Markdown.Parser.deadEndToString |> String.join "\n") ]
-        ]
+            ++ [ BattleViewer.view model.renderState |> Html.map GotRenderMsg ]

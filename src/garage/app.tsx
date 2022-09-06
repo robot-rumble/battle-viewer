@@ -1,11 +1,10 @@
 import './codemirror'
-// @ts-ignore
 import defaultCode from './defaultCode'
 
 import { render } from 'solid-js/web'
-import Main, { initSplit, SiteInfo } from './Main'
+import Main, { initSplit } from './components/Main'
 import { Lang } from './types'
-import { Provider } from './store'
+import { Provider, SiteInfo } from './store'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {
   // @ts-ignore
@@ -26,7 +25,7 @@ if (process.env['NODE_ENV'] !== 'production' && module.hot) {
     'dist/worker.js',
   )
 
-  module.hot.addStatusHandler(() => initSplit(false))
+  module.hot.addStatusHandler(initSplit)
 }
 
 customElements.define(
@@ -55,7 +54,7 @@ customElements.define(
         // we're in demo or tutorial mode
       }
 
-      const lang = this.getAttribute('lang') || 'Python'
+      const lang = (this.getAttribute('lang') as Lang) || 'Python'
       if (!(lang in defaultCode)) {
         throw new Error('Unknown lang value: ' + lang)
       }
@@ -102,7 +101,7 @@ customElements.define(
       initSolid(
         this,
         code,
-        lang as Lang,
+        lang,
         siteInfo as SiteInfo,
         assetsPath,
         // get around the same-origin rule for loading workers through a cloudflare proxy worker
@@ -126,13 +125,14 @@ function initSolid(
 ) {
   render(
     () => (
-      <Provider assetsPath={assetsPath}>
-        <Main
-          code={code}
-          lang={lang}
-          siteInfo={siteInfo}
-          workerUrl={workerUrl}
-        />
+      <Provider
+        assetsPath={assetsPath}
+        code={code}
+        lang={lang}
+        siteInfo={siteInfo}
+        workerUrl={workerUrl}
+      >
+        <Main />
       </Provider>
     ),
     node,

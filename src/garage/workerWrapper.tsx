@@ -48,17 +48,17 @@ export class WorkerWrapper {
     timedOutCb: () => void,
     private workerCb: (params: CallbackParams) => void,
     private lang: Lang,
-    private workerUrl: string,
     assetsPath: string,
+    workerUrl: string,
   ) {
     this.timer = new Timer(timedOutCb)
-    this.initWorkers(assetsPath)
+    this.initWorkers(assetsPath, workerUrl)
   }
 
-  changeLang(lang: Lang, assetsPath: string) {
+  changeLang(lang: Lang, assetsPath: string, workerUrl: string) {
     this.worker.terminate()
     this.lang = lang
-    this.initWorkers(assetsPath)
+    this.initWorkers(assetsPath, workerUrl)
   }
 
   start(params: RunParams) {
@@ -81,11 +81,11 @@ export class WorkerWrapper {
     this.matchWorker.run(params, Comlink.proxy(runCallback))
   }
 
-  private async initWorkers(assetsPath: string) {
+  private async initWorkers(assetsPath: string, workerUrl: string) {
     // ---- start time check ----
     this.timer.start()
 
-    this.worker = new Worker(this.workerUrl)
+    this.worker = new Worker(workerUrl)
     const MatchWorker = Comlink.wrap(this.worker)
     // @ts-ignore
     this.matchWorker = (await new MatchWorker()) as MatchWorker

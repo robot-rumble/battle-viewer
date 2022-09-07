@@ -91,8 +91,6 @@ class CodeMirrorWrapper {
         : this.editor.getLine(from.line).length || 1,
     }
 
-    console.log(from, to)
-
     let mark = this.editor.markText(from, to, {
       className: 'inline-error',
     })

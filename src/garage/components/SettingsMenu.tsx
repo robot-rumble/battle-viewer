@@ -35,7 +35,7 @@ export const SettingsMenu = () => {
           {createSelect(THEMES, state.settings.theme, actions.setTheme)}
         </div>
       </div>
-      <button class="button" onClick={actions.toggleSettingsMenu}>
+      <button class="button mt-2" onClick={actions.toggleSettingsMenu}>
         close
       </button>
     </div>

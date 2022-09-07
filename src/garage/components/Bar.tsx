@@ -1,6 +1,6 @@
 import { For, Match, Switch } from 'solid-js'
 import { ROUTES, useStore } from '../store'
-import { LANGS } from '../types'
+import { LANGS } from '../constants'
 
 const Bar = () => {
   const [state, actions] = useStore()

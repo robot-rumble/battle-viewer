@@ -1,5 +1,5 @@
 import Bowser from 'bowser'
-import { Lang } from './types'
+import { Lang } from './constants'
 
 const supportedBrowsers = {
   Chrome: 85,

@@ -1,4 +1,4 @@
-import { Lang } from './types'
+import { Lang } from './constants'
 
 const defaultCode: Record<Lang, string> = {
   Javascript: `

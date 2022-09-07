@@ -1,9 +1,8 @@
-import './codemirror'
 import defaultCode from './defaultCode'
 
 import { render } from 'solid-js/web'
 import Main, { initSplit } from './components/Main'
-import { Lang } from './types'
+import { Lang } from './constants'
 import { Provider, SiteInfo } from './store'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {

@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink'
 
 import fetchRunner from './fetchRunner'
-import { Lang } from './types'
+import { Lang } from './constants'
 
 // @ts-ignore
 const logicPromise = import('logic')

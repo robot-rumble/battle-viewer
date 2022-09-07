@@ -10,6 +10,7 @@ import { CallbackParams, EvalInfo, SimulationSettings } from '../match.worker'
 import { SiteInfo, useStore } from '../store'
 import Bar from './Bar'
 import { Editor } from './Editor'
+import { OUR_TEAM } from '../constants'
 
 interface Command<T> {
   send: (params: T) => void
@@ -80,7 +81,7 @@ function init(node: HTMLElement) {
     node,
     flags: {
       apiContext,
-      team: 'Blue',
+      team: OUR_TEAM,
       unsupported: !state.compatible,
     },
   }) as ElmApp

@@ -1,7 +1,7 @@
 import { createContext, ParentProps, useContext } from 'solid-js'
 import { createStore, SetStoreFunction } from 'solid-js/store'
 import { WorkerWrapper } from './workerWrapper'
-import { Lang } from './types'
+import { Lang, OUR_TEAM } from './constants'
 import { CallbackParams, EvalInfo, SimulationSettings } from './match.worker'
 import { KeyMap, loadSettings, saveSettings, Settings, Theme } from './settings'
 import { applyTheme } from './themes'
@@ -17,8 +17,17 @@ export interface SiteInfo {
   robotId: Id
 }
 
+// [line, char]
+export type TextLoc = [number, number | null]
+
+export interface ErrorLoc {
+  start: TextLoc
+  end: TextLoc | null
+}
+
 interface State {
   workerWrapper: WorkerWrapper | null
+  workerErrorLoc: ErrorLoc | null
   code: string
   savedCode: string
   lang: Lang
@@ -59,6 +68,7 @@ const initialState = ({
     assetsPath,
     workerUrl,
     workerWrapper: null,
+    workerErrorLoc: null,
     lang,
     code,
     savedCode: code,
@@ -118,11 +128,24 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     timedOutCb: () => void,
     workerCb: (params: CallbackParams) => void,
   ) {
+    const modifiedWorkerCb = (params: CallbackParams) => {
+      if (params.type === 'getOutput') {
+        const errorType = params.data?.errors?.[OUR_TEAM]
+        const error = errorType?.InitError || errorType?.RuntimeError
+        if (error) {
+          if (!error?.loc) {
+            throw new Error('Missing error location')
+          }
+          setState({ workerErrorLoc: error.loc })
+        }
+      }
+      workerCb(params)
+    }
     const workerWrapper = new WorkerWrapper(
       finishedDownloadingCb,
       finishedLoadingCb,
       timedOutCb,
-      workerCb,
+      modifiedWorkerCb,
       state.lang,
       state.assetsPath,
       state.workerUrl,

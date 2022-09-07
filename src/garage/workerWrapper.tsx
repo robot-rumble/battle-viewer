@@ -1,5 +1,5 @@
 import * as Comlink from 'comlink'
-import { Lang } from './types'
+import { Lang } from './constants'
 import { CallbackParams, MatchWorker, RunParams } from './match.worker'
 
 const TIMER_CHECK_EVERY = 1000

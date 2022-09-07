@@ -386,7 +386,7 @@ normalView model =
                     , div []
                         [ p [ class "mb-2" ] [ text "Search published robots" ]
                         , div [ class "d-flex mb-3" ]
-                            [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
+                            [ input [ class "me-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
                             , button [ class "button", onClick Search ] [ text "find" ]
                             ]
                         , case model.searchResult of
@@ -414,7 +414,7 @@ viewRobotsList apiContext robots isDev =
                 (\robot ->
                     div [ class "d-flex" ] <|
                         [ button
-                            [ class "mb-2 mr-3 button"
+                            [ class "mb-2 me-3 button"
                             , onClick <| SelectOpponent ( isDev, Robot { robot = robot, code = Nothing } )
                             , disabled
                                 (case robot.details of
@@ -433,9 +433,9 @@ viewRobotsList apiContext robots isDev =
                                             []
 
                                          else
-                                            [ p [ class "mr-3", class "text-grey" ] [ text "(closed source)" ] ]
+                                            [ p [ class "me-3", class "text-grey" ] [ text "(closed source)" ] ]
                                         )
-                                            ++ [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ] ]
+                                            ++ [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "me-3" ] [ text "view" ] ]
                                             ++ (case apiContext.siteInfo of
                                                     Just info ->
                                                         if siteRobot.userId == info.userId then
@@ -465,7 +465,7 @@ tutorialView model =
             (Array.indexedMap
                 (\i chapter ->
                     div [ class "d-flex mb-2" ]
-                        [ p [ class "mr-4" ] [ text chapter.title ]
+                        [ p [ class "me-4" ] [ text chapter.title ]
                         , button [ class "button", onClick <| SelectChapter i, disabled <| i == model.selectedChapter ] [ text "select" ]
                         ]
                 )

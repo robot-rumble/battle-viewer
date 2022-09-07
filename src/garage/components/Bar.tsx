@@ -7,7 +7,7 @@ const Bar = () => {
 
   const shared = (
     <div class="d-flex align-items-center">
-      <a class="mr-4" href={ROUTES.docs} target="_blank">
+      <a class="me-4" href={ROUTES.docs} target="_blank">
         docs
       </a>
       <div class="_img-settings" onClick={actions.toggleSettingsMenu} />
@@ -18,12 +18,12 @@ const Bar = () => {
     <>
       <div class="d-flex align-items-center">
         <div class="d-flex">
-          <p class="mr-3">The Garage -- editing</p>
+          <p class="me-3">The Garage -- editing</p>
           <a href={ROUTES.viewRobot(3)} target="_blank">
             r2
           </a>
         </div>
-        <button class="button ml-4" onClick={actions.saveRobotCode}>
+        <button class="button ms-4" onClick={actions.saveRobotCode}>
           save
         </button>
         <p class="mx-3 disappearing-" style="visibility: hidden;">
@@ -31,14 +31,14 @@ const Bar = () => {
         </p>
       </div>
       <div class="d-flex align-items-center">
-        <a class="mr-4" href="/builtin" target="_blank">
+        <a class="me-4" href="/builtin" target="_blank">
           your robots
         </a>
-        <a class="mr-4" href="/boards/" target="_blank">
+        <a class="me-4" href="/boards/" target="_blank">
           publish to a board
         </a>
         <a
-          class="mr-4"
+          class="me-4"
           href="https://rr-docs.readthedocs.io/en/latest/"
           target="_blank"
         >
@@ -53,15 +53,15 @@ const Bar = () => {
   const barForDemo = () => (
     <>
       <div class="d-flex align-items-center">
-        <a class="mr-3" href="/">
+        <a class="me-3" href="/">
           Robot Rumble
         </a>
-        <p class="mr-3">Choose lang: </p>
+        <p class="me-3">Choose lang: </p>
         <div class="d-flex">
           <For each={LANGS}>
             {(lang) => (
               <button
-                class="button mr-2"
+                class="button me-2"
                 id={`select-${lang}`}
                 onClick={() => actions.selectLang(lang)}
               >

@@ -227,7 +227,7 @@ view model =
                     ]
                 ]
             , button [ onClick ToggleOpponentSelect, class "_select-button d-flex align-items-end" ]
-                [ p [ class "mr-2" ]
+                [ p [ class "me-2" ]
                     [ case model.opponentSelectState of
                         OpponentSelect.Normal _ ->
                             text "change opponent"
@@ -288,7 +288,7 @@ viewBar model =
 
         viewLoadingMessage message =
             div [ class "d-flex justify-content-center align-items-center" ]
-                [ p [ class "_text mr-2" ] [ text message ]
+                [ p [ class "_text me-2" ] [ text message ]
                 , div [ class "_img-spinner" ] []
                 ]
     in
@@ -327,7 +327,7 @@ viewBar model =
                         viewButtons ()
             ]
         , div [ class "_winner-section" ]
-            [ p [ class "mr-2" ] [ text "winner: " ]
+            [ p [ class "me-2" ] [ text "winner: " ]
             , case model.winner of
                 Just winner ->
                     case winner of

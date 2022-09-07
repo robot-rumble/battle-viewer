@@ -26,7 +26,7 @@ export const SettingsMenu = () => {
   return (
     <div class="m-3">
       <div class="d-flex">
-        <div class="mr-3">
+        <div class="me-3">
           <p>keymap</p>
           {createSelect(KEYMAPS, state.settings.keyMap, actions.setKeyMap)}
         </div>

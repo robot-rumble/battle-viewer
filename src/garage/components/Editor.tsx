@@ -1,8 +1,8 @@
 import { createEffect, onMount } from 'solid-js'
 import { ErrorLoc, useStore } from '../store'
 import CodeMirror, { Editor, EditorConfiguration, TextMarker } from 'codemirror'
-import { Lang } from '../constants'
-import { Settings } from '../settings'
+import { Lang } from '../utils/constants'
+import { Settings } from '../utils/settings'
 
 import 'codemirror/mode/javascript/javascript.js'
 import 'codemirror/mode/python/python.js'

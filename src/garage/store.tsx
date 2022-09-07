@@ -1,12 +1,22 @@
 import { createContext, ParentProps, useContext } from 'solid-js'
 import { createStore, SetStoreFunction } from 'solid-js/store'
-import { WorkerWrapper } from './workerWrapper'
-import { Lang, OUR_TEAM } from './constants'
-import { CallbackParams, EvalInfo, SimulationSettings } from './match.worker'
-import { KeyMap, loadSettings, saveSettings, Settings, Theme } from './settings'
-import { applyTheme } from './themes'
-import { checkCompatibility } from './checkCompatibility'
-import defaultCode from './defaultCode'
+import { WorkerWrapper } from './worker/workerWrapper'
+import { Lang, OUR_TEAM } from './utils/constants'
+import {
+  CallbackParams,
+  EvalInfo,
+  SimulationSettings,
+} from './worker/match.worker'
+import {
+  KeyMap,
+  loadSettings,
+  saveSettings,
+  Settings,
+  Theme,
+} from './utils/settings'
+import { applyTheme } from './utils/themes'
+import { checkCompatibility } from './utils/checkCompatibility'
+import defaultCode from './utils/defaultCode'
 
 export type Id = number
 

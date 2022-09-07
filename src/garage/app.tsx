@@ -1,6 +1,6 @@
 import { render } from 'solid-js/web'
 import Main, { initSplit } from './components/Main'
-import { Lang, LANGS } from './constants'
+import { Lang, LANGS } from './utils/constants'
 import { Provider, SiteInfo } from './store'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {

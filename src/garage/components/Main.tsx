@@ -6,11 +6,15 @@ import Split from 'split.js'
 import { applyTheme } from '../themes'
 import { captureMessage } from '@sentry/browser'
 import SettingsMenu from './SettingsMenu'
-import { CallbackParams, EvalInfo, SimulationSettings } from '../match.worker'
+import {
+  CallbackParams,
+  EvalInfo,
+  SimulationSettings,
+} from '../worker/match.worker'
 import { SiteInfo, useStore } from '../store'
 import Bar from './Bar'
 import { Editor } from './Editor'
-import { OUR_TEAM } from '../constants'
+import { OUR_TEAM } from '../utils/constants'
 
 interface Command<T> {
   send: (params: T) => void

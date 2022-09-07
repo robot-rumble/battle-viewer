@@ -1,6 +1,6 @@
 import { Index } from 'solid-js'
 import { useStore } from '../store'
-import { KEYMAPS, THEMES } from '../settings'
+import { KEYMAPS, THEMES } from '../utils/settings'
 
 function createSelect<T>(
   options: readonly string[],

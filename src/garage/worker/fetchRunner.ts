@@ -1,5 +1,5 @@
 import { bigInt } from 'wasm-feature-detect'
-import { Lang } from './constants'
+import { Lang } from '../utils/constants'
 
 const lowerPromise = (async () => {
   if (await bigInt()) {

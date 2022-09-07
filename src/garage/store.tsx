@@ -43,7 +43,7 @@ interface State {
 interface ProviderProps {
   assetsPath: string
   workerUrl: string
-  code: string
+  code: string | null
   lang: Lang
   siteInfo: SiteInfo | null
 }
@@ -56,6 +56,8 @@ const initialState = ({
   workerUrl,
 }: ProviderProps): State => {
   const [compatible, incompatibilityWarning] = checkCompatibility(lang)
+
+  code = code || defaultCode[lang]
 
   if (incompatibilityWarning) {
     code = incompatibilityWarning + code

@@ -1,8 +1,6 @@
-import defaultCode from './defaultCode'
-
 import { render } from 'solid-js/web'
 import Main, { initSplit } from './components/Main'
-import { Lang } from './constants'
+import { Lang, LANGS } from './constants'
 import { Provider, SiteInfo } from './store'
 
 if (process.env['NODE_ENV'] !== 'production' && module.hot) {
@@ -54,11 +52,11 @@ customElements.define(
       }
 
       const lang = (this.getAttribute('lang') as Lang) || 'Python'
-      if (!(lang in defaultCode)) {
+      if (!LANGS.includes(lang)) {
         throw new Error('Unknown lang value: ' + lang)
       }
 
-      const code = this.getAttribute('code') || defaultCode[lang]
+      const code = this.getAttribute('code')
 
       const assetsPath = this.getAttribute('assetsPath')
       if (!assetsPath) {
@@ -116,7 +114,7 @@ customElements.define(
 
 function initSolid(
   node: HTMLElement,
-  code: string,
+  code: string | null,
   lang: Lang,
   siteInfo: SiteInfo | null,
   assetsPath: string,

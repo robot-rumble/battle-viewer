@@ -100,7 +100,7 @@ update msg model =
                             in
                             case maybeEvalInfoAndSettings of
                                 Just ( opponentEvalInfo, maybeSettings ) ->
-                                    ( { model | renderState = renderModel, error = False }
+                                    ( { model | renderState = renderModel }
                                     , startEval <|
                                         Encode.object
                                             [ ( "opponentEvalInfo", encodeEvalInfo opponentEvalInfo )

@@ -155,8 +155,8 @@ outcomeErrorDecoder =
                         _ ->
                             succeed InternalError
                 )
-        , field "Timeout" |> (\_ -> succeed Timeout)
         , field "InitError" errorDecoder |> map InitError
+        , field "Timeout" |> (\_ -> succeed Timeout)
         , field "DataError" string |> map DataError
         , field "IO" string |> map IOError
         ]

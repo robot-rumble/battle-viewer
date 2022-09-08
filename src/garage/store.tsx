@@ -2,11 +2,7 @@ import { createContext, ParentProps, useContext } from 'solid-js'
 import { createStore, SetStoreFunction } from 'solid-js/store'
 import { WorkerWrapper } from './worker/workerWrapper'
 import { Lang, OUR_TEAM } from './utils/constants'
-import {
-  CallbackParams,
-  EvalInfo,
-  SimulationSettings,
-} from './worker/match.worker'
+import { CallbackParams, EvalInfo } from './worker/match.worker'
 import {
   KeyMap,
   loadSettings,
@@ -17,6 +13,7 @@ import {
 import { applyTheme } from './utils/themes'
 import { checkCompatibility } from './utils/checkCompatibility'
 import defaultCode from './utils/defaultCode'
+import { fetchTutorial, Tutorial } from './utils/tutorial'
 
 export type Id = number
 
@@ -35,6 +32,13 @@ export interface ErrorLoc {
   end: TextLoc | null
 }
 
+export interface TutorialState {
+  url: string
+  tutorial: Tutorial | null
+  loadingErrored: boolean
+  currentChapter: number
+}
+
 interface State {
   workerWrapper: WorkerWrapper | null
   workerErrorLoc: ErrorLoc | null
@@ -43,10 +47,10 @@ interface State {
   lang: Lang
   settings: Settings
   viewingSettings: boolean
-  tutorial: boolean
   siteInfo: SiteInfo | null
   assetsPath: string
   workerUrl: string
+  tutorialState: TutorialState | null
   compatible: boolean
 }
 
@@ -56,6 +60,7 @@ interface ProviderProps {
   code: string | null
   lang: Lang
   siteInfo: SiteInfo | null
+  tutorialUrl: string | null
 }
 
 const initialState = ({
@@ -64,6 +69,7 @@ const initialState = ({
   assetsPath,
   siteInfo,
   workerUrl,
+  tutorialUrl,
 }: ProviderProps): State => {
   const [compatible, incompatibilityWarning] = checkCompatibility(lang)
 
@@ -76,6 +82,16 @@ const initialState = ({
   const settings = loadSettings()
   applyTheme(settings.theme)
 
+  let tutorialState = null
+  if (tutorialUrl) {
+    tutorialState = {
+      url: tutorialUrl,
+      tutorial: null,
+      currentChapter: 0,
+      loadingErrored: false,
+    }
+  }
+
   return {
     assetsPath,
     workerUrl,
@@ -86,9 +102,9 @@ const initialState = ({
     savedCode: code,
     settings,
     viewingSettings: false,
-    tutorial: false,
     siteInfo,
     compatible,
+    tutorialState,
   }
 }
 
@@ -176,11 +192,7 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     setState({ lang, code: defaultCode[lang] })
   },
 
-  startWorker(
-    turnNum: number,
-    opponentEvalInfo: EvalInfo,
-    settings: SimulationSettings | null,
-  ) {
+  startWorker(turnNum: number, opponentEvalInfo: EvalInfo) {
     if (!state.workerWrapper) {
       throw new Error('Worker not initialized')
     }
@@ -190,13 +202,28 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       // TODO: improve this
       opponentEvalInfo = selfEvalInfo
     }
+    let settings = null
+    if (state.tutorialState) {
+      settings =
+        state.tutorialState.tutorial?.chapters[
+          state.tutorialState.currentChapter
+        ]?.simulationSettings || null
+    }
     state.workerWrapper.start({
       evalInfo1: selfEvalInfo,
       evalInfo2: opponentEvalInfo,
       turnNum,
-      settings,
       assetsPath: state.assetsPath,
+      settings,
     })
+  },
+
+  nextTutorialChapter() {
+    setState('tutorialState', 'currentChapter', (chapter) => chapter + 1)
+  },
+
+  previousTutorialChapter() {
+    setState('tutorialState', 'currentChapter', (chapter) => chapter - 1)
   },
 })
 
@@ -210,6 +237,16 @@ export const Provider = (props: ParentProps<ProviderProps>) => {
       return "You've made unsaved changes."
     }
     return undefined
+  }
+
+  if (state.tutorialState) {
+    fetchTutorial(state.tutorialState.url).then((tutorial) => {
+      if (tutorial) {
+        setState('tutorialState', { tutorial })
+      } else {
+        setState('tutorialState', 'loadingErrored', true)
+      }
+    })
   }
 
   return (

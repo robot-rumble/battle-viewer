@@ -1,4 +1,4 @@
-import { Match, onMount, Switch } from 'solid-js'
+import { Match, onMount, Show, Switch } from 'solid-js'
 // @ts-ignore
 import { Elm } from '../Main.elm'
 import Split from 'split.js'
@@ -15,6 +15,7 @@ import { SiteInfo, useStore } from '../store'
 import Bar from './Bar'
 import { Editor } from './Editor'
 import { OUR_TEAM } from '../utils/constants'
+import Tutorial from './Tutorial'
 
 interface Command<T> {
   send: (params: T) => void
@@ -62,7 +63,17 @@ const Main = () => {
           </Match>
           <Match when={!state.viewingSettings}>
             <Bar />
-            <Editor />
+            <div class="d-flex h-100">
+              <Show when={state.tutorialState}>
+                <div class="_tutorial">
+                  <Tutorial />
+                </div>
+                <div class="gutter" id="tutorial-gutter" />
+              </Show>
+              <div class="_editor h-100 w-100">
+                <Editor />
+              </div>
+            </div>
           </Match>
         </Switch>
       </div>
@@ -109,7 +120,7 @@ function init(node: HTMLElement) {
     )
   }
 
-  initSplit()
+  initSplit(!!state.tutorialState)
 
   app.ports.reportDecodeError.subscribe((error) => {
     console.log('Decode Error!', error)
@@ -121,8 +132,8 @@ function init(node: HTMLElement) {
     captureMessage('Garage Api error:' + error)
   })
 
-  app.ports.startEval.subscribe(({ turns, settings, opponentEvalInfo }) => {
-    actions.startWorker(turns, opponentEvalInfo, settings)
+  app.ports.startEval.subscribe(({ turns, opponentEvalInfo }) => {
+    actions.startWorker(turns, opponentEvalInfo)
   })
 }
 
@@ -143,28 +154,28 @@ function createApiContext(siteInfo: SiteInfo | null, assetsPath: string) {
   }
 }
 
-export function initSplit() {
+export function initSplit(tutorial: boolean) {
   // we need to make sure that the tutorial loaded successfully
-  // if (tutorial && document.querySelector('._tutorial')) {
-  //   Split(['._tutorial', '._ui'], {
-  //     sizes: [25, 40],
-  //     minSize: [300, 650],
-  //     gutterSize: 5,
-  //     gutter: () => document.querySelector('.gutter-1')!,
-  //   })
-  //
-  //   Split(['._ui', '._viewer'], {
-  //     sizes: [40, 35],
-  //     minSize: [650, 650],
-  //     gutterSize: 5,
-  //     gutter: () => document.querySelector('.gutter-2')!,
-  //   })
-  // } else {
-  Split(['._ui', '._viewer'], {
-    sizes: [60, 40],
-    minSize: [650, 650],
-    gutterSize: 5,
-    gutter: () => document.querySelector('#main-gutter')!,
-  })
-  // }
+  if (tutorial) {
+    Split(['._tutorial', '._editor'], {
+      sizes: [50, 50],
+      minSize: [300, 650],
+      gutterSize: 5,
+      gutter: () => document.querySelector('#tutorial-gutter')!,
+    })
+
+    Split(['._ui', '._viewer'], {
+      sizes: [65, 35],
+      minSize: [650, 650],
+      gutterSize: 5,
+      gutter: () => document.querySelector('#main-gutter')!,
+    })
+  } else {
+    Split(['._ui', '._viewer'], {
+      sizes: [60, 40],
+      minSize: [650, 650],
+      gutterSize: 5,
+      gutter: () => document.querySelector('#main-gutter')!,
+    })
+  }
 }

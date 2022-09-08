@@ -97,6 +97,7 @@ function createConfigBase(dist, additional) {
         NODE_ENV: 'development',
         BOT_LANG: process.env.BOT_LANG || 'Python',
         SENTRY_DSN: process.env.SENTRY_DSN || null,
+        TUTORIAL_URL: process.env.TUTORIAL_URL || null,
       }),
     ],
     experiments: {

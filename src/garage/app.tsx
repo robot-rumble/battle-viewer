@@ -20,9 +20,10 @@ if (process.env['NODE_ENV'] !== 'production' && module.hot) {
     null,
     '',
     'dist/worker.js',
+    process.env['TUTORIAL_URL'] || null,
   )
 
-  module.hot.addStatusHandler(initSplit)
+  module.hot.addStatusHandler(() => initSplit(!!process.env['TUTORIAL_URL']))
 }
 
 customElements.define(
@@ -63,37 +64,11 @@ customElements.define(
         throw new Error('No assetsPath attribute found')
       }
 
-      // let tutorial = null
-      // if (this.getAttribute('tutorial')) {
-      //   const urlSearchParams = new URLSearchParams(window.location.search)
-      //   const uri = urlSearchParams.get('source')
-      //   if (uri) {
-      //     await fetch(uri)
-      //       .then(async (res) => {
-      //         if (res.ok) {
-      //           const text = await res.text()
-      //           try {
-      //             tutorial = yaml.load(text, { json: true })
-      //           } catch (e) {
-      //             code = 'Error! Check the console.'
-      //             console.error(e)
-      //           }
-      //         } else {
-      //           code = 'Error! Check the console.'
-      //           console.error(`Tutorial load failed at uri "${uri}"`)
-      //         }
-      //       })
-      //       .catch(() => {
-      //         code = 'Error! Check the console.'
-      //         console.error(`Tutorial load failed at uri "${uri}"`)
-      //       })
-      //   } else {
-      //     code = 'Error! Check the console.'
-      //     console.error(
-      //       'No tutorial URL specified (no "source" query parameter found)',
-      //     )
-      //   }
-      // }
+      let tutorialUrl = null
+      if (this.getAttribute('tutorial')) {
+        const urlSearchParams = new URLSearchParams(window.location.search)
+        tutorialUrl = urlSearchParams.get('source')
+      }
 
       initSolid(
         this,
@@ -107,6 +82,7 @@ customElements.define(
         process.env['NODE_ENV'] === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
+        tutorialUrl,
       )
     }
   },
@@ -119,6 +95,7 @@ function initSolid(
   siteInfo: SiteInfo | null,
   assetsPath: string,
   workerUrl: string,
+  tutorialUrl: string | null,
 ) {
   render(
     () => (
@@ -128,6 +105,7 @@ function initSolid(
         lang={lang}
         siteInfo={siteInfo}
         workerUrl={workerUrl}
+        tutorialUrl={tutorialUrl}
       >
         <Main />
       </Provider>

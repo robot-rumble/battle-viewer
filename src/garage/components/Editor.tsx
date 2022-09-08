@@ -142,5 +142,5 @@ export function Editor() {
     }
   })
 
-  return <div class="_editor" ref={editorRef!} />
+  return <div class="h-100" ref={editorRef!} />
 }

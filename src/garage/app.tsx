@@ -20,6 +20,7 @@ if (process.env['NODE_ENV'] !== 'production' && module.hot) {
     null,
     '',
     'dist/worker.js',
+    !!process.env['TUTORIAL_URL'],
     process.env['TUTORIAL_URL'] || null,
   )
 
@@ -64,8 +65,9 @@ customElements.define(
         throw new Error('No assetsPath attribute found')
       }
 
+      const tutorial = !!this.getAttribute('tutorial')
       let tutorialUrl = null
-      if (this.getAttribute('tutorial')) {
+      if (tutorial) {
         const urlSearchParams = new URLSearchParams(window.location.search)
         tutorialUrl = urlSearchParams.get('source')
       }
@@ -82,6 +84,7 @@ customElements.define(
         process.env['NODE_ENV'] === 'production'
           ? 'https://robotrumble.org/assets/worker-assets/worker.js'
           : assetsPath + '/dist/worker.js',
+        tutorial,
         tutorialUrl,
       )
     }
@@ -95,6 +98,7 @@ function initSolid(
   siteInfo: SiteInfo | null,
   assetsPath: string,
   workerUrl: string,
+  tutorial: boolean,
   tutorialUrl: string | null,
 ) {
   render(
@@ -105,6 +109,7 @@ function initSolid(
         lang={lang}
         siteInfo={siteInfo}
         workerUrl={workerUrl}
+        tutorial={tutorial}
         tutorialUrl={tutorialUrl}
       >
         <Main />

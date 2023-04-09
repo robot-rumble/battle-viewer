@@ -1,0 +1,23 @@
+title: The Robot Rumble Tutorial
+startingCode: null
+chapters:
+  - title: Learning to move
+    body: |
+      Welcome to Robot Rumble!
+      Woo!
+      In this first chapter we'll make the best.
+    opponentCode: |
+      def robot(state, unit):
+        return None
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5

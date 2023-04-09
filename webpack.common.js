@@ -70,6 +70,10 @@ const loaders = {
     test: /\.svg$/,
     type: 'asset/inline',
   },
+  source: {
+    test: /\.yaml$/,
+    type: 'asset/source',
+  },
 }
 
 function mergeCustomizer(objValue, srcValue) {

@@ -33,7 +33,7 @@ export interface ErrorLoc {
 }
 
 export interface TutorialState {
-  url: string
+  url: string | null
   tutorial: Tutorial | null
   loadingErrored: boolean
   currentChapter: number
@@ -60,6 +60,7 @@ interface ProviderProps {
   code: string | null
   lang: Lang
   siteInfo: SiteInfo | null
+  tutorial: boolean
   tutorialUrl: string | null
 }
 
@@ -69,6 +70,7 @@ const initialState = ({
   assetsPath,
   siteInfo,
   workerUrl,
+  tutorial,
   tutorialUrl,
 }: ProviderProps): State => {
   const [compatible, incompatibilityWarning] = checkCompatibility(lang)
@@ -82,8 +84,8 @@ const initialState = ({
   const settings = loadSettings()
   applyTheme(settings.theme)
 
-  let tutorialState = null
-  if (tutorialUrl) {
+  let tutorialState: TutorialState | null = null
+  if (tutorial) {
     tutorialState = {
       url: tutorialUrl,
       tutorial: null,
@@ -209,12 +211,15 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
           state.tutorialState.currentChapter
         ]?.simulationSettings || null
     }
+    console.log('settings', JSON.parse(JSON.stringify(settings)))
     state.workerWrapper.start({
       evalInfo1: selfEvalInfo,
       evalInfo2: opponentEvalInfo,
       turnNum,
       assetsPath: state.assetsPath,
-      settings,
+      // This converts the Proxy object into a regular Javascript object,
+      // which is necessary to be able to pass it through Comlink's Proxy
+      settings: JSON.parse(JSON.stringify(settings)),
     })
   },
 

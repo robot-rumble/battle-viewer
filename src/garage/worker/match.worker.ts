@@ -2,6 +2,7 @@ import * as Comlink from 'comlink'
 
 import fetchRunner from './fetchRunner'
 import { Lang } from '../utils/constants'
+import { convertObjectKeysToSnakeCase } from '../utils/snakeCase'
 
 // @ts-ignore
 const logicPromise = import('logic')
@@ -11,10 +12,43 @@ export interface EvalInfo {
   lang: Lang
 }
 
-export interface SimulationSettings {
+interface SpawnSettings {
   initialUnitNum: number
   recurrentUnitNum: number
   spawnEvery: number
+}
+
+type Team = 'Red' | 'Blue'
+type TerrainType = 'Wall'
+type UnitType = 'Soldier'
+
+interface BasicObj {
+  id: number
+  coords: [number, number]
+}
+
+interface Terrain {
+  objType: 'Terrain'
+  type: TerrainType
+}
+
+interface Unit {
+  objType: 'Unit'
+  type: UnitType
+  team: Team
+  health: number
+}
+
+type ObjDetails = Terrain | Unit
+
+interface Obj {
+  BasicObj: BasicObj
+  ObjDetails: ObjDetails
+}
+
+export interface SimulationSettings {
+  gridInit: Obj[]
+  spawnSettings?: SpawnSettings
 }
 
 export interface RunParams {
@@ -70,21 +104,26 @@ export class MatchWorker {
         makeRunner(evalInfo2),
       ])
 
-      const logicSettings = settings
-        ? new logic.Settings(
-            settings.initialUnitNum,
-            settings.recurrentUnitNum,
-            settings.spawnEvery,
-          )
-        : null
+      // const logicSettings = settings
+      //   ? new logic.Settings(
+      //       settings.initialUnitNum,
+      //       settings.recurrentUnitNum,
+      //       settings.spawnEvery,
+      //     )
+      //   : null
+
+      const snakeCaseSettings =
+        settings && JSON.stringify(convertObjectKeysToSnakeCase(settings))
+      console.log(snakeCaseSettings)
 
       const finalState = await logic.run(
         runner1,
         runner2,
         turnCallback,
         turnNum,
-        logicSettings,
+        snakeCaseSettings,
       )
+      console.log('done')
 
       worker1.terminate()
       worker2.terminate()

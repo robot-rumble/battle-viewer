@@ -15,7 +15,7 @@ const logicWasmDist =
 
 module.exports = createConfigBase(dist, {
   entry: {
-    worker: ['./src/polyfill.js', './src/garage/match.worker.ts'],
+    worker: ['./src/polyfill.js', './src/garage/worker/match.worker.ts'],
   },
   target: 'webworker',
   module: {

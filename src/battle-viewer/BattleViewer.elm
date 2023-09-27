@@ -27,6 +27,7 @@ type alias Model =
     , team : Maybe Data.Team
     , takingTooLong : Bool
     , unsupported : Bool
+    , tutorial : Bool
     }
 
 
@@ -48,8 +49,8 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Bool -> Maybe Data.Team -> Bool -> OpponentSelect.Flags -> ( Model, Cmd Msg )
-init isRunnerLoading team unsupported opponentSelectFlags =
+init : Bool -> Maybe Data.Team -> Bool -> Bool -> OpponentSelect.Flags -> ( Model, Cmd Msg )
+init isRunnerLoading team unsupported tutorial opponentSelectFlags =
     let
         ( model, cmd ) =
             OpponentSelect.init opponentSelectFlags
@@ -61,7 +62,7 @@ init isRunnerLoading team unsupported opponentSelectFlags =
             else
                 NoRender
     in
-    ( Model Nothing Nothing renderState model False team False unsupported, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model Nothing Nothing renderState model False team False unsupported tutorial, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -114,18 +115,9 @@ update msg model =
                         OpponentSelect.SelectOpponent _ ->
                             False
 
-                        OpponentSelect.SelectChapter _ ->
-                            False
-
                         _ ->
                             model.viewingOpponentSelect
-                , apiError =
-                    case selectModel of
-                        OpponentSelect.Normal normalModel ->
-                            normalModel.apiError
-
-                        OpponentSelect.Tutorial _ ->
-                            Nothing
+                , apiError = model.apiError
 
                 -- reset any Internal error messages after new opponent is selected
                 --, renderState = NoRender
@@ -216,36 +208,48 @@ view : Model -> Html Msg
 view model =
     div [ class "_app-root" ]
         [ div [ class "_bar" ]
-            [ p []
+            ([ p []
                 [ span [ class "text-blue" ]
-                    [ text <| OpponentSelect.robotName model.opponentSelectState
+                    [ text <|
+                        if model.tutorial then
+                            "your robot"
+
+                        else
+                            OpponentSelect.robotName model.opponentSelectState
                     ]
                 , text " versus "
                 , span
                     [ class "text-red" ]
-                    [ text <| OpponentSelect.opponentName model.opponentSelectState
-                    ]
-                ]
-            , button [ onClick ToggleOpponentSelect, class "_select-button d-flex align-items-end" ]
-                [ p [ class "mr-2" ]
-                    [ case model.opponentSelectState of
-                        OpponentSelect.Normal _ ->
-                            text "change opponent"
-
-                        OpponentSelect.Tutorial _ ->
-                            text "change chapter"
-                    ]
-                , div
-                    [ class <|
-                        if model.viewingOpponentSelect then
-                            "_img-close-panel"
+                    [ text <|
+                        if model.tutorial then
+                            "tutorial"
 
                         else
-                            "_img-open-panel"
+                            OpponentSelect.opponentName model.opponentSelectState
                     ]
-                    []
                 ]
-            ]
+             ]
+                ++ (if model.tutorial then
+                        []
+
+                    else
+                        [ button [ onClick ToggleOpponentSelect, class "_select-button d-flex align-items-end" ]
+                            [ p [ class "me-2" ]
+                                [ text "change opponent"
+                                ]
+                            , div
+                                [ class <|
+                                    if model.viewingOpponentSelect then
+                                        "_img-close-panel"
+
+                                    else
+                                        "_img-open-panel"
+                                ]
+                                []
+                            ]
+                        ]
+                   )
+            )
         , if model.viewingOpponentSelect then
             OpponentSelect.view model.opponentSelectState |> Html.map GotOpponentSelectMsg
 
@@ -288,7 +292,7 @@ viewBar model =
 
         viewLoadingMessage message =
             div [ class "d-flex justify-content-center align-items-center" ]
-                [ p [ class "_text mr-2" ] [ text message ]
+                [ p [ class "_text me-2" ] [ text message ]
                 , div [ class "_img-spinner" ] []
                 ]
     in
@@ -327,7 +331,7 @@ viewBar model =
                         viewButtons ()
             ]
         , div [ class "_winner-section" ]
-            [ p [ class "mr-2" ] [ text "winner: " ]
+            [ p [ class "me-2" ] [ text "winner: " ]
             , case model.winner of
                 Just winner ->
                     case winner of

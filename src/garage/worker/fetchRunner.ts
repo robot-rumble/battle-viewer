@@ -1,4 +1,5 @@
 import { bigInt } from 'wasm-feature-detect'
+import { Lang } from '../utils/constants'
 
 const lowerPromise = (async () => {
   if (await bigInt()) {
@@ -15,16 +16,21 @@ const runnerMap = {
   Python: 'pyrunner',
   Javascript: 'jsrunner',
 }
-export default async (assetsPath, lang, finishDownloadCb) => {
+export default async (
+  assetsPath: string,
+  lang: Lang,
+  finishDownloadCb: () => void,
+) => {
   if (!(lang in runnerMap)) {
     throw new Error(`Unknown lang: ${lang}`)
   }
   const name = runnerMap[lang]
   if (name in runnerCache) return runnerCache[name]
   const prom = (async () => {
-    const path = process.env.NODE_ENV === 'production'
-      ? assetsPath + `/lang-runners/${name}.wasm`
-      : assetsPath + `/dist/${name}.wasm`
+    const path =
+      process.env['NODE_ENV'] === 'production'
+        ? assetsPath + `/lang-runners/${name}.wasm`
+        : assetsPath + `/dist/${name}.wasm`
     const res = await fetch(path)
     finishDownloadCb()
     let wasm = await res.arrayBuffer()

@@ -15,11 +15,11 @@ const logicWasmDist =
 
 module.exports = createConfigBase(dist, {
   entry: {
-    worker: ['./src/polyfill.js', './src/garage/match.worker.js'],
+    worker: ['./src/polyfill.js', './src/garage/worker/match.worker.ts'],
   },
   target: 'webworker',
   module: {
-    rules: [loaders.js('worker')],
+    rules: [loaders.ts()],
   },
   resolve: {
     alias: {
@@ -31,7 +31,10 @@ module.exports = createConfigBase(dist, {
       ? [
           new CopyPlugin({
             patterns: [
-              { from: path.join(logicWasmDist, 'lang-runners'), to: dist },
+              {
+                from: path.join(logicWasmDist, 'lang-runners'),
+                to: dist,
+              },
             ],
           }),
         ]

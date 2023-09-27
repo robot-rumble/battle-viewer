@@ -18,6 +18,14 @@
   animation-name: disappearingAnimationTwo;
 }
 
+.h-100 {
+  height: 100%;
+}
+
+.w-100 {
+  width: 100%;
+}
+
 @keyframes disappearingAnimationOne {
   0% {
     opacity: 1;
@@ -34,6 +42,10 @@
   100% {
     opacity: 0;
   }
+}
+
+#root {
+  height: 100%;
 }
 
 .garage {
@@ -59,7 +71,6 @@
         // to prevent vertical overflow
         height: 100%;
         overflow: auto;
-        margin-left: map_get($spacers, 4);
 
         .CodeMirror {
           height: 100%;
@@ -69,7 +80,7 @@
             line-height: 1.1;
           }
 
-          padding-bottom: map_get($spacers, 4);
+          padding-bottom: map-get($spacers, 4);
         }
 
         .CodeMirror-gutters {
@@ -106,14 +117,14 @@
       }
     }
 
-    & > .gutter {
+    .gutter {
       border-right: $border-2;
       border-left: $border-2;
       cursor: col-resize;
     }
 
     ._tutorial {
-      padding: map_get($spacers, 4);
+      padding: map-get($spacers, 4);
     }
   }
 }

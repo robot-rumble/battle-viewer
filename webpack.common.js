@@ -9,21 +9,40 @@ const dist =
     ? path.join(__dirname, './dist')
     : path.join(__dirname, '../backend/public/dist')
 
+const babelPresetEnv = (browserslistEnv) => [
+  '@babel/preset-env',
+  {
+    useBuiltIns: 'entry',
+    corejs: 3,
+    browserslistEnv,
+  },
+]
+
 const loaders = {
-  js: (browserslistEnv) => ({
+  js: (module) => ({
     test: /\.js$/,
     exclude: /node_modules/,
     use: {
       loader: 'babel-loader',
       options: {
-        presets: [
-          [
-            '@babel/preset-env',
-            { useBuiltIns: 'entry', corejs: 3, browserslistEnv },
-          ],
-        ],
+        cacheDirectory: true,
+        presets: [babelPresetEnv(module)],
       },
     },
+  }),
+  ts: (module) => ({
+    test: /\.tsx?$/,
+    exclude: /node_modules/,
+    use: [
+      {
+        loader: 'babel-loader',
+        options: {
+          cacheDirectory: true,
+          presets: [babelPresetEnv(module), 'solid'],
+        },
+      },
+      'ts-loader',
+    ],
   }),
   css: {
     test: /\.(sa|sc|c)ss$/,
@@ -45,11 +64,15 @@ const loaders = {
   }),
   file: {
     test: /\.(woff|woff2|ttf)$/,
-    use: 'file-loader',
+    type: 'asset/resource',
   },
   url: {
     test: /\.svg$/,
-    use: 'url-loader',
+    type: 'asset/inline',
+  },
+  source: {
+    test: /\.yaml$/,
+    type: 'asset/source',
   },
 }
 
@@ -61,11 +84,15 @@ function mergeCustomizer(objValue, srcValue) {
 
 function createConfigBase(dist, additional) {
   const common = {
+    target: 'web',
     mode: process.env.NODE_ENV || 'development',
     stats: 'minimal',
     output: {
       publicPath: 'auto',
       path: dist,
+    },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js'],
     },
     devtool: 'source-map',
     plugins: [
@@ -74,6 +101,7 @@ function createConfigBase(dist, additional) {
         NODE_ENV: 'development',
         BOT_LANG: process.env.BOT_LANG || 'Python',
         SENTRY_DSN: process.env.SENTRY_DSN || null,
+        TUTORIAL_URL: process.env.TUTORIAL_URL || null,
       }),
     ],
     experiments: {
@@ -85,11 +113,17 @@ function createConfigBase(dist, additional) {
 
 function createDevServerConfig(base) {
   return {
-    contentBase: base,
+    static: {
+      directory: base,
+    },
     historyApiFallback: true,
-    stats: 'minimal',
     host: '0.0.0.0',
   }
 }
 
-module.exports = { dist, loaders, createConfigBase, createDevServerConfig }
+module.exports = {
+  dist,
+  loaders,
+  createConfigBase,
+  createDevServerConfig,
+}

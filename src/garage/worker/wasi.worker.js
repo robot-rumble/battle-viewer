@@ -1,4 +1,5 @@
-import '../polyfill.js'
+/* eslint-disable camelcase */
+import '../../polyfill.js'
 import { WASI } from '@wasmer/wasi/lib/index.esm.js'
 import { WasmFs } from '@wasmer/wasmfs'
 import * as Comlink from 'comlink'
@@ -24,6 +25,13 @@ class WasiRunner {
     this.wasmExports = null
     this._initResult = null
   }
+
+  get init_result() {
+    const { _initResult } = this
+    this._initResult = null
+    return _initResult
+  }
+
   async setup() {
     const { exports } = await WebAssembly.instantiate(
       this.wasmModule,
@@ -32,11 +40,7 @@ class WasiRunner {
     this.wasmExports = exports
     this.wasi.setMemory(exports.memory)
   }
-  get init_result() {
-    const { _initResult } = this
-    this._initResult = null
-    return _initResult
-  }
+
   set_input(input) {
     const ptr = this.wasmExports.__rr_prealloc(input.byteLength)
     const buf = new Uint8Array(
@@ -46,6 +50,7 @@ class WasiRunner {
     )
     buf.set(input)
   }
+
   get_output(len) {
     const ptr = this.wasmExports.__rr_io_addr()
     const output = new Uint8Array(this.wasmExports.memory.buffer, ptr, len)
@@ -53,6 +58,7 @@ class WasiRunner {
     // standalone uint8array buffer, so we copy it with slice()
     return output.slice()
   }
+
   init(input) {
     this.set_input(input)
     try {
@@ -66,6 +72,7 @@ class WasiRunner {
       )
     }
   }
+
   run_turn(input) {
     const { fs } = this.wasmFs
     fs.writeFileSync('/dev/stdout', '')
@@ -74,7 +81,10 @@ class WasiRunner {
     try {
       const len = this.wasmExports.__rr_run_turn()
       logs = fs.readFileSync('/dev/stdout', 'utf8')
-      return { output: this.get_output(len), logs }
+      return {
+        output: this.get_output(len),
+        logs,
+      }
     } catch (e) {
       console.error('error while running turn', e, e && e.stack)
       console.error(fs.readFileSync('/dev/stderr', 'utf8'))

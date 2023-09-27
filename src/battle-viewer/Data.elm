@@ -1,6 +1,5 @@
 module Data exposing (..)
 
-import Array exposing (Array)
 import Dict exposing (Dict)
 import Json.Decode exposing (..)
 import Json.Decode.Pipeline exposing (required)
@@ -155,8 +154,8 @@ outcomeErrorDecoder =
                         _ ->
                             succeed InternalError
                 )
-        , field "Timeout" |> (\_ -> succeed Timeout)
         , field "InitError" errorDecoder |> map InitError
+        , field "Timeout" |> (\_ -> succeed Timeout)
         , field "DataError" string |> map DataError
         , field "IO" string |> map IOError
         ]
@@ -425,57 +424,6 @@ terrainDecoder : Decoder Terrain
 terrainDecoder =
     succeed Terrain
         |> required "type" (union [ ( "Wall", Wall ) ])
-
-
-
--- TUTORIAL
-
-
-type alias Tutorial =
-    { title : String
-    , chapters : Array Chapter
-    , startingCode : Maybe String
-    }
-
-
-defaultTutorial : Tutorial
-defaultTutorial =
-    { title = ""
-    , chapters = Array.empty
-    , startingCode = Nothing
-    }
-
-
-tutorialDecoder : Decoder Tutorial
-tutorialDecoder =
-    succeed Tutorial
-        |> required "title" string
-        |> required "chapters" (array chapterDecoder)
-        |> required "startingCode" (nullable string)
-
-
-decodeTutorial : Value -> Result Json.Decode.Error Tutorial
-decodeTutorial =
-    decodeValue tutorialDecoder
-
-
-type alias Chapter =
-    { title : String
-    , body : String
-    , opponentCode : String
-    , opponentLang : String
-    , simulationSettings : SimulationSettings
-    }
-
-
-chapterDecoder : Decoder Chapter
-chapterDecoder =
-    succeed Chapter
-        |> required "title" string
-        |> required "body" string
-        |> required "opponentCode" string
-        |> required "opponentLang" string
-        |> required "simulationSettings" simulationSettingsDecoder
 
 
 type alias SimulationSettings =

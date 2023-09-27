@@ -1,13 +1,30 @@
 module.exports = {
-  root: true,
   env: {
-    node: true,
     browser: true,
+    es2021: true,
+    node: true,
   },
-  plugins: ['lodash'],
-  extends: ['standard', 'plugin:lodash/recommended'],
+  extends: [
+    'standard',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:solid/typescript',
+    'prettier',
+  ],
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  },
+  plugins: ['@typescript-eslint', 'solid', 'prettier'],
   rules: {
-    'space-before-function-paren': ['error', 'never'],
+    'space-before-function-paren': [
+      'error',
+      {
+        anonymous: 'always',
+        named: 'never',
+        asyncArrow: 'always',
+      },
+    ],
 
     'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
@@ -15,11 +32,17 @@ module.exports = {
     'comma-dangle': ['error', 'always-multiline'],
     'object-curly-spacing': ['error', 'always'],
 
-    'lodash/prefer-lodash-method': 'off',
-    // ignore lodash variable
-    'no-unused-vars': ['error', { varsIgnorePattern: '^_*' }],
-  },
-  parserOptions: {
-    parser: 'babel-eslint',
+    'no-useless-constructor': 'off',
+    'dot-notation': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/ban-ts-comment': ['error', { 'ts-ignore': false }],
+    'n/no-callback-literal': 'off',
+
+    // https://stackoverflow.com/a/71641475/6643726
+    'no-unused-vars': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      { varsIgnorePattern: '^_*' },
+    ],
   },
 }

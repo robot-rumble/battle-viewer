@@ -12,6 +12,7 @@
 }
 
 ._img-settings {
+  cursor: pointer;
   @include img("settings");
 }
 
@@ -45,7 +46,7 @@
   }
 
   ._battle-viewer-root {
-    margin: map_get($spacers, 3) 0;
+    margin: map-get($spacers, 3) 0;
   }
 
   ._bar {
@@ -68,7 +69,7 @@
     }
 
     & > * {
-      padding: map_get($spacers, 1) map_get($spacers, 2);
+      padding: map-get($spacers, 1) map-get($spacers, 2);
     }
   }
 
@@ -106,7 +107,7 @@
     user-select: none;
     text-align: center;
     position: relative;
-    margin-bottom: map_get($spacers, 3);
+    margin-bottom: map-get($spacers, 3);
     display: flex;
 
     ._battle-section {
@@ -114,14 +115,14 @@
 
       ._battle {
         display: flex;
-        margin-left: map_get($spacers, 3);
+        margin-left: map-get($spacers, 3);
 
         ._buttons {
           display: flex;
           margin: auto;
 
           & > * {
-            margin: 0 map_get($spacers, 2);
+            margin: 0 map-get($spacers, 2);
             white-space: nowrap;
           }
         }
@@ -170,7 +171,7 @@
   }
 
   ._grid-viewer-main {
-    margin-right: map_get($spacers, 2);
+    margin-right: map-get($spacers, 2);
     width: 50%;
 
     ._grid-viewer-controls {
@@ -184,7 +185,7 @@
       margin-bottom: -2px;
 
       & > * {
-        margin: map_get($spacers, 1) map_get($spacers, 2);
+        margin: map-get($spacers, 1) map-get($spacers, 2);
       }
 
       ._turn-indicator {
@@ -327,6 +328,7 @@
       .obj.selected {
         border: none;
       }
+
       .obj.selected::before {
         z-index: 1;
         box-shadow: 0 0 0 7px rgba(0, 0, 0, .3);

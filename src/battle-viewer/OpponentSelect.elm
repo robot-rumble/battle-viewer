@@ -1,7 +1,6 @@
-module OpponentSelect exposing (Flags(..), Model(..), Msg(..), NormalFlags, Opponent(..), TutorialFlags, currentChapter, evalInfo, init, opponentName, robotName, update, userOwnsOpponent, view)
+module OpponentSelect exposing (Flags, Model, Msg(..), Opponent(..), evalInfo, init, opponentName, robotName, update, userOwnsOpponent, view)
 
 import Api
-import Array
 import Data
 import Html exposing (..)
 import Html.Attributes exposing (..)
@@ -18,12 +17,7 @@ onKeyDown msg =
 -- MODEL
 
 
-type Model
-    = Normal NormalModel
-    | Tutorial TutorialModel
-
-
-type alias NormalModel =
+type alias Model =
     { apiContext : Api.Context
     , opponent : Opponent
     , userRobots : List Api.Robot
@@ -35,12 +29,6 @@ type alias NormalModel =
     }
 
 
-type alias TutorialModel =
-    { data : Data.Tutorial
-    , selectedChapter : Int
-    }
-
-
 type Opponent
     = Itself
     | Robot RobotDetails
@@ -48,134 +36,96 @@ type Opponent
 
 type alias RobotDetails =
     { robot : Api.Robot
-
-    -- the code is a Maybe so that it is possible to select an opponent and lode the code later
-    -- any attempt to eval against an opponent with no code will silently fail
     , code : Maybe String
     }
 
 
 userOwnsOpponent : Model -> Bool
-userOwnsOpponent baseModel =
-    case baseModel of
-        Normal model ->
-            case model.opponent of
-                Itself ->
+userOwnsOpponent model =
+    case model.opponent of
+        Itself ->
+            True
+
+        Robot opponent ->
+            case opponent.robot.details of
+                Api.Site siteRobot ->
+                    case model.apiContext.siteInfo of
+                        Just info ->
+                            siteRobot.userId == info.userId
+
+                        Nothing ->
+                            False
+
+                Api.Local ->
                     True
-
-                Robot opponent ->
-                    case opponent.robot.details of
-                        Api.Site siteRobot ->
-                            case model.apiContext.siteInfo of
-                                Just info ->
-                                    siteRobot.userId == info.userId
-
-                                Nothing ->
-                                    False
-
-                        Api.Local ->
-                            True
-
-        Tutorial _ ->
-            False
 
 
 robotName : Model -> String
-robotName baseModel =
-    case baseModel of
-        Normal model ->
-            case model.apiContext.siteInfo of
-                Just info ->
-                    info.robot
+robotName model =
+    case model.apiContext.siteInfo of
+        Just info ->
+            info.robot
 
-                Nothing ->
-                    "demo robot"
-
-        Tutorial model ->
-            "your robot"
+        Nothing ->
+            "demo robot"
 
 
 opponentName : Model -> String
-opponentName baseModel =
-    case baseModel of
-        Normal model ->
-            case model.opponent of
-                Robot robotDetails ->
-                    robotDetails.robot.basic.name
+opponentName model =
+    case model.opponent of
+        Robot robotDetails ->
+            robotDetails.robot.basic.name
 
-                Itself ->
-                    "itself"
-
-        Tutorial model ->
-            "Chapter " ++ String.fromInt (model.selectedChapter + 1)
-
-
-currentChapter : TutorialModel -> Maybe Data.Chapter
-currentChapter model =
-    Array.get model.selectedChapter model.data.chapters
+        Itself ->
+            "itself"
 
 
 evalInfo : Model -> ( String, String ) -> Maybe ( ( String, String ), Maybe Data.SimulationSettings )
-evalInfo baseModel selfEvalInfo =
-    case baseModel of
-        Normal model ->
-            case model.opponent of
-                Robot robotDetails ->
-                    let
-                        lang =
-                            case robotDetails.robot.details of
-                                Api.Site siteRobot ->
-                                    siteRobot.lang
+evalInfo model selfEvalInfo =
+    case model.opponent of
+        Robot robotDetails ->
+            let
+                lang =
+                    case robotDetails.robot.details of
+                        Api.Site siteRobot ->
+                            siteRobot.lang
 
-                                -- the CLI stores the language argument on its own
-                                Api.Local ->
-                                    ""
-                    in
-                    robotDetails.code |> Maybe.map (\c -> ( ( c, lang ), Nothing ))
+                        -- the CLI stores the language argument on its own
+                        Api.Local ->
+                            ""
+            in
+            robotDetails.code |> Maybe.map (\c -> ( ( c, lang ), Nothing ))
 
-                Itself ->
-                    Just ( selfEvalInfo, Nothing )
-
-        Tutorial model ->
-            currentChapter model |> Maybe.map (\chapter -> ( ( chapter.opponentCode, chapter.opponentLang ), Just chapter.simulationSettings ))
+        Itself ->
+            Just ( selfEvalInfo, Nothing )
 
 
-type Flags
-    = NormalF NormalFlags
-    | TutorialF TutorialFlags
-
-
-type alias NormalFlags =
+type alias Flags =
     { apiContext : Api.Context
     , cli : Bool
     }
 
 
-type alias TutorialFlags =
-    { data : Data.Tutorial
-    }
-
-
 init : Flags -> ( Model, Cmd Msg )
-init baseFlags =
-    case baseFlags of
-        NormalF { apiContext, cli } ->
-            let
-                getUserRobotsCmd =
-                    case apiContext.siteInfo of
-                        Just info ->
-                            Api.getUserRobots apiContext info.user |> Api.makeRequest GotUserRobots
+init flags =
+    let
+        apiContext =
+            flags.apiContext
 
-                        Nothing ->
-                            Cmd.none
+        getUserRobotsCmd =
+            case apiContext.siteInfo of
+                Just info ->
+                    Api.getUserRobots apiContext info.user |> Api.makeRequest GotUserRobots
 
-                getBuiltinRobotsCmd =
-                    Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
-            in
-            ( Normal <| NormalModel apiContext Itself [] [] Nothing "" Nothing cli, Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ] )
+                Nothing ->
+                    Cmd.none
 
-        TutorialF { data } ->
-            ( Tutorial <| TutorialModel data 0, Cmd.none )
+        getBuiltinRobotsCmd =
+            Api.getBuiltinRobots apiContext |> Api.makeRequest GotBuiltinRobots
+    in
+    ( Model apiContext Itself [] [] Nothing "" Nothing flags.cli
+    , Cmd.batch [ getUserRobotsCmd, getBuiltinRobotsCmd ]
+    )
 
 
 
@@ -191,25 +141,10 @@ type Msg
     | Search
     | KeyDown Int
     | GotSearchUserRobots (Api.Result (List Api.Robot))
-    | SelectChapter Int
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg baseModel =
-    case baseModel of
-        Normal model ->
-            let
-                ( newModel, cmd ) =
-                    normalUpdate msg model
-            in
-            ( Normal newModel, cmd )
-
-        Tutorial model ->
-            ( Tutorial <| tutorialUpdate msg model, Cmd.none )
-
-
-normalUpdate : Msg -> NormalModel -> ( NormalModel, Cmd Msg )
-normalUpdate msg model =
+update msg model =
     case msg of
         SelectOpponent ( isDev, opponent ) ->
             ( { model | opponent = opponent, searchResult = Nothing }
@@ -307,11 +242,8 @@ normalUpdate msg model =
             , Cmd.none
             )
 
-        _ ->
-            ( model, Cmd.none )
 
-
-search : NormalModel -> ( NormalModel, Cmd Msg )
+search : Model -> ( Model, Cmd Msg )
 search model =
     ( { model | searchResult = Nothing }
     , if not <| String.isEmpty model.searchUser then
@@ -322,32 +254,12 @@ search model =
     )
 
 
-tutorialUpdate : Msg -> TutorialModel -> TutorialModel
-tutorialUpdate msg model =
-    case msg of
-        SelectChapter i ->
-            { model | selectedChapter = i }
-
-        _ ->
-            model
-
-
 
 -- VIEW
 
 
 view : Model -> Html Msg
-view baseModel =
-    case baseModel of
-        Normal model ->
-            normalView model
-
-        Tutorial model ->
-            tutorialView model
-
-
-normalView : NormalModel -> Html Msg
-normalView model =
+view model =
     div [ class "_opponent-select" ] <|
         (case model.apiError of
             Just _ ->
@@ -386,7 +298,7 @@ normalView model =
                     , div []
                         [ p [ class "mb-2" ] [ text "Search published robots" ]
                         , div [ class "d-flex mb-3" ]
-                            [ input [ class "mr-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
+                            [ input [ class "me-3", placeholder "user", value model.searchUser, onInput ChangeSearchUser, onKeyDown KeyDown ] []
                             , button [ class "button", onClick Search ] [ text "find" ]
                             ]
                         , case model.searchResult of
@@ -414,7 +326,7 @@ viewRobotsList apiContext robots isDev =
                 (\robot ->
                     div [ class "d-flex" ] <|
                         [ button
-                            [ class "mb-2 mr-3 button"
+                            [ class "mb-2 me-3 button"
                             , onClick <| SelectOpponent ( isDev, Robot { robot = robot, code = Nothing } )
                             , disabled
                                 (case robot.details of
@@ -433,9 +345,9 @@ viewRobotsList apiContext robots isDev =
                                             []
 
                                          else
-                                            [ p [ class "mr-3", class "text-grey" ] [ text "(closed source)" ] ]
+                                            [ p [ class "me-3", class "text-grey" ] [ text "(closed source)" ] ]
                                         )
-                                            ++ [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "mr-3" ] [ text "view" ] ]
+                                            ++ [ a [ href <| Api.urlForViewingRobot apiContext robot.basic.id, target "_blank", class "me-3" ] [ text "view" ] ]
                                             ++ (case apiContext.siteInfo of
                                                     Just info ->
                                                         if siteRobot.userId == info.userId then
@@ -453,23 +365,3 @@ viewRobotsList apiContext robots isDev =
                                )
                 )
                 robots
-
-
-tutorialView : TutorialModel -> Html Msg
-tutorialView model =
-    div [ class "_opponent-select" ]
-        [ h3 [ class "mb-3" ]
-            [ text "Chapters"
-            ]
-        , div []
-            (Array.indexedMap
-                (\i chapter ->
-                    div [ class "d-flex mb-2" ]
-                        [ p [ class "mr-4" ] [ text chapter.title ]
-                        , button [ class "button", onClick <| SelectChapter i, disabled <| i == model.selectedChapter ] [ text "select" ]
-                        ]
-                )
-                model.data.chapters
-                |> Array.toList
-            )
-        ]

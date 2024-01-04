@@ -50,7 +50,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( newModel, newCmd ) =
-            BattleViewer.init True flags.team flags.unsupported flags.tutorial (OpponentSelect.Flags apiContext True)
+            BattleViewer.init True flags.team flags.unsupported flags.tutorial (OpponentSelect.Flags apiContext False)
     in
     ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 

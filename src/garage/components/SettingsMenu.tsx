@@ -38,6 +38,7 @@ export const SettingsMenu = () => {
       <button class="button mt-2" onClick={actions.toggleSettingsMenu}>
         close
       </button>
+      <p class="mt-2 text-grey">Please note that you may have to reload the page for all the changes to go into effect.</p>
     </div>
   )
 }

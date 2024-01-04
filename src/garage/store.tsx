@@ -162,10 +162,7 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       if (params.type === 'getOutput') {
         const errorType = params.data?.errors?.[OUR_TEAM]
         const error = errorType?.InitError || errorType?.RuntimeError
-        if (error) {
-          if (!error?.loc) {
-            throw new Error('Missing error location')
-          }
+        if (error && error.loc != null) {
           setState({ workerErrorLoc: error.loc })
         }
       }
@@ -206,7 +203,7 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       if (state.tutorialState) {
         const { opponentCode, opponentLang } =
           state.tutorialState.tutorial!.chapters[
-            state.tutorialState.currentChapter
+          state.tutorialState.currentChapter
           ]
         opponentEvalInfo = {
           code: opponentCode,

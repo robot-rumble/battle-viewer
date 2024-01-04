@@ -37,14 +37,6 @@ const Bar = () => {
         <a class="me-4" href="/boards/" target="_blank">
           publish to a board
         </a>
-        <a
-          class="me-4"
-          href="https://rr-docs.readthedocs.io/en/latest/"
-          target="_blank"
-        >
-          docs
-        </a>
-        <div class="_img-settings"></div>
         {shared}
       </div>
     </>

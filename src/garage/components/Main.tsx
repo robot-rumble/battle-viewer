@@ -174,7 +174,7 @@ export function initSplit(tutorial: boolean) {
   } else {
     Split(['._ui', '._viewer'], {
       sizes: [60, 40],
-      minSize: [650, 650],
+      minSize: [808, 650],
       gutterSize: 5,
       gutter: () => document.querySelector('#main-gutter')!,
     })

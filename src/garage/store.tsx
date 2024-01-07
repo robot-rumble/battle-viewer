@@ -136,6 +136,9 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     await fetch(ROUTES.updateRobotCode(state.siteInfo.robotId), {
       method: 'POST',
       body: JSON.stringify({ code: state.code }),
+      headers: {
+        "Content-Type": "application/json",
+      },
     })
     setState({ savedCode: state.code })
   },

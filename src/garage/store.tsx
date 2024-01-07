@@ -1,5 +1,6 @@
 import { createContext, ParentProps, useContext } from 'solid-js'
 import { createStore, SetStoreFunction } from 'solid-js/store'
+import { captureException } from '@sentry/browser'
 import { WorkerWrapper } from './worker/workerWrapper'
 import { Lang, OUR_TEAM } from './utils/constants'
 import { CallbackParams, EvalInfo } from './worker/match.worker'
@@ -133,14 +134,19 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       throw new Error('Missing siteInfo')
     }
 
-    await fetch(ROUTES.updateRobotCode(state.siteInfo.robotId), {
-      method: 'POST',
-      body: JSON.stringify({ code: state.code }),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    })
-    setState({ savedCode: state.code })
+    try {
+      await fetch(ROUTES.updateRobotCode(state.siteInfo.robotId), {
+        method: 'POST',
+        body: JSON.stringify({ code: state.code }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+      setState({ savedCode: state.code })
+    } catch (e) {
+      captureException(e)
+      throw e
+    }
   },
   toggleSettingsMenu() {
     setState({ viewingSettings: !state.viewingSettings })

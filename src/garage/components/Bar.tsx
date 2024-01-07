@@ -1,9 +1,11 @@
-import { For, Match, Switch } from 'solid-js'
+import { For, Match, Switch, createSignal } from 'solid-js'
 import { ROUTES, useStore } from '../store'
 import { LANGS } from '../utils/constants'
 
 const Bar = () => {
   const [state, actions] = useStore()
+  const [saveAnimation, setSaveAnimation] = createSignal('');
+  const [hasSaveError, setHasSaveError] = createSignal(false);
 
   const shared = (
     <div class="d-flex align-items-center">
@@ -14,6 +16,19 @@ const Bar = () => {
     </div>
   )
 
+  const save = async () => {
+    try {
+      await actions.saveRobotCode()
+      if (saveAnimation() === 'disappearing-one') {
+        setSaveAnimation('disappearing-two')
+      } else {
+        setSaveAnimation('disappearing-one')
+      }
+    } catch (e) {
+      setHasSaveError(true)
+    }
+  }
+
   const barForUser = () => (
     <>
       <div class="d-flex align-items-center">
@@ -23,12 +38,21 @@ const Bar = () => {
             r2
           </a>
         </div>
-        <button class="button ms-4" onClick={actions.saveRobotCode}>
+        <button class="button ms-4" onClick={save}>
           save
         </button>
-        <p class="mx-3 disappearing-" style="visibility: hidden;">
-          saved
-        </p>
+        <Switch>
+          <Match when={saveAnimation() !== ''}>
+            <p class={"mx-3 " + saveAnimation()}>
+              saved
+            </p>
+          </Match>
+          <Match when={hasSaveError()}>
+            <p class="mx-3 internal-error">
+              error
+            </p>
+          </Match>
+        </Switch>
       </div>
       <div class="d-flex align-items-center">
         <a class="me-4" href="/builtin" target="_blank">

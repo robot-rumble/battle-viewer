@@ -241,14 +241,19 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     })
   },
 
-  nextTutorialChapter() {
-    setState('tutorialState', 'currentChapter', (chapter) => chapter + 1)
-  },
-
-  previousTutorialChapter() {
-    setState('tutorialState', 'currentChapter', (chapter) => chapter - 1)
-  },
+  setTutorialChapter(chapter: number, updateUrl: boolean) {
+    setState('tutorialState', 'currentChapter', chapter)
+    if (updateUrl) {
+      updateTutorialQueryParam(chapter)
+    }
+  }
 })
+
+function updateTutorialQueryParam(newChapter: number) {
+  const urlObj = new URL(window.location.href);
+  urlObj.searchParams.set('chapter', newChapter.toString());
+  window.history.pushState('', '', urlObj.toString());
+}
 
 const Context = createContext<[State, ReturnType<typeof createActions>]>()
 

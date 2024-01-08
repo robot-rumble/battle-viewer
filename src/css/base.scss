@@ -1,6 +1,6 @@
 $font-size-base: 1.2rem;
 //$line-height-base: 1.2;
-$code-font: Fantasque, monospace;
+$code-font: Fantasque, monospace; 
 $font-family-base: $code-font;
 
 :root {
@@ -29,6 +29,10 @@ $h2-font-size: $font-size-base * 1.75;
 
 @import '~bootstrap/scss/bootstrap-reboot';
 @import '~bootstrap/scss/bootstrap-grid';
+
+:root {
+  --bs-font-monospace: Fantasque, monospace;
+}
 
 $spacers: map-merge((
         6: 5rem,

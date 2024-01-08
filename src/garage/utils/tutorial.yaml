@@ -1,11 +1,19 @@
-title: The Robot Rumble Tutorial
-startingCode: null
+title: RR Tutorial Part 1':' Learning to Move
+startingCode: |
+  # nothing here yet!
 chapters:
-  - title: Learning to move
+  - title: Welcome to Robot Rumble!
     body: |
-      Welcome to Robot Rumble!
-      Woo!
-      In this first chapter we'll make the best.
+      This is the first in a series of tutorials that will teach you the basics of creating a robot on Robot Rumble. You will go from working with a single robot to commanding a team of specialized ninjas. But to begin, it is necessary to start from the basics: the `robot` function.
+
+      In order to define a team of robots, you must define the actions that the robots on your team should take every turn. You do this by defining a `robot` function, which is called once each turn for every robot on your team. It accepts two variables that represent the state of the board and this particular robot, and needs to return what action this robot should take.
+
+      To start, let's work with a single robot and have it do nothing. For that, you just need to return `None`. Go ahead and type the following in the editor and press the "5 turns" button in order to simulate the battle for 5 turns. After that, click "Next".
+      
+      ```
+      def robot(state, unit):
+          return None
+      ```
     opponentCode: |
       def robot(state, unit):
         return None
@@ -17,6 +25,178 @@ chapters:
         spawnEvery: 0
       gridInit:
         - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+  - title: First Steps
+    body: |
+      Perfect! Now let's have our robot take its first robot-steps. Instead of returning None, change the code so that it returns the move action: `Action.move(Direction.East)`. 
+
+      There are two things going on with this value: on the outside, we work with the `Action` class, which defines all of the possible actions a robot can take. Currently, there is one other action (`attack`), which will be covered soon. For both of these actions, it is necessary to pass a direction, which is an instance of the `Direction` enum class.
+
+      Once you have verified that your robot moves in the right direction click "Next"!
+    opponentCode: |
+      def robot(state, unit):
+        return None
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+  - title: The First Enemy
+    body: |
+      Your robot is now ready to face its first enemy! Before reading any further, go ahead and simulate a quick battle to see what we're up against (you should see a red square to the right of your robot).
+
+      To defeat this challenger, it will be necessary to attack them. This is the second action that robots are able to take, and the way it works is as follows: if your robot is directly next to any other robot (but not diagonally next to them), they can attack in that direction, and this will decrease the health of the enemy robot by one. If their health reaches 0, they disappear.
+
+      Now go ahead and try to defeat the enemy! This program will be a little more challenging because it has two phases. As a hint, you will probably want to create a global variable (making sure that Python knows that it's global with a `global X` declaration) to keep track of how many steps you've taken, and after you step up next to the enemy, you will want to return `Action.attack(Direction.East)` instead of `Action.move(Direction.East)`.
+    opponentCode: |
+      def robot(state, unit):
+        return None
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: A smarter enemy
+    body: |
+      This second enemy is similar to the first, but is a little smarter. Thankfully, you have all the tools to beat it, see if you can try!
+    opponentCode: |
+      def robot(state, unit):
+          if unit.health == 4:
+              return Action.move(Direction.North)
+          elif unit.health == 3:
+              return Action.move(Direction.South)
+          elif unit.health == 2:
+              return Action.move(Direction.North)
+          elif unit.health == 1:
+              return Action.move(Direction.South)
+          return None
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: Following the enemy
+    body: |
+      Well done beating the previous enemy! Up to now, every robot function you've written has probably been formulaic: you would move over X units, attack, move Y units, and so on. For this next enemy, you'll have to write a more dynamic script. Go ahead and simulate the battle now to see how it works.
+
+      As you can appreciate, your robot will have to move in a more sophisticated way, following this enemy wherever it decides to go. For this, you will need a way to find the coordinates of the enemy in your code, which you can do through the first parameter passed to the `robot` function: `state`.
+
+      #### Retrieving info about the robot
+
+      `state` has several properties in methods (full list [here](https://rr-docs.readthedocs.io/en/latest/api.html#State)), but we care about two: we need to find what color the opposite team is (`state.other_team`), and then retrieve information about robots on that team (using `state.objs_by_team`). Since there is only one enemy, we just need to retrieve the first item in the list. Putting it all together, we can get information about our opponent with
+      ```
+      opponent = state.objs_by_team(state.other_team)[0]
+      ```
+      How do we get information about our own robot? We could get it by passing `state.our_team` to `state.objs_by_team`, or we could just use the second value passed to the `robot` function!
+
+      #### Following the robot
+      Next, we need a way to follow the robot until we are close enough to attack. A good starting place would be to look at our own coordinates (defined as the `coords` property). In your `robot` function, go ahead and print them out (they'll show up in the bottom right). Read on when you've done that!
+
+      You should notice that the coordinates show up as a tuple, but that's deceiving because in reality they are instances of a special classes called Coords. This class has several useful properties and methods, and the one we'll need in this case is `Coords.direction_to`. By calling it on our coordinates, and passing the coordinates of the opponent, we'll finally end up with a direction that we can use in `Actions.move`!
+
+      #### Attacking
+      We're almost done, but how do we know when it's time to attack? We need to know how close we are to the opponent, and you may find the `Coords.walking_distance_to` method useful for that! You should have all the tools you need now, so go ahead and give it a try!
+
+      Click "Next" after defeating the robot.
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+
+  - title: 4-V-1
+    body: |
+      Great job! You have successfully beaten one "random-bot". How about beating four? If you simulate for 100 turns, your program should actually succeed at doing this!
+
+      This brings us to the conclusion of this first part of the Robot Rumble tutorial, congrats on completing it! You now have the tools to write robots that perform basic movements and attacks. In the next part (under construction), we will look at what is necessary in order to control an entire team of your own robots.
+
+      Click [here](https://robotrumble.org/tutorial) to return to the tutorial menu.
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
           objType: Unit
           type: Soldier
           team: Red

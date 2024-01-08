@@ -63,7 +63,7 @@ const Main = () => {
           </Match>
           <Match when={!state.viewingSettings}>
             <Bar />
-            <div class="d-flex h-100">
+            <div class="d-flex min-height-0">
               <Show when={state.tutorialState}>
                 <div class="_tutorial">
                   <Tutorial />

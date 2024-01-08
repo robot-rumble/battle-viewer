@@ -14,6 +14,8 @@ chapters:
       def robot(state, unit):
           return None
       ```
+
+      Just a note: any program you write here isn't saved to your account, so make sure you back any final programs!
     opponentCode: |
       def robot(state, unit):
         return None

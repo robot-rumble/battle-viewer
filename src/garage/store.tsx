@@ -125,9 +125,14 @@ export const ROUTES = {
   updateRobotCode: (robotId: Id) => '/api/update-robot-code/' + robotId,
 }
 
+const TUTORIAL_CODE_KEY = 'localCode'
+
 const createActions = (state: State, setState: SetStoreFunction<State>) => ({
   synchronizeCode(code: string) {
     setState({ code })
+    if (state.tutorialState) {
+      localStorage.setItem(TUTORIAL_CODE_KEY, code)
+    }
   },
   async saveRobotCode() {
     if (!state.siteInfo) {
@@ -270,9 +275,11 @@ export const Provider = (props: ParentProps<ProviderProps>) => {
   if (state.tutorialState) {
     fetchTutorial(state.tutorialState.url).then((tutorial) => {
       if (tutorial) {
-        if (tutorial.startingCode != null) {
-          setState('code', tutorial.startingCode)
-          setState('savedCode', tutorial.startingCode)
+        const startingCode = localStorage.getItem(TUTORIAL_CODE_KEY) || tutorial.startingCode
+
+        if (startingCode != null) {
+          setState('code', startingCode)
+          setState('savedCode', startingCode)
         }
         setState('tutorialState', { tutorial })
       } else {

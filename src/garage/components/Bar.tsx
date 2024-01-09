@@ -1,4 +1,4 @@
-import { For, Match, Switch, createSignal } from 'solid-js'
+import { For, Match, Switch, Show, createSignal } from 'solid-js'
 import { ROUTES, useStore } from '../store'
 import { LANGS } from '../utils/constants'
 
@@ -72,20 +72,25 @@ const Bar = () => {
         <a class="me-3" href="/">
           Robot Rumble
         </a>
-        <p class="me-3">Choose lang: </p>
-        <div class="d-flex">
-          <For each={LANGS}>
-            {(lang) => (
-              <button
-                class="button me-2"
-                id={`select-${lang}`}
-                onClick={() => actions.selectLang(lang)}
-              >
-                {lang}
-              </button>
-            )}
-          </For>
-        </div>
+        <Show
+          when={state.tutorialState == null}
+          fallback={<p>{state.tutorialState?.tutorial?.title}</p>}
+        >
+          <p class="me-3">Choose lang: </p>
+          <div class="d-flex">
+            <For each={LANGS}>
+              {(lang) => (
+                <button
+                  class="button me-2"
+                  id={`select-${lang}`}
+                  onClick={() => actions.selectLang(lang)}
+                >
+                  {lang}
+                </button>
+              )}
+            </For>
+          </div>
+        </Show>
       </div>
 
       <div class="d-flex align-items-center">{shared}</div>

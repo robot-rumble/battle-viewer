@@ -211,6 +211,17 @@
         width: 60%;
       }
     }
+
+    ._turn-info {
+        display: flex;
+        border: $border-2;
+        justify-content: space-between;
+        padding: 0 map-get($spacers, 2);
+
+        ._margin {
+            margin-right: map-get($spacers, 2);
+        }
+    }
   }
 
   ._inspector {

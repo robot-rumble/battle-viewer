@@ -300,6 +300,7 @@ viewMain maybeModel =
                         )
                 )
                 |> Html.map GotGridMsg
+            , viewTurnInfo maybeModel
             ]
         , div
             [ stopPropagationOn "click" (Decode.succeed ( NoOp, True ))
@@ -319,18 +320,93 @@ viewMain maybeModel =
         ]
 
 
+computeTurnInfoValues : Data.TurnState -> ( ( Int, Int ), ( Int, Int ) )
+computeTurnInfoValues turnState =
+    let
+        objsList =
+            Dict.values turnState.objs
+
+        robotFilter team ( _, details ) =
+            case details of
+                Data.UnitDetails unit ->
+                    unit.team == team
+
+                _ ->
+                    False
+
+        redRobots =
+            List.filter (robotFilter "Red") objsList
+
+        blueRobots =
+            List.filter (robotFilter "Blue") objsList
+
+        totalHealth robots =
+            List.foldl
+                (\( _, details ) acc ->
+                    case details of
+                        Data.UnitDetails unit ->
+                            acc + unit.health
+
+                        _ ->
+                            acc
+                )
+                0
+                robots
+    in
+    ( ( List.length redRobots
+      , List.length blueRobots
+      )
+    , ( totalHealth redRobots
+      , totalHealth blueRobots
+      )
+    )
+
+
+viewTurnInfo : Maybe Model -> Html Msg
+viewTurnInfo maybeModel =
+    let
+        turnState =
+            maybeModel
+                |> Maybe.andThen
+                    (\model ->
+                        Array.get model.currentTurn model.turns
+                    )
+    in
+    case turnState of
+        Just state ->
+            let
+                ( ( redRobotsCount, blueRobotsCount ), ( redRobotsHealth, blueRobotsHealth ) ) =
+                    computeTurnInfoValues state.state
+            in
+            div [ class "_turn-info" ]
+                [ p []
+                    [ text "Health: "
+                    , span [ class "text-red _margin" ] [ text (String.fromInt redRobotsHealth) ]
+                    , span [ class "text-blue" ] [ text (String.fromInt blueRobotsHealth) ]
+                    ]
+                , p []
+                    [ text "Units: "
+                    , span [ class "text-red _margin" ] [ text (String.fromInt redRobotsCount) ]
+                    , span [ class "text-blue" ] [ text (String.fromInt blueRobotsCount) ]
+                    ]
+                ]
+
+        Nothing ->
+            div [] []
+
+
 viewGameBar : Maybe Model -> Html Msg
 viewGameBar maybeModel =
     div [ class "_grid-viewer-controls" ] <|
         case maybeModel of
             Just model ->
-                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt model.currentTurn ]
+                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
                 , viewArrows model
                 , viewSlider model
                 ]
 
             Nothing ->
-                [ p [ class "_turn-indicator" ] [ text "Turn 0" ] ]
+                [ p [ class "_turn-indicator" ] [ text "Turn 1" ] ]
 
 
 viewArrows : Model -> Html Msg

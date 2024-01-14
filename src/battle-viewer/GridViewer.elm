@@ -544,16 +544,16 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
 
 
 internalErrorText =
-    "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs)."
+    "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs). Please also consider filing an issue at https://github.com/robot-rumble/battle-viewer/issues."
 
+shortInternalErrorText errorDescription =
+    errorDescription ++ " This might be a problem with our site. If it happens repeatedly, please consider filing an issue at https://github.com/robot-rumble/battle-viewer/issues." 
 
 tooLongText =
     "This is taking longer than it should... We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs)."
 
-
-internalError : Html Msg
-internalError =
-    p [ class "error" ] [ text internalErrorText ]
+displayError errorText =
+    p [ class "error" ] [ text errorText ]
 
 
 viewLogs : Maybe Model -> Bool -> Html Msg
@@ -567,13 +567,12 @@ viewLogs maybeModel takingTooLong =
                         case error of
                             InternalError ->
                                 div []
-                                    [ internalError ]
+                                    [ p [ class "error" ] [ text internalErrorText ] ]
 
                             GameError errorDetails ->
                                 div []
                                     [ if not errorDetails.isOurTeam then
-                                        internalError
-
+                                        p [ class "mb-3" ] [ text "Opponent errored! This is not your code's fault." ]
                                       else
                                         div [] []
                                     , case errorDetails.error of
@@ -583,11 +582,26 @@ viewLogs maybeModel takingTooLong =
                                                     viewErrorDetails initErrorDetails
 
                                                   else
-                                                    div [] []
+                                                    displayError "Initialization error!"
                                                 ]
 
-                                        _ ->
-                                            internalError
+                                        Data.Timeout -> 
+                                            displayError "The robot timed out! (it can take up to 2 seconds per turn)"
+
+                                        Data.NoData ->
+                                            displayError <| shortInternalErrorText "The program exited before it returned any data."
+
+                                        Data.NoInitError ->
+                                            displayError <| shortInternalErrorText "The program errored while initializing."
+
+                                        Data.DataError details ->
+                                            displayError <| shortInternalErrorText "Program returned invalid data." ++ " Details: " ++ details
+
+                                        Data.IOError details ->
+                                            displayError <| shortInternalErrorText "IO Error." ++ " Details: " ++ details
+
+                                        Data.InternalError ->
+                                            displayError internalErrorText
                                     ]
 
                     Nothing ->

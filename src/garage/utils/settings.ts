@@ -4,14 +4,19 @@ export type Theme = typeof THEMES[number]
 export const KEYMAPS = ['default', 'sublime', 'emacs', 'vim'] as const
 export type KeyMap = typeof KEYMAPS[number]
 
+export const TURN_TIMEOUT_ENABLED = ['turn timeout enabled', 'turn timeout disabled'] as const
+export type TurnTimeoutEnabled = typeof TURN_TIMEOUT_ENABLED[number]
+
 export interface Settings {
   theme: Theme
   keyMap: KeyMap
+  timeoutEnabled: TurnTimeoutEnabled
 }
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'light',
   keyMap: 'default',
+  timeoutEnabled: 'turn timeout enabled'
 }
 
 const KEY = 'settings'
@@ -22,7 +27,7 @@ export function loadSettings() {
   if (storedSettings) {
     try {
       settings = JSON.parse(storedSettings) as Settings
-    } catch (_e) {}
+    } catch (_e) { }
   }
   return settings
 }

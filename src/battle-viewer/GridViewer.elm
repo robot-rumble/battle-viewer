@@ -546,11 +546,14 @@ viewRobotInspector maybeUnit maybeTeam userOwnsOpponent =
 internalErrorText =
     "Internal error! Something broke. We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. We recommend trying a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs). Please also consider filing an issue at https://github.com/robot-rumble/battle-viewer/issues."
 
+
 shortInternalErrorText errorDescription =
-    errorDescription ++ " This might be a problem with our site. If it happens repeatedly, please consider filing an issue at https://github.com/robot-rumble/battle-viewer/issues." 
+    errorDescription ++ " This might be a problem with our site. If it happens repeatedly, please consider filing an issue at https://github.com/robot-rumble/battle-viewer/issues."
+
 
 tooLongText =
     "This is taking longer than it should... We're using a relatively new technology (Webassembly), and we're still working on getting it to run everywhere. If this doesn't change after a minute or so, please try a different browser (we support all modern browsers except Safari), or downloading Rumblebot, our CLI tool (see the docs)."
+
 
 displayError errorText =
     p [ class "error" ] [ text errorText ]
@@ -573,6 +576,7 @@ viewLogs maybeModel takingTooLong =
                                 div []
                                     [ if not errorDetails.isOurTeam then
                                         p [ class "mb-3" ] [ text "Opponent errored! This is not your code's fault." ]
+
                                       else
                                         div [] []
                                     , case errorDetails.error of
@@ -585,8 +589,8 @@ viewLogs maybeModel takingTooLong =
                                                     displayError "Initialization error!"
                                                 ]
 
-                                        Data.Timeout -> 
-                                            displayError "The robot timed out! (it can take up to 2 seconds per turn)"
+                                        Data.Timeout ->
+                                            displayError "The robot timed out! It can take up to 2 seconds per turn. This timeout can be disabled locally in the settings menu (the gear icon near the top), but note that the same timeout mechanism will still enforced on the RR servers."
 
                                         Data.NoData ->
                                             displayError <| shortInternalErrorText "The program exited before it returned any data."

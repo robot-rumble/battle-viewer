@@ -1,6 +1,6 @@
 import { Index } from 'solid-js'
 import { useStore } from '../store'
-import { KEYMAPS, THEMES } from '../utils/settings'
+import { KEYMAPS, THEMES, TURN_TIMEOUT_ENABLED } from '../utils/settings'
 
 function createSelect<T>(
   options: readonly string[],
@@ -30,9 +30,13 @@ export const SettingsMenu = () => {
           <p>keymap</p>
           {createSelect(KEYMAPS, state.settings.keyMap, actions.setKeyMap)}
         </div>
-        <div>
+        <div class="me-3">
           <p>theme</p>
           {createSelect(THEMES, state.settings.theme, actions.setTheme)}
+        </div>
+        <div>
+          <p>turn timeout</p>
+          {createSelect(TURN_TIMEOUT_ENABLED, state.settings.timeoutEnabled, actions.setTimeoutEnabled)}
         </div>
       </div>
       <button class="button mt-2" onClick={actions.toggleSettingsMenu}>

@@ -49,6 +49,7 @@ interface Obj {
 export interface SimulationSettings {
   gridInit: Obj[]
   spawnSettings?: SpawnSettings
+  timeoutEnabled: boolean
 }
 
 export interface RunParams {
@@ -57,6 +58,7 @@ export interface RunParams {
   evalInfo2: EvalInfo
   turnNum: number
   settings: SimulationSettings | null
+  timeoutEnabled: boolean
 }
 
 export interface CallbackParams {
@@ -70,7 +72,7 @@ export class MatchWorker {
   }
 
   async run(
-    { assetsPath, evalInfo1, evalInfo2, turnNum, settings }: RunParams,
+    { assetsPath, evalInfo1, evalInfo2, turnNum, settings, timeoutEnabled }: RunParams,
     cb: (params: CallbackParams) => void,
   ) {
     try {
@@ -80,7 +82,7 @@ export class MatchWorker {
       console.log('Starting battle...')
 
       const makeRunner = async ({ code, lang }: EvalInfo) => {
-        const langRunner = await fetchRunner(assetsPath, lang, () => {})
+        const langRunner = await fetchRunner(assetsPath, lang, () => { })
         const rawWorker = new Worker(
           new URL('./wasi.worker.js', import.meta.url),
         )
@@ -122,6 +124,7 @@ export class MatchWorker {
         turnCallback,
         turnNum,
         snakeCaseSettings,
+        timeoutEnabled
       )
       console.log('done')
 

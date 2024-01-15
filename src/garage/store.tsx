@@ -3,13 +3,14 @@ import { createStore, SetStoreFunction } from 'solid-js/store'
 import { captureException } from '@sentry/browser'
 import { WorkerWrapper } from './worker/workerWrapper'
 import { Lang, OUR_TEAM } from './utils/constants'
-import { CallbackParams, EvalInfo } from './worker/match.worker'
+import { CallbackParams, EvalInfo, SimulationSettings } from './worker/match.worker'
 import {
   KeyMap,
   loadSettings,
   saveSettings,
   Settings,
   Theme,
+  TurnTimeoutEnabled,
 } from './utils/settings'
 import { applyTheme } from './utils/themes'
 import { checkCompatibility } from './utils/checkCompatibility'
@@ -165,7 +166,10 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     saveSettings(state.settings)
     applyTheme(theme)
   },
-
+  setTimeoutEnabled(timeoutEnabled: TurnTimeoutEnabled) {
+    setState('settings', { timeoutEnabled })
+    saveSettings(state.settings)
+  },
   initWorker(
     finishedDownloadingCb: () => void,
     finishedLoadingCb: () => void,
@@ -243,6 +247,7 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       // This converts the Proxy object into a regular Javascript object,
       // which is necessary to be able to pass it through Comlink's Proxy
       settings: JSON.parse(JSON.stringify(settings)),
+      timeoutEnabled: state.settings.timeoutEnabled === 'turn timeout enabled'
     })
   },
 

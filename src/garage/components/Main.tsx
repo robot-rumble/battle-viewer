@@ -33,10 +33,11 @@ interface ElmAppPorts {
   finishedLoading: Command<null>
   getTooLong: Command<null>
   startEval: Subscription<{
-    id: number
     turns: number
-    settings: SimulationSettings
     opponentEvalInfo: EvalInfo
+    // These two properties are ignored since most of the UI was rewritten from Elm to Solid
+    id: number
+    settings: SimulationSettings
   }>
   reportDecodeError: Subscription<string>
   reportApiError: Subscription<string>

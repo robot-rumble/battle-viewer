@@ -381,13 +381,13 @@ viewTurnInfo maybeModel =
             div [ class "_turn-info" ]
                 [ p []
                     [ text "Health: "
-                    , span [ class "text-red _margin" ] [ text (String.fromInt redRobotsHealth) ]
-                    , span [ class "text-blue" ] [ text (String.fromInt blueRobotsHealth) ]
+                    , span [ class "text-blue _margin" ] [ text (String.fromInt blueRobotsHealth) ]
+                    , span [ class "text-red" ] [ text (String.fromInt redRobotsHealth) ]
                     ]
                 , p []
                     [ text "Units: "
-                    , span [ class "text-red _margin" ] [ text (String.fromInt redRobotsCount) ]
-                    , span [ class "text-blue" ] [ text (String.fromInt blueRobotsCount) ]
+                    , span [ class "text-blue _margin" ] [ text (String.fromInt blueRobotsCount) ]
+                    , span [ class "text-red" ] [ text (String.fromInt redRobotsCount) ]
                     ]
                 ]
 

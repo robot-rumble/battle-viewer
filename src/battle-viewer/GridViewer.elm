@@ -400,13 +400,13 @@ viewGameBar maybeModel =
     div [ class "_grid-viewer-controls" ] <|
         case maybeModel of
             Just model ->
-                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt (model.currentTurn + 1) ]
+                [ p [ class "_turn-indicator" ] [ text <| "Turn " ++ String.fromInt model.currentTurn ]
                 , viewArrows model
                 , viewSlider model
                 ]
 
             Nothing ->
-                [ p [ class "_turn-indicator" ] [ text "Turn 1" ] ]
+                [ p [ class "_turn-indicator" ] [ text "Turn 0" ] ]
 
 
 viewArrows : Model -> Html Msg

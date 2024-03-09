@@ -309,7 +309,7 @@ viewBar model =
                             totalTurns =
                                 Array.length viewerState.turns
                         in
-                        if totalTurns /= turn && viewerState.error == Nothing then
+                        if totalTurns /= turn + 1 && viewerState.error == Nothing then
                             div [ class "_progress", style "width" <| to_percent (toFloat totalTurns / toFloat turn * 100) ] []
 
                         else

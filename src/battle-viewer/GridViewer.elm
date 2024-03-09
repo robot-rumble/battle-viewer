@@ -432,7 +432,7 @@ viewSlider model =
     input
         [ type_ "range"
         , Html.Attributes.min "0"
-        , Html.Attributes.max <| String.fromInt (model.turnNum - 1)
+        , Html.Attributes.max <| String.fromInt model.turnNum
         , value <| String.fromInt model.currentTurn
         , onInput SliderChange
         , disabled <| Array.length model.turns == 0

@@ -1,7 +1,7 @@
 import * as Comlink from 'comlink'
 
 import fetchRunner from './fetchRunner'
-import { Lang } from '../utils/constants'
+import { Lang, GameMode } from '../utils/constants'
 import { convertObjectKeysToSnakeCase } from '../utils/snakeCase'
 
 // @ts-ignore
@@ -59,6 +59,7 @@ export interface RunParams {
   turnNum: number
   settings: SimulationSettings | null
   timeoutEnabled: boolean
+  gameMode: GameMode
 }
 
 export interface CallbackParams {
@@ -72,7 +73,7 @@ export class MatchWorker {
   }
 
   async run(
-    { assetsPath, evalInfo1, evalInfo2, turnNum, settings, timeoutEnabled }: RunParams,
+    { assetsPath, evalInfo1, evalInfo2, turnNum, settings, timeoutEnabled, gameMode }: RunParams,
     cb: (params: CallbackParams) => void,
   ) {
     try {
@@ -124,7 +125,8 @@ export class MatchWorker {
         turnCallback,
         turnNum,
         snakeCaseSettings,
-        timeoutEnabled
+        timeoutEnabled,
+        JSON.stringify(gameMode)
       )
       console.log('done')
 

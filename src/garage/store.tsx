@@ -2,7 +2,7 @@ import { createContext, ParentProps, useContext } from 'solid-js'
 import { createStore, SetStoreFunction } from 'solid-js/store'
 import { captureException } from '@sentry/browser'
 import { WorkerWrapper } from './worker/workerWrapper'
-import { Lang, OUR_TEAM } from './utils/constants'
+import { GameMode, Lang, OUR_TEAM } from './utils/constants'
 import { CallbackParams, EvalInfo, SimulationSettings } from './worker/match.worker'
 import {
   KeyMap,
@@ -170,6 +170,10 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     setState('settings', { timeoutEnabled })
     saveSettings(state.settings)
   },
+  setGameMode(gameMode: GameMode) {
+    setState('settings', { gameMode })
+    saveSettings(state.settings)
+  },
   initWorker(
     finishedDownloadingCb: () => void,
     finishedLoadingCb: () => void,
@@ -247,7 +251,8 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
       // This converts the Proxy object into a regular Javascript object,
       // which is necessary to be able to pass it through Comlink's Proxy
       settings: JSON.parse(JSON.stringify(settings)),
-      timeoutEnabled: state.settings.timeoutEnabled === 'turn timeout enabled'
+      timeoutEnabled: state.settings.timeoutEnabled === 'turn timeout enabled',
+      gameMode: state.settings.gameMode
     })
   },
 

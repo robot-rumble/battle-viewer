@@ -96,7 +96,8 @@ h2 {
 }
 
 input,
-select {
+select,
+textarea {
   padding: 0 map-get($spacers, 1);
   border: $border-1;
 }

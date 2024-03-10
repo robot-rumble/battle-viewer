@@ -81,7 +81,7 @@ const Bar = () => {
             <For each={LANGS}>
               {(lang) => (
                 <button
-                  class="me-3"
+                  class="me-3 no-bold"
                   id={`select-${lang}`}
                   onClick={() => actions.selectLang(lang)}
                 >

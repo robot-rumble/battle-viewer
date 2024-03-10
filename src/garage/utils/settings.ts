@@ -1,3 +1,5 @@
+import { GameMode } from "./constants"
+
 export const THEMES = ['light', 'dark'] as const
 export type Theme = typeof THEMES[number]
 
@@ -11,12 +13,14 @@ export interface Settings {
   theme: Theme
   keyMap: KeyMap
   timeoutEnabled: TurnTimeoutEnabled
+  gameMode: GameMode
 }
 
 const DEFAULT_SETTINGS: Settings = {
   theme: 'light',
   keyMap: 'default',
-  timeoutEnabled: 'turn timeout enabled'
+  timeoutEnabled: 'turn timeout enabled',
+  gameMode: 'Normal'
 }
 
 const KEY = 'settings'

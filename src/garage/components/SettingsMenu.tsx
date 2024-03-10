@@ -1,5 +1,6 @@
 import { Index } from 'solid-js'
 import { useStore } from '../store'
+import { GAME_MODES } from '../utils/constants'
 import { KEYMAPS, THEMES, TURN_TIMEOUT_ENABLED } from '../utils/settings'
 
 function createSelect<T>(
@@ -37,6 +38,10 @@ export const SettingsMenu = () => {
         <div>
           <p>turn timeout</p>
           {createSelect(TURN_TIMEOUT_ENABLED, state.settings.timeoutEnabled, actions.setTimeoutEnabled)}
+        </div>
+        <div>
+          <p>game mode</p>
+          {createSelect(GAME_MODES, state.settings.gameMode, actions.setGameMode)}
         </div>
       </div>
       <button class="button mt-2" onClick={actions.toggleSettingsMenu}>

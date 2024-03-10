@@ -35,7 +35,7 @@ export const SettingsMenu = () => {
           <p>theme</p>
           {createSelect(THEMES, state.settings.theme, actions.setTheme)}
         </div>
-        <div>
+        <div class="me-3">
           <p>turn timeout</p>
           {createSelect(TURN_TIMEOUT_ENABLED, state.settings.timeoutEnabled, actions.setTimeoutEnabled)}
         </div>

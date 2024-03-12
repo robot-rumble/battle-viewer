@@ -75,7 +75,6 @@ table._battles {
   }
 }
 
-
 ._table {
   display: inline-block;
 
@@ -110,6 +109,16 @@ table._battles {
   & > * {
     margin-right: map-get($spacers, 4);
   }
+}
+
+.bio {
+  background: var(--grey-4);
+  padding: map-get($spacers, 3);
+}
+
+form textarea {
+  width: 100%;
+  max-width: 400px;
 }
 
 //// tables

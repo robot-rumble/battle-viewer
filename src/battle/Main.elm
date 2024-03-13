@@ -46,8 +46,12 @@ init flags =
     case output of
         Ok outputData ->
             let
+                -- we do "- 1" because the battle viewer expects the number of entries
+                -- in the data array to be one more than the number of turns
+                -- this is because the last entry in the output is treated as an extra entry:
+                -- the state of the board after the last turn
                 turnNum =
-                    List.length outputData.turns
+                    List.length outputData.turns - 1
 
                 gridViewerModel =
                     GridViewer.init turnNum flags.team flags.userOwnsOpponent False

@@ -129,10 +129,10 @@ update msg model =
         other ->
             ( case other of
                 FinishedDownloadingRunner ->
-                    { model | renderState = LoadingRunner }
+                    { model | renderState = LoadingRunner, takingTooLong = False }
 
                 FinishedLoadingRunner ->
-                    { model | renderState = NoRender }
+                    { model | renderState = NoRender, takingTooLong = False }
 
                 GotOutput output ->
                     { model
@@ -152,6 +152,7 @@ update msg model =
                                 other2 ->
                                     other2
                         , winner = Just output.winner
+                        , takingTooLong = False
                     }
 
                 GotProgress progress ->
@@ -171,6 +172,7 @@ update msg model =
 
                                 other2 ->
                                     other2
+                        , takingTooLong = False
                     }
 
                 Run turnNum ->
@@ -189,7 +191,7 @@ update msg model =
                         viewerState =
                             GridViewer.init 0 model.team (userOwnsOpponent model) True
                     in
-                    { model | renderState = InternalError viewerState }
+                    { model | renderState = InternalError viewerState, takingTooLong = False }
 
                 GotTooLong ->
                     { model | takingTooLong = True }

@@ -49,7 +49,7 @@ const Bar = () => {
           </Match>
           <Match when={hasSaveError()}>
             <p class="mx-3 internal-error">
-              error
+              error (check console)
             </p>
           </Match>
         </Switch>

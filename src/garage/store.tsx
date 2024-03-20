@@ -150,15 +150,20 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     }
 
     try {
-      await fetch(ROUTES.updateRobotCode(state.siteInfo.robotId), {
+      const response = await fetch(ROUTES.updateRobotCode(state.siteInfo.robotId), {
         method: 'POST',
         body: JSON.stringify({ code: state.code }),
         headers: {
           "Content-Type": "application/json",
         },
       })
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+
       setState({ savedCode: state.code })
     } catch (e) {
+      console.error("Error saving code, please back it up on your own and reach out to us!", e);
       captureException(e)
       throw e
     }

@@ -65,6 +65,6 @@ const fetchTutorialStringFromUrl = async (
 
 const processTutorial = (tutorial: Tutorial) => {
   tutorial.chapters.forEach((chapter) => {
-    chapter.body = DOMPurify.sanitize(marked.parse(chapter.body))
+    chapter.body = DOMPurify.sanitize(marked.parse(chapter.body) as string)
   })
 }

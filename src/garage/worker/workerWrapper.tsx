@@ -8,7 +8,7 @@ const TIMER_TIMEOUT = 15 * TIMER_CHECK_EVERY
 class Timer {
   private running = false
 
-  constructor(private timedOutCb: () => void) {}
+  constructor(private timedOutCb: () => void) { }
 
   start() {
     if (this.running) {

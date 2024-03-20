@@ -1,0 +1,347 @@
+title: "RR Tutorial Part 2: Coordinating and strategizing"
+startingCode: |
+  # Nothing here yet!
+chapters:
+  - title: Tutorial 1 Recap
+    body: |
+      Welcome to the second part of the RR tutorial! As a recap, this code is what you may have written for the previous tutorial:
+
+      ```
+      def robot(state, unit):
+        opponent = state.objs_by_team(state.other_team)[0]
+        direction = unit.coords.direction_to(opponent.coords)
+
+        if unit.coords.distance_to(opponent.coords) == 1:
+            return Action.attack(direction)
+        else:
+            return Action.move(direction)
+      ```
+
+      If you simulate a battle, you'll see how this code works when your team has multiple robots -- it seems to be doing well! However, writing logic that takes advantage of having teammates can make your team even stronger. That is the focus of this part of the tutorial. 
+
+      Click "next" when you're ready! As a reminder, any program you write here isn't saved to your account, so make sure you back up any programs.
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: Coordinating an attack
+    body: |
+      As a first step in developing robot teamwork, it may be worth changing your program so that all of your robots focus on one enemy at a time. In order to do this, it will be necessary to maintain some state in-between the different turns of the battle. Thankfully, this is simple to do: just use global variables! 
+
+      If we want all of our robots to focus on a particular opponent, the easiest way to identify them is with their ID, which is a unique string that every robot has. At the top of your program, go ahead and add a `target_id` variable, and set it to `"114"` for now. Then, in order for Python to treat `target_id` as global, go ahead and add the `global target_id` statement at the top of your `robot` function (this is a specific Python quirk, without this statement Python will think that `target_id` is actually a local variable!)
+
+      Now that we have access to our target's ID, what's left is to get the information about the robot that has this ID. Thankfully, we can do this with the `state.obj_by_id` function. "Obj" just means any object that contains information about a unit (either a robot unit or a terrain unit). One of the properties that's available on any Obj is `coords`, which is what our code uses in the next line. If you would like to learn more about what properties exist, you can check out the [API reference](https://rr-docs.readthedocs.io/en/latest/api.html#Obj).
+
+      Go ahead and replace the current code after `opponent =` with an invocation to `state.obj_by_id`, and you should see all of your robots attacking one robot! When you run this robot, you should see that your code eventually errors. We'll take care of that soon!
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: Smarter coordination
+    body: |
+      Unfortunately, you may have noticed an issue with the current setup: after our robots defeat the target, there is no more robot with that ID, and so `state.obj_by_id` returns `None` which later causes the code to error. The broader issue is that our code currently lacks the ability to dynamically initialize `target_id` to point to a valid opponent on the map. 
+
+
+      To fix this, the first step is to add some logic for initializing `target_id`. Define a new function (`init_target`) with the same `global` statement as `robot`. The strategy we're going to use in this function is the same as in the last tutorial: fetch every opponent on the enemy team, and then just take the first one. You may recall that the code for doing this is: 
+
+      ```
+      target = state.objs_by_team(state.other_team)[0]
+      ```
+
+      Once we have a robot value in this way, we can get its ID with `target.id`, and use that to initialize the global variable. 
+
+      As a last step to making this work, it's necessary to invoke the `init_target` function at the right time. What time is this? When the value returned by `state.obj_by_id` is `None`. If you call `init_target` at that time, you should notice that your robots all successfully team up on every robot on the enemy team in a successive manner! 
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: Smarter coordination
+    body: |
+      Unfortunately, you may have noticed an issue with the current setup: after our robots defeat the target, there is no more robot with that ID, and so `state.obj_by_id` returns `None` which later causes the code to error. The broader issue is that our code currently lacks the ability to dynamically initialize `target_id` to point to a valid opponent on the map. 
+
+
+      To fix this, the first step is to add some logic for initializing `target_id`. Define a new function (`init_target`) with the same `global` statement as `robot`. The strategy we're going to use in this function is the same as in the last tutorial: fetch every opponent on the enemy team, and then just take the first one. You may recall that the code for doing this is: 
+
+      ```
+      target = state.objs_by_team(state.other_team)[0]
+      ```
+
+      Once we have a robot value in this way, we can get its ID with `target.id`, and use that to initialize the global variable. 
+
+      As a last step to making this work, it's necessary to invoke the `init_target` function at the right time. What time is this? When the value returned by `state.obj_by_id` is `None`. If you call `init_target` at that time, you should notice that your robots all successfully team up on every robot on the enemy team in a successive manner! 
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+  - title: The real deal
+    body: |
+      Your robot program is beginning to have good coordination! Up to this point, the battles that it's gone up against have all had a limited number of pre-defined opponents. If you simulate a battle on this page, you should notice that this has been changed, and robots now spawn throughout the battle. This is how spawning works on the site: each team starts out with five robots in the arena, and then five additional robots spawn for each team every **10** turns. One more detail is that the spawn points are cleared of any preexisting robots every time that spawning occurs.
+
+      Try simulating a battle, and see if you can assess how well your robot does with these new rules.
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 5
+        recurrentUnitNum: 5
+        spawnEvery: 10
+      gridInit: []
+
+  - title: Doing some debugging
+    body: |
+      At this point, it's worth taking a brief detour to talk about the tools that are available to you to gain more insight into what's happening in the battle. These are all grouped in the `Debug` class, and there are currently two: `locate` and `inspect`. 
+
+      Locate is pretty simple: it takes a robot object, and then highlights it in the arena. Go ahead and add a call to `Debug.locate` right after you create the `target` variable, and look for the star in the map!
+
+      Inspect allows you to do more: given a string key and any value type, it adds that pair to the "inspect table" of the robot whose action your program is currently returning. To view this table, you can go into the map, click on a robot, and it will show up in the "Robot data" panel. Go ahead and an entry for the opponent's ID (you'll to pass in a name for this entry and then the actual ID), and you should see that it corresponds to the inspected robot's ID!
+
+      Lastly, if you just need to quickly see some logs, printing works just like in normal Python, and the output shows up below the arena. Note that it's much more grouped together, so it's good for global logs, whereas `Debug.inspect` is good when you need to find something out that's specific to each robot. 
+
+      If you would like more information about debugging, please visit [this page](https://rr-docs.readthedocs.io/en/latest/debugging.html)! Otherwise, press "next".
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 0
+        recurrentUnitNum: 0
+        spawnEvery: 0
+      gridInit:
+        - coords: [ 10, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 15, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 5, 10 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 5 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+        - coords: [ 15, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Blue
+          health: 5
+        - coords: [ 5, 15 ]
+          objType: Unit
+          type: Soldier
+          team: Red
+          health: 5
+
+
+  - title: Going even smarter 
+    body: |
+      You may notice several things when you run this new type of battle, but one specific issue has to do with how you decide which opponent to focus on: although your program successfully hunts down enemies one at a time, it may sometimes do this kind-of ineffectively, choosing a robot in an area where you don't have a lot of your own teammates. To fix this, we need to improve `init_target`.
+
+      As you write your robots, you may develop more and more complicated logic for how to decide which enemies to focus on, but here's a simple rule: for each enemy, sum up the distances from that enemy to every robot on your team, and then target the enemy for whom this sum is lowest. As a challenge, try to write this logic on your own, but here's a hint: you will probably need to use `state.objs_by_team` twice in your code, at one point to retrieve all of the enemies, and then at another point to retrieve all of you teammates. And when you compare a specific teammate with an enemy, you will once again want to use the `coords.distance_to ` function.
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 5
+        recurrentUnitNum: 5
+        spawnEvery: 10
+      gridInit: []
+  - title: The big picture
+    body: |
+      With that, you have learned enough about creating a smart, collaborative robot program to begin competing on RR! Although you will have to figure out your own style for writing these programs, one way I suggest thinking about it is to split your logic on two levels: 
+
+      On the "micro" level (which is more what we did in Tutorial 1), consider how each specific robot unit interacts with its surroundings. When there is an enemy right next to it, how does it respond? And how does it move overall?
+
+      On the "macro" level (which is more what we did in this tutorial), consider the long-term strategy of your robot. You may ask yourself about what the overall strategy of your program is, and how your program will respond to the way that the arena changes over the course of a battle. At first, it's only 5 robots on each side, but after a number of turns the arena fills up with a mix of bots from both teams clashing with each other. How do you maintain a lead under these circumstances? You need a strategy, cooperation, and some creativity too!
+
+      As you write your robot, you may find it helpful to reference the [API documentation](https://rr-docs.readthedocs.io/en/latest/api.html), or use the [rumblebot CLI tool](https://rr-docs.readthedocs.io/en/latest/rumblebot.html). If you look at the leaderboard, you will notice that some robots are open source, and that can be a great source of inspiration. Lastly, the [Discord](https://discord.gg/cNwVHys9va) is a great place to meet your opponents and discuss strategy, so feel free to stop by and say hi!
+
+    opponentCode: |
+      import random
+      def robot(state, unit):
+          if state.turn % 3 == 0:
+              direction = random.choice([Direction.North, Direction.South, Direction.East, Direction.West])
+              return Action.move(direction)
+    opponentLang: Python
+    simulationSettings:
+      spawnSettings:
+        initialUnitNum: 5
+        recurrentUnitNum: 5
+        spawnEvery: 10
+      gridInit: []

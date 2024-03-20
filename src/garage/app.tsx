@@ -20,7 +20,7 @@ if (process.env['NODE_ENV'] !== 'production' && module.hot) {
     null,
     '',
     'dist/worker.js',
-    !!process.env['TUTORIAL_URL'],
+    process.env['TUTORIAL_PART'] || null,
     process.env['TUTORIAL_URL'] || null,
   )
 
@@ -65,7 +65,7 @@ customElements.define(
         throw new Error('No assetsPath attribute found')
       }
 
-      const tutorial = !!this.getAttribute('tutorial')
+      const tutorial = this.getAttribute('tutorial')
       let tutorialUrl = null
       if (tutorial) {
         const urlSearchParams = new URLSearchParams(window.location.search)
@@ -98,7 +98,7 @@ function initSolid(
   siteInfo: SiteInfo | null,
   assetsPath: string,
   workerUrl: string,
-  tutorial: boolean,
+  tutorial: string | null,
   tutorialUrl: string | null,
 ) {
   render(

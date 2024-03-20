@@ -3,7 +3,7 @@ import { createStore, SetStoreFunction } from 'solid-js/store'
 import { captureException } from '@sentry/browser'
 import { WorkerWrapper } from './worker/workerWrapper'
 import { GameMode, Lang, OUR_TEAM } from './utils/constants'
-import { CallbackParams, EvalInfo, SimulationSettings } from './worker/match.worker'
+import { CallbackParams, EvalInfo } from './worker/match.worker'
 import {
   KeyMap,
   loadSettings,
@@ -34,8 +34,10 @@ export interface ErrorLoc {
   end: TextLoc | null
 }
 
+export type TutorialSource = { type: "url", value: string } | { type: "builtin", value: "1" | "2" }
+
 export interface TutorialState {
-  url: string | null
+  source: TutorialSource
   tutorial: Tutorial | null
   loadingErrored: boolean
   currentChapter: number
@@ -62,7 +64,7 @@ interface ProviderProps {
   code: string | null
   lang: Lang
   siteInfo: SiteInfo | null
-  tutorial: boolean
+  tutorial: string | null
   tutorialUrl: string | null
 }
 
@@ -88,8 +90,15 @@ const initialState = ({
 
   let tutorialState: TutorialState | null = null
   if (tutorial) {
+    let source: TutorialSource | null = null
+    if (tutorialUrl != null) {
+      source = { type: "url", value: tutorialUrl }
+    } else {
+      if (tutorial !== "1" && tutorial !== "2") throw new Error("Unknown tutorial part")
+      source = { type: "builtin", value: tutorial }
+    }
     tutorialState = {
-      url: tutorialUrl,
+      source,
       tutorial: null,
       currentChapter: 0,
       loadingErrored: false,
@@ -283,7 +292,7 @@ export const Provider = (props: ParentProps<ProviderProps>) => {
   }
 
   if (state.tutorialState) {
-    fetchTutorial(state.tutorialState.url).then((tutorial) => {
+    fetchTutorial(state.tutorialState.source).then((tutorial) => {
       if (tutorial) {
         const startingCode = localStorage.getItem(TUTORIAL_CODE_KEY) || tutorial.startingCode
 

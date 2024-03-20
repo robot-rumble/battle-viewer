@@ -162,7 +162,7 @@ chapters:
     body: |
       Great job! You have successfully beaten one "random-bot". How about beating four? If you simulate for 100 turns, your program should actually succeed at doing this!
 
-      This brings us to the conclusion of this first part of the Robot Rumble tutorial, congrats on completing it! You now have the tools to write robots that perform basic movements and attacks. In the next part (under construction), we will look at what is necessary in order to control an entire team of your own robots.
+      This brings us to the conclusion of this first part of the Robot Rumble tutorial, congrats on completing it! You now have the tools to write robots that perform basic movements and attacks. In the next part, we will look at what is necessary in order to control an entire team of your own robots.
 
       Click [here](https://robotrumble.org/tutorial) to return to the tutorial menu.
     opponentCode: |

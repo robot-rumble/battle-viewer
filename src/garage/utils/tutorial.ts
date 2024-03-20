@@ -4,7 +4,9 @@ import { captureException } from '@sentry/browser'
 import yaml from 'js-yaml'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
-import DEFAULT_TUTORIAL from './tutorial.yaml'
+import DEFAULT_TUTORIAL_1 from './tutorial1.yaml'
+import DEFAULT_TUTORIAL_2 from './tutorial2.yaml'
+import { TutorialSource } from '../store'
 
 export interface Chapter {
   title: string
@@ -21,14 +23,18 @@ export interface Tutorial {
 }
 
 export const fetchTutorial = async (
-  url: string | null,
+  source: TutorialSource
 ): Promise<Tutorial | null> => {
   let string
-  if (url) {
-    string = await fetchTutorialStringFromUrl(url)
+  if (source.type === "url") {
+    string = await fetchTutorialStringFromUrl(source.value)
     if (!string) return null
   } else {
-    string = DEFAULT_TUTORIAL
+    if (source.value === "1") {
+      string = DEFAULT_TUTORIAL_1
+    } else {
+      string = DEFAULT_TUTORIAL_2
+    }
   }
 
   let tutorial = null

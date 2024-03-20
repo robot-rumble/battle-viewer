@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import '../../polyfill.js'
+// import { WASI } from '@wasmer/wasi'
 import { WASI } from '@wasmer/wasi/lib/index.esm.js'
 import { WasmFs } from '@wasmer/wasmfs'
 import * as Comlink from 'comlink'

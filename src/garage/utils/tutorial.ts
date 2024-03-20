@@ -65,6 +65,8 @@ const fetchTutorialStringFromUrl = async (
 
 const processTutorial = (tutorial: Tutorial) => {
   tutorial.chapters.forEach((chapter) => {
-    chapter.body = DOMPurify.sanitize(marked.parse(chapter.body))
+    // When a configuration option is set, marked.parse will return a promise
+    // https://marked.js.org/using_advanced
+    chapter.body = DOMPurify.sanitize(marked.parse(chapter.body) as string)
   })
 }

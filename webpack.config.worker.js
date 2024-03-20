@@ -26,20 +26,17 @@ module.exports = createConfigBase(dist, {
       logic: path.join(logicWasmDist, 'browser-runner'),
     },
   },
-  // externals: {
-  //   'wasmer_wasi_js_bg.wasm': true
-  // },
   plugins:
     process.env.NODE_ENV !== 'production'
       ? [
-        new CopyPlugin({
-          patterns: [
-            {
-              from: path.join(logicWasmDist, 'lang-runners'),
-              to: dist,
-            },
-          ],
-        }),
-      ]
+          new CopyPlugin({
+            patterns: [
+              {
+                from: path.join(logicWasmDist, 'lang-runners'),
+                to: dist,
+              },
+            ],
+          }),
+        ]
       : [],
 })

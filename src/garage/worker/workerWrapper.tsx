@@ -2,8 +2,8 @@ import * as Comlink from 'comlink'
 import { Lang } from '../utils/constants'
 import { CallbackParams, MatchWorker, RunParams } from './match.worker'
 
-const TIMER_CHECK_EVERY = 1000
-const TIMER_TIMEOUT = 15 * TIMER_CHECK_EVERY
+const TIMER_CHECK_EVERY = 500
+const TIMER_TIMEOUT = 15000
 
 class Timer {
   private running = false
@@ -56,9 +56,12 @@ export class WorkerWrapper {
   }
 
   changeLang(lang: Lang, assetsPath: string, workerUrl: string) {
-    this.worker.terminate()
-    this.lang = lang
-    this.initWorkers(assetsPath, workerUrl)
+    this.timer.finish()
+    setTimeout(() => {
+      this.worker.terminate()
+      this.lang = lang
+      this.initWorkers(assetsPath, workerUrl)
+    }, TIMER_CHECK_EVERY)
   }
 
   start(params: RunParams) {

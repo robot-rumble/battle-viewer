@@ -1,4 +1,4 @@
-module Grid exposing (Msg(..), view)
+module Grid exposing (Data, Msg(..), view)
 
 import Data
 import Dict
@@ -32,7 +32,15 @@ type Msg
 -- VIEW
 
 
-view : Maybe ( Data.ProgressData, Maybe Data.Id, Maybe Data.Team ) -> Html Msg
+type alias Data =
+    { data : Data.ProgressData
+    , selectedId : Maybe Data.Id
+    , maybeTeam : Maybe Data.Team
+    , gameMode : Data.GameMode
+    }
+
+
+view : Maybe Data -> Html Msg
 view maybeData =
     let
         gridTemplateRows =
@@ -50,8 +58,15 @@ view maybeData =
           <|
             List.append gameGrid
                 (case maybeData of
-                    Just ( data, selectedId, maybeTeam ) ->
-                        gameObjs data selectedId maybeTeam
+                    Just { data, selectedId, maybeTeam, gameMode } ->
+                        (case gameMode of
+                            Data.Hill ->
+                                hillDivs
+
+                            _ ->
+                                []
+                        )
+                            ++ gameObjs data selectedId maybeTeam
 
                     Nothing ->
                         []
@@ -74,6 +89,23 @@ gameGrid =
                     div [ class "grid-col", style "grid-area" <| String.fromInt x ++ "/ 1 / auto / end" ] []
                 )
         )
+
+
+hillCoords =
+    [ ( 9, 9 ), ( 8, 9 ), ( 8, 8 ), ( 9, 8 ), ( 10, 8 ), ( 10, 9 ), ( 10, 10 ), ( 9, 10 ), ( 8, 10 ) ]
+
+
+hillDivs =
+    hillCoords
+        |> List.map
+            (\( x, y ) ->
+                div
+                    [ class "hill"
+                    , style "grid-column" <| String.fromInt (x + 1)
+                    , style "grid-row" <| String.fromInt (y + 1)
+                    ]
+                    []
+            )
 
 
 gameObjs : Data.ProgressData -> Maybe Data.Id -> Maybe Data.Team -> List (Html Msg)

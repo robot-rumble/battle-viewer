@@ -28,6 +28,7 @@ type alias Model =
     , logs : List String
     , error : Maybe Error
     , userOwnsOpponent : Bool
+    , gameMode : Data.GameMode
     }
 
 
@@ -42,8 +43,8 @@ type alias ErrorDetails =
     }
 
 
-init : Int -> Maybe Data.Team -> Bool -> Bool -> Model
-init turnNum maybeTeam userOwnsOpponent hasErrored =
+init : Int -> Maybe Data.Team -> Bool -> Bool -> Data.GameMode -> Model
+init turnNum maybeTeam userOwnsOpponent hasErrored gameMode =
     -- hasErrored is for setting the state to display an internal message
     -- in the case that such a message has been reported 'from the outside'
     -- through a port. This happens in the case of worker errors.
@@ -55,7 +56,7 @@ init turnNum maybeTeam userOwnsOpponent hasErrored =
             else
                 Nothing
     in
-    Model Array.empty turnNum 0 Nothing maybeTeam [] error userOwnsOpponent
+    Model Array.empty turnNum 0 Nothing maybeTeam [] error userOwnsOpponent gameMode
 
 
 
@@ -295,7 +296,7 @@ viewMain maybeModel =
                             Array.get model.currentTurn model.turns
                                 |> Maybe.map
                                     (\state ->
-                                        ( state, model.selectedUnit |> Maybe.map (\unit -> (first unit.obj).id), model.team )
+                                        Grid.Data state (model.selectedUnit |> Maybe.map (\unit -> (first unit.obj).id)) model.team model.gameMode
                                     )
                         )
                 )

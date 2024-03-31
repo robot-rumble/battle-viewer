@@ -13,8 +13,9 @@ customElements.define(
       const rawData = this.getAttribute('data')
       const team = this.getAttribute('team') || null
       const userOwnsOpponent = this.getAttribute('user-owns-opponent')
-      if (!rawData || !userOwnsOpponent) {
-        throw new Error('No data|userOwnsOpponent data attribute found')
+      const gameMode = this.getAttribute('game-mode')
+      if (!rawData || !userOwnsOpponent || !gameMode) {
+        throw new Error('No data|userOwnsOpponent|gameMode data attribute found')
       }
 
       const data = JSON.parse(
@@ -29,6 +30,7 @@ customElements.define(
           data,
           team,
           userOwnsOpponent: userOwnsOpponent === 'true',
+          gameMode
         },
       })
 

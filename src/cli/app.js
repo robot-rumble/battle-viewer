@@ -33,6 +33,7 @@ function init(flags) {
           robotId: 0,
         },
       },
+      gameMode: flags.gameMode
     },
   })
 

@@ -266,6 +266,10 @@
         border: $border-3;
       }
 
+      .hill {
+        background: var(--gold);
+      }
+
       .obj {
         position: relative;
         border: 1px solid var(--grey-3);

@@ -28,6 +28,7 @@ type alias Model =
     , takingTooLong : Bool
     , unsupported : Bool
     , tutorial : Bool
+    , gameMode : Data.GameMode
     }
 
 
@@ -49,8 +50,8 @@ type alias RenderStateVal =
     ( Int, GridViewer.Model )
 
 
-init : Bool -> Maybe Data.Team -> Bool -> Bool -> OpponentSelect.Flags -> ( Model, Cmd Msg )
-init isRunnerLoading team unsupported tutorial opponentSelectFlags =
+init : Bool -> Maybe Data.Team -> Bool -> Bool -> OpponentSelect.Flags -> Data.GameMode -> ( Model, Cmd Msg )
+init isRunnerLoading team unsupported tutorial opponentSelectFlags gameMode =
     let
         ( model, cmd ) =
             OpponentSelect.init opponentSelectFlags
@@ -62,7 +63,7 @@ init isRunnerLoading team unsupported tutorial opponentSelectFlags =
             else
                 NoRender
     in
-    ( Model Nothing Nothing renderState model False team False unsupported tutorial, cmd |> Cmd.map GotOpponentSelectMsg )
+    ( Model Nothing Nothing renderState model False team False unsupported tutorial gameMode, cmd |> Cmd.map GotOpponentSelectMsg )
 
 
 
@@ -72,6 +73,7 @@ init isRunnerLoading team unsupported tutorial opponentSelectFlags =
 type Msg
     = FinishedDownloadingRunner
     | FinishedLoadingRunner
+    | ChangeGameMode String
     | GotOutput Data.OutcomeData
     | GotProgress Data.ProgressData
     | GotInternalError
@@ -144,7 +146,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team (userOwnsOpponent model) False
+                                            GridViewer.init turn model.team (userOwnsOpponent model) False model.gameMode
                                                 |> GridViewer.update (GridViewer.GotErrors output.errors)
                                     in
                                     Render ( turn, viewerState )
@@ -165,7 +167,7 @@ update msg model =
                                 Initializing turn ->
                                     let
                                         viewerState =
-                                            GridViewer.init turn model.team (userOwnsOpponent model) False
+                                            GridViewer.init turn model.team (userOwnsOpponent model) False model.gameMode
                                                 |> GridViewer.update (GridViewer.GotTurn progress)
                                     in
                                     Render ( turn, viewerState )
@@ -189,12 +191,17 @@ update msg model =
                 GotInternalError ->
                     let
                         viewerState =
-                            GridViewer.init 0 model.team (userOwnsOpponent model) True
+                            GridViewer.init 0 model.team (userOwnsOpponent model) True model.gameMode
                     in
                     { model | renderState = InternalError viewerState, takingTooLong = False }
 
                 GotTooLong ->
                     { model | takingTooLong = True }
+
+                ChangeGameMode gameModeString ->
+                    { model
+                        | gameMode = Data.decodeGameMode gameModeString
+                    }
 
                 _ ->
                     model

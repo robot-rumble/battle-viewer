@@ -14,7 +14,7 @@ import {
 import { SiteInfo, useStore } from '../store'
 import Bar from './Bar'
 import { Editor } from './Editor'
-import { OUR_TEAM } from '../utils/constants'
+import { GameMode, OUR_TEAM } from '../utils/constants'
 import Tutorial from './Tutorial'
 
 interface Command<T> {
@@ -29,6 +29,7 @@ interface ElmAppPorts {
   getOutput: Command<any>
   getProgress: Command<any>
   getInternalError: Command<null>
+  getChangeGameMode: Command<GameMode>
   finishedDownloading: Command<null>
   finishedLoading: Command<null>
   getTooLong: Command<null>
@@ -100,8 +101,11 @@ function init(node: HTMLElement) {
       team: OUR_TEAM,
       unsupported: !state.compatible,
       tutorial: state.tutorialState !== null,
+      gameMode: state.settings.gameMode
     },
   }) as ElmApp
+
+  actions.initSetGameModeHook(app.ports.getChangeGameMode.send)
 
   if (state.compatible) {
     const workerCb = (params: CallbackParams) => {

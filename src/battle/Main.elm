@@ -34,7 +34,7 @@ port reportDecodeError : String -> Cmd msg
 
 
 type alias Flags =
-    { data : Decode.Value, team : Maybe Data.Team, userOwnsOpponent : Bool }
+    { data : Decode.Value, team : Maybe Data.Team, userOwnsOpponent : Bool, gameMode : String }
 
 
 init : Flags -> ( Model, Cmd Msg )
@@ -54,7 +54,7 @@ init flags =
                     List.length outputData.turns - 1
 
                 gridViewerModel =
-                    GridViewer.init turnNum flags.team flags.userOwnsOpponent False
+                    GridViewer.init turnNum flags.team flags.userOwnsOpponent False (Data.decodeGameMode flags.gameMode)
             in
             ( Just
                 (List.foldl (\turn -> GridViewer.update (GridViewer.GotTurn turn)) gridViewerModel outputData.turns

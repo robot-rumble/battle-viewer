@@ -40,6 +40,7 @@ type alias Flags =
     , apiContext : Api.ContextFlag
     , unsupported : Bool
     , tutorial : Bool
+    , gameMode : String
     }
 
 
@@ -50,7 +51,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( newModel, newCmd ) =
-            BattleViewer.init True flags.team flags.unsupported flags.tutorial (OpponentSelect.Flags apiContext False)
+            BattleViewer.init True flags.team flags.unsupported flags.tutorial (OpponentSelect.Flags apiContext False) (Data.decodeGameMode flags.gameMode)
     in
     ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 
@@ -152,6 +153,7 @@ subscriptions _ =
     Sub.batch
         [ getOutput GotOutput
         , getProgress GotProgress
+        , getChangeGameMode (\gameMode -> GotRenderMsg (BattleViewer.ChangeGameMode gameMode))
         , getInternalError (always <| GotRenderMsg BattleViewer.GotInternalError)
         , getTooLong (always <| GotRenderMsg BattleViewer.GotTooLong)
         , finishedDownloading (always <| GotRenderMsg BattleViewer.FinishedDownloadingRunner)
@@ -163,6 +165,9 @@ port getOutput : (Decode.Value -> msg) -> Sub msg
 
 
 port getProgress : (Decode.Value -> msg) -> Sub msg
+
+
+port getChangeGameMode : (String -> msg) -> Sub msg
 
 
 port startEval : Encode.Value -> Cmd msg

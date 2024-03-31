@@ -38,6 +38,7 @@ type alias Flags =
     { code : String
     , team : Maybe Data.Team
     , apiContext : Api.ContextFlag
+    , gameMode : String
     }
 
 
@@ -48,7 +49,7 @@ init flags =
             Api.contextFlagtoContext flags.apiContext
 
         ( newModel, newCmd ) =
-            BattleViewer.init False flags.team False False (OpponentSelect.Flags apiContext True)
+            BattleViewer.init False flags.team False False (OpponentSelect.Flags apiContext True) (Data.decodeGameMode flags.gameMode)
     in
     ( Model newModel False, Cmd.map GotRenderMsg newCmd )
 

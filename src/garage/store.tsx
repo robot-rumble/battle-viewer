@@ -56,6 +56,7 @@ interface State {
   workerUrl: string
   tutorialState: TutorialState | null
   compatible: boolean
+  setGameModeHook: ((gameMode: GameMode) => void) | null
 }
 
 interface ProviderProps {
@@ -118,6 +119,7 @@ const initialState = ({
     siteInfo,
     compatible,
     tutorialState,
+    setGameModeHook: null
   }
 }
 
@@ -184,9 +186,13 @@ const createActions = (state: State, setState: SetStoreFunction<State>) => ({
     setState('settings', { timeoutEnabled })
     saveSettings(state.settings)
   },
+  initSetGameModeHook(setGameModeHook: (gameMode: GameMode) => void) {
+    setState({ setGameModeHook })
+  },
   setGameMode(gameMode: GameMode) {
     setState('settings', { gameMode })
     saveSettings(state.settings)
+    state.setGameModeHook?.(gameMode)
   },
   initWorker(
     finishedDownloadingCb: () => void,

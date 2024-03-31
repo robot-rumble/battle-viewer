@@ -448,3 +448,25 @@ simulationSettingsEncoder simulationSettings =
         , ( "recurrentUnitNum", E.int simulationSettings.recurrentUnitNum )
         , ( "spawnEvery", E.int simulationSettings.spawnEvery )
         ]
+
+
+type GameMode
+    = Normal
+    | NormalHeal
+    | Hill
+
+
+decodeGameMode : String -> GameMode
+decodeGameMode mode =
+    case mode of
+        "Normal" ->
+            Normal
+
+        "NormalHeal" ->
+            NormalHeal
+
+        "Hill" ->
+            Hill
+
+        _ ->
+            Normal

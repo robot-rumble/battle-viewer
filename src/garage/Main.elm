@@ -197,7 +197,7 @@ port getTooLong : (() -> msg) -> Sub msg
 
 view : Model -> Html Msg
 view model =
-    div [] <|
+    div [ style "height" "100% " ] <|
         (if model.error then
             [ div [ class "_error error mt-4 mb-4" ] [ text "Internal error! Something broke. This is automatically recorded, so please hang tight while we figure this out." ] ]
 

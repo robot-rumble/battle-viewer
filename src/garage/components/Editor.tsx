@@ -88,7 +88,7 @@ class CodeMirrorWrapper {
       // if the line is empty, set ch to 1 so that the error indicator is still shown
       ch: errorLoc.end?.[1]
         ? errorLoc.end?.[1] - 1
-        : this.editor.getLine(from.line).length || 1,
+        : this.editor.getLine(from.line)?.length || 1,
     }
 
     let mark = this.editor.markText(from, to, {

@@ -87,7 +87,7 @@ class WasiRunner {
         logs,
       }
     } catch (e) {
-      console.error('error while running turn', e, e && e.stack)
+      console.error('Error while running turn: ', JSON.stringify(e))
       console.error(fs.readFileSync('/dev/stderr', 'utf8'))
       return {
         output: new TextEncoder().encode('{"Err":{"InternalError":null}}'),

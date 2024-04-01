@@ -55,9 +55,6 @@ const Bar = () => {
         </Switch>
       </div>
       <div class="d-flex align-items-center">
-        <a class="me-4" href="/builtin" target="_blank">
-          your robots
-        </a>
         <a class="me-4" href="/boards/" target="_blank">
           publish to a board
         </a>
